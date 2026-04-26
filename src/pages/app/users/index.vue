@@ -168,7 +168,7 @@ const handleCreateUser = async (user: User) => {
     const { $api } = useNuxtApp();
     await $api("/api/auth/register", {
       method: "POST",
-      body: { ...user, salonId: 2 },
+      body: { ...user },
     });
   } catch (err) {
     console.error("Error: ", err);

@@ -133,7 +133,7 @@ const handleCreateBranch = async (branch: Branch) => {
     const { $api } = useNuxtApp();
     await $api("/api/branches", {
       method: "POST",
-      body: { ...branch, salonId: 1},
+      body: { ...branch },
     });
     closeBranchDrawer();
   } catch (err) {
