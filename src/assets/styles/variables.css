@@ -1,0 +1,18 @@
+:root {
+  --color-primary: #eb5889; /* Rosa principal */
+  --color-primary-light: #F48FB1;
+  --color-background: #FFFFFF;
+  --color-surface: #F5F5F5;
+
+  --color-text: #212121;
+  --color-text-secondary: #9E9E9E;
+
+  --color-success: #81C784;
+  --color-warning: #FFD54F;
+  --color-info: #4FC3F7;
+  --color-error: #E57373;
+
+  --navbar-bg: var(--color-primary);
+  --sidebar-bg: #212121;
+  --sidebar-text: #FFFFFF;
+}
