@@ -91,7 +91,7 @@ const rowOptions = ref<Array<TableRowOption>>([
   {
     action: 'branches',
     color: 'primary',
-    icon: 'mdi-source-branch ',
+    icon: 'mdi-source-branch',
   },
   {
     action: 'delete',

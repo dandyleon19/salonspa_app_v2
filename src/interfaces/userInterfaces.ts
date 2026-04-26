@@ -1,14 +1,15 @@
 export interface User {
-  id: string
-  first_name: string
-  last_name: string
+  id?: string
+  firstName: string
+  lastName: string
   email: string
-  commission_percentage: number | string
+  isActive: boolean
+  commissionPercentage: number | string
   password: string
-  salon: string
+  passwordConfirmation?: string
 }
 
 export interface userDataModalForm {
-  action: "create" | "update" | "changePassword" | "changeBranchOffices"
+  action: "create" | "update" | "changePassword"
   rowId?: number | string
 }

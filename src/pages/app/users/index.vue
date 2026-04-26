@@ -1,5 +1,4 @@
 <template>
-  <pre>showDeleteDialog: {{ showDeleteDialog }}</pre>
   <AppTable
     title="Usuarios"
     subtitle="Lista de usuarios registrados"
@@ -70,9 +69,11 @@ const userToRemove = ref<User>()
 
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
-  { title: "Nombre", key: "first_name" },
+  { title: "Nombre", key: "firstName" },
+  { title: "Nombre", key: "lastName" },
   { title: "Email", key: "email" },
-  { title: "Estado", key: "is_active" },
+  // { title: "Activo", key: "isActive" },
+  { title: "% Comisión", key: "commissionPercentage" },
   { title: "Acciones", key: "actions", sortable: false },
 ]);
 
@@ -86,11 +87,6 @@ const rowOptions = ref<Array<TableRowOption>>([
     action: 'changePassword',
     color: 'error',
     icon: 'mdi-lock-reset',
-  },
-  {
-    action: 'changeBranchOffices',
-    color: 'primary',
-    icon: 'mdi-format-list-bulleted',
   },
   {
     action: 'delete',
@@ -142,7 +138,6 @@ const handleRowActionButton = (user: User, action: string): void => {
   switch (action) {
     case 'update':
     case 'changePassword':
-    case 'changeBranchOffices':
       dataModalForm.value.action = action
       dataModalForm.value.rowId = user.id
       openUserDrawer.value = true;
@@ -171,9 +166,9 @@ const handleCreateUser = async (user: User) => {
   try {
     loading.value = true;
     const { $api } = useNuxtApp();
-    await $api("/api/users", {
+    await $api("/api/auth/register", {
       method: "POST",
-      body: { ...user },
+      body: { ...user, salonId: 2 },
     });
   } catch (err) {
     console.error("Error: ", err);
@@ -189,11 +184,12 @@ const handleUpdateUser = async (user: User) => {
     const { $api } = useNuxtApp();
     await $api(`/api/users/${user.id}`, {
       method: "PUT",
-      body: { 
-        first_name: user.first_name,
-        last_name: user.last_name,
+      body: {
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
-        commission_percentage: user.commission_percentage,
+        isActive: user.isActive,
+        commissionPercentage: user.commissionPercentage,
       },
     });
   } catch (err) {

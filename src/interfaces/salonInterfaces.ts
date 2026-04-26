@@ -5,11 +5,11 @@ export interface Salon {
     rucNumber: string
     fiscalAddress: string
     phone?: string
-    branches: Branch[]
+    branches?: Branch[]
 }
 
 export interface Branch {
-    id?: number
+    id?: string
     name: string
     address: string
     city: string
@@ -18,6 +18,12 @@ export interface Branch {
 
 export interface salonDataModalForm {
     action: "create" | "update" | "branches"
+    rowId?: number | string
+    branches?: any
+}
+
+export interface branchDataModalForm {
+    action: "create" | "update"
     rowId?: number | string
     branches?: any
 }

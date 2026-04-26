@@ -1,2 +1,5 @@
 export * from './modules/user'
 export * from './modules/salon'
+export * from './modules/branch'
+export * from './modules/client'
+export * from './modules/clinicalRecord'

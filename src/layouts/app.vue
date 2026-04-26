@@ -36,9 +36,12 @@ const rail = ref<boolean>(false);
 
 const items = [
     { title: "Dashboard", icon: "mdi-view-dashboard", to: "/app" },
-    { title: "Salones", icon: "mdi-account", to: "/app/salons" },
-    { title: "Usuarios", icon: "mdi-account", to: "/app/users" },
-    { title: "Reportes", icon: "mdi-file-chart", to: "/app/reports" },
-    { title: "Ajustes", icon: "mdi-cog", to: "/app/settings" },
+    { title: "Salones", icon: "mdi-domain", to: "/app/salons" },
+    { title: "Sucursales", icon: "mdi-account-cog", to: "/app/branches" },
+    { title: "Usuarios", icon: "mdi-account-cog", to: "/app/users" },
+    { title: "Clientes", icon: "mdi-account", to: "/app/clients" },
+    { title: "Historiales Clínicos", icon: "mdi-folder-heart-outline", to: "/app/clinical-records" },
+    /*{ title: "Reportes", icon: "mdi-file-chart", to: "/app/reports" },
+    { title: "Ajustes", icon: "mdi-cog", to: "/app/settings" },*/
 ];
 </script>

@@ -23,4 +23,19 @@ export const validationRules = {
     (password: string) =>
     (value: string) =>
       value === password || "Las contraseñas no coinciden",
+
+  ruc: (v: string) =>
+      !v ||
+      /^(10|15|16|17|20)\d{9}$/.test(v) ||
+      'RUC inválido',
+
+  phone: (v: string) =>
+      !v ||
+      /^\d{9}$/.test(v) ||
+      'Teléfono inválido (9 dígitos)',
+
+  onlyNumbers: (v: string) =>
+      !v ||
+      /^\d+$/.test(v) ||
+      'Solo números'
 };
