@@ -4,7 +4,7 @@
     :location="location"
     :temporary="temporary"
     :width="computedWidth"
-    class="pa-4"
+    class="pa-5"
   >
     <!-- LOADING OVERLAY -->
     <v-overlay

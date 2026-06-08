@@ -5,9 +5,14 @@
     <v-col
         cols="12" md="7" xl="4"
         offset-xl="7" offset-md="5">
-      <v-card>
+      <v-card class="overflow-hidden">
         <v-card-text>
-          <p class="text-center v-login__title">Iniciar Sesion</p>
+          <div class="d-flex flex-column align-center mb-4">
+            <v-avatar size="72" rounded="lg" class="mb-3">
+              <v-img src="/apple-touch-icon.png" alt="Marité Salón & Spa" cover />
+            </v-avatar>
+            <p class="text-center v-login__title mb-0">Iniciar Sesión</p>
+          </div>
           <LoginForm/>
         </v-card-text>
       </v-card>
@@ -17,7 +22,11 @@
 
 <script setup lang="ts">
 useHead({
-  title: "Login"
+  title: "Login",
+  link: [
+    { rel: "icon", href: "/favicon.ico", sizes: "any" },
+    { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+  ],
 })
 </script>
 

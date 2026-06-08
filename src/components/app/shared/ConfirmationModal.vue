@@ -31,7 +31,9 @@
 
       <!-- ACTIONS -->
       <v-card-actions class="justify-end">
-        <v-btn variant="text" @click="handleCancelDialog"> Cancelar </v-btn>
+        <v-btn variant="text" color="primary" @click="handleCancelDialog">
+          Cancelar
+        </v-btn>
 
         <v-btn
           color="error"

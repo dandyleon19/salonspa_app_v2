@@ -1,52 +1,79 @@
 <template>
-  <v-form @submit.prevent="onSubmit" ref="salonFormRef" v-model="isValid" lazy-validation class="pa-4">
-    <v-text-field
-        v-model="salon.name"
-        label="Nombre del Salón"
-        :rules="[rules.required]"
-    />
+  <v-form
+    ref="salonFormRef"
+    v-model="isValid"
+    class="app-form"
+    lazy-validation
+    @submit.prevent="onSubmit"
+  >
+    <AppFormSection title="Información del salón" subtitle="Datos generales y fiscales">
+      <v-row dense>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="salon.name"
+            v-bind="field"
+            label="Nombre del salón"
+            :rules="[rules.required]"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="salon.socialReason"
+            v-bind="field"
+            label="Razón social"
+            :rules="[rules.required]"
+          />
+        </v-col>
+        <v-col cols="12">
+          <v-text-field
+            v-model="salon.fiscalAddress"
+            v-bind="field"
+            label="Dirección fiscal"
+            prepend-inner-icon="mdi-map-marker-outline"
+            :rules="[rules.required]"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="salon.rucNumber"
+            v-bind="field"
+            label="RUC"
+            :rules="[rules.required]"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="salon.phone"
+            v-bind="field"
+            label="Teléfono"
+            prepend-inner-icon="mdi-phone-outline"
+            :rules="[rules.required]"
+          />
+        </v-col>
+      </v-row>
+    </AppFormSection>
 
-    <v-text-field
-        v-model="salon.socialReason"
-        label="Razón Social"
-        :rules="[rules.required]"
-    />
-
-    <v-text-field
-        v-model="salon.fiscalAddress"
-        label="Dirección Fiscal"
-        :rules="[rules.required]"
-    />
-
-    <v-text-field
-        v-model="salon.rucNumber"
-        label="Ruc"
-        :rules="[rules.required]"
-    />
-
-    <v-text-field
-        v-model="salon.phone"
-        label="Teléfono"
-        :rules="[rules.required]"
-    />
-
-    <div class="d-flex justify-end mt-4">
-      <v-btn type="submit" color="primary">
+    <AppFormActions>
+      <v-btn
+        type="submit"
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        class="app-form-btn--primary"
+      >
         {{ actionLabel }}
       </v-btn>
-    </div>
+    </AppFormActions>
   </v-form>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
-import type { ResponseInterface } from "~/interfaces/appInterfaces"
 import type { Salon, salonDataModalForm } from "~/interfaces/salonInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
-import { useSalonsStore } from "~/store";
+import { useSalonsStore } from "~/store"
 
-// Composables
-const salonsStore = useSalonsStore();
+const { field } = useFormFields()
+const salonsStore = useSalonsStore()
 
 const props = defineProps<{
   dataModalForm: salonDataModalForm
@@ -56,48 +83,43 @@ const emit = defineEmits<{
   (e: "create" | "update" | "branches", salon: Salon): void
 }>()
 
-const isValid = ref<boolean>(false);
-const salonFormRef = ref<any>(null);
+const isValid = ref(false)
+const salonFormRef = ref<any>(null)
 
 const salon = ref<Salon>({
   name: "",
   socialReason: "",
   phone: "",
   rucNumber: "",
-  fiscalAddress: ""
+  fiscalAddress: "",
 })
 
 const actionLabel = computed(() => {
   switch (props.dataModalForm.action) {
     case "create":
-      return "Crear nuevo salón"
+      return "Crear salón"
     case "update":
       getSalon()
-      return "Actualizar salón"
+      return "Guardar cambios"
     default:
       return "Guardar"
   }
 })
 
-// Computed
-const salonsList = computed(() => {
-  return salonsStore.list;
-});
+const salonsList = computed(() => salonsStore.data?.content ?? [])
 
 async function getSalon() {
   try {
-    const getSalon = salonsList.value.find(salon => salon.id == props.dataModalForm.rowId)
-    salon.value = { ...getSalon } as Salon
+    const found = salonsList.value.find((s) => s.id == props.dataModalForm.rowId)
+    salon.value = { ...found } as Salon
   } catch (err) {
     console.error(err)
   }
 }
 
 const onSubmit = async () => {
-  const valid = await salonFormRef.value?.validate();
-  if (!valid.valid) {
-    return;
-  }
+  const valid = await salonFormRef.value?.validate()
+  if (!valid.valid) return
   emit(props.dataModalForm.action, salon.value)
 }
 </script>

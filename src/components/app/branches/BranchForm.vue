@@ -1,43 +1,63 @@
 <template>
-  <v-form @submit.prevent="onSubmit" ref="branchFormRef" v-model="isValid" lazy-validation class="pa-4">
-    <v-text-field
-        v-model="branch.name"
-        label="Nombre"
-        density="comfortable"
-        :rules="[rules.required]"
-    />
+  <v-form
+    ref="branchFormRef"
+    v-model="isValid"
+    class="app-form"
+    lazy-validation
+    @submit.prevent="onSubmit"
+  >
+    <AppFormSection title="Sucursal" subtitle="Ubicación y datos de contacto">
+      <v-row dense>
+        <v-col cols="12">
+          <v-text-field
+            v-model="branch.name"
+            v-bind="field"
+            label="Nombre"
+            :rules="[rules.required]"
+          />
+        </v-col>
+        <v-col cols="12">
+          <v-text-field
+            v-model="branch.address"
+            v-bind="field"
+            label="Dirección"
+            prepend-inner-icon="mdi-map-marker-outline"
+            :rules="[rules.required]"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="branch.city"
+            v-bind="field"
+            label="Ciudad"
+            prepend-inner-icon="mdi-city-variant-outline"
+            :rules="[rules.required]"
+          />
+        </v-col>
+      </v-row>
+    </AppFormSection>
 
-    <v-text-field
-        v-model="branch.address"
-        label="Dirección"
-        density="comfortable"
-        :rules="[rules.required]"
-    />
-
-    <v-text-field
-        v-model="branch.city"
-        label="Ciudad"
-        density="comfortable"
-        :rules="[rules.required]"
-    />
-
-    <div class="d-flex justify-end mt-4">
-      <v-btn type="submit" color="primary">
+    <AppFormActions>
+      <v-btn
+        type="submit"
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        class="app-form-btn--primary"
+      >
         {{ actionLabel }}
       </v-btn>
-    </div>
+    </AppFormActions>
   </v-form>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
-import type { ResponseInterface } from "~/interfaces/appInterfaces"
 import type { Branch, branchDataModalForm } from "~/interfaces/salonInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
-import { useBranchesStore } from "~/store";
+import { useBranchesStore } from "~/store"
 
-// Composables
-const branchesStore = useBranchesStore();
+const { field } = useFormFields()
+const branchesStore = useBranchesStore()
 
 const props = defineProps<{
   dataModalForm: branchDataModalForm
@@ -47,46 +67,41 @@ const emit = defineEmits<{
   (e: "create" | "update", branch: Branch): void
 }>()
 
-const isValid = ref<boolean>(false);
-const branchFormRef = ref<any>(null);
+const isValid = ref(false)
+const branchFormRef = ref<any>(null)
 
 const branch = ref<Branch>({
-  name: '',
-  address: '',
-  city: ''
+  name: "",
+  address: "",
+  city: "",
 })
 
 const actionLabel = computed(() => {
   switch (props.dataModalForm.action) {
     case "create":
-      return "Crear nueva sucursal"
+      return "Crear sucursal"
     case "update":
       getBranch()
-      return "Actualizar sucursal"
+      return "Guardar cambios"
     default:
       return "Guardar"
   }
 })
 
-// Computed
-const branchesList = computed(() => {
-  return branchesStore.list;
-});
+const branchesList = computed(() => branchesStore.data?.content ?? [])
 
 async function getBranch() {
   try {
-    const getBranch = branchesList.value.find(branch => branch.id == props.dataModalForm.rowId)
-    branch.value = { ...getBranch } as Branch
+    const found = branchesList.value.find((b) => b.id == props.dataModalForm.rowId)
+    branch.value = { ...found } as Branch
   } catch (err) {
     console.error(err)
   }
 }
 
 const onSubmit = async () => {
-  const valid = await branchFormRef.value?.validate();
-  if (!valid.valid) {
-    return;
-  }
+  const valid = await branchFormRef.value?.validate()
+  if (!valid.valid) return
   emit(props.dataModalForm.action, branch.value)
 }
 </script>

@@ -1,203 +1,216 @@
 <template>
-  <div v-if="formMode" class="pa-4 border-b">
-    <h3 class="mb-3 font-weight-medium">
-      {{ formMode === 'create' ? 'Nuevo servicio' : 'Editar servicio' }}
-    </h3>
-
-    <v-progress-linear
-        v-if="loading"
-        indeterminate
-        color="primary"
-        class="mb-2"
-    />
-
-    <v-form @submit.prevent="handleSubmit" ref="serviceFormRef"
-            v-model="isValid" lazy-validation :disabled="loading">
-      <v-text-field
-          v-model="serviceFormData.name"
-          label="Nombre del servicio"
-          density="comfortable"
-          variant="outlined"
-          :rules="[
-            rules.required,
-            rules.maxLength(150)
-          ]"
-      />
-
-      <v-textarea
-          v-model="serviceFormData.description"
-          label="Descripción corta"
-          density="comfortable"
-          variant="outlined"
-          rows="2"
-          auto-grow
-          :rules="[
-        rules.maxLength(300)
-      ]"
-      />
-
-      <v-textarea
-          v-model="serviceFormData.longDescription"
-          label="Descripción detallada"
-          density="comfortable"
-          variant="outlined"
-          rows="4"
-          auto-grow
-          :rules="[
-        rules.maxLength(2000)
-      ]"
-      />
-
-      <v-text-field
-          v-model="serviceFormData.price"
-          label="Precio"
-          density="comfortable"
-          variant="outlined"
-          type="number"
-          prefix="S/"
-          :rules="[
-        rules.required,
-        rules.decimal,
-        rules.positiveNumber,
-        rules.money
-      ]"
-      />
-
-      <v-switch
-          v-model="serviceFormData.isActive"
-          label="Servicio activo"
-          color="primary"
-          inset
-      />
-
-      <div class="d-flex ga-2 mt-2">
-        <v-btn color="primary" type="submit" :loading="loading">
-          {{ formMode === 'create' ? 'Crear' : 'Guardar' }}
-        </v-btn>
-
-        <v-btn variant="outlined" @click="handleCloseServiceForm">
-          Cancelar
-        </v-btn>
-      </div>
-    </v-form>
-  </div>
-
-  <div v-else class="pa-4 border-b">
-    <v-btn color="success" block @click="handleOpenCreate">
-      Nuevo servicio
-    </v-btn>
-  </div>
-
-  <div class="pa-4 border-b">
-    <v-text-field
-        v-model="searchTerm"
-        label="Buscar servicio..."
-        density="compact"
-        clearable
-        prepend-inner-icon="mdi-magnify"
-    />
-  </div>
-
-  <div class="pa-4">
-    <div v-if="filteredServices.length === 0" class="text-center text-grey">
-      <p v-if="services.length === 0">Sin servicioes</p>
-      <p v-else>No se encontraron resultados</p>
-    </div>
-
-    <div v-else class="d-flex flex-column ga-3">
-      <v-card
-          v-for="service in filteredServices"
-          :key="service.id"
-          variant="outlined"
+  <DrawerItemList
+    :form-mode="formMode"
+    :form-title="formMode === 'create' ? 'Nuevo servicio' : 'Editar servicio'"
+    create-label="Nuevo servicio"
+    :search-term="searchTerm"
+    search-placeholder="Buscar servicio..."
+    :items="filteredServices"
+    :filtered-count="filteredServices.length"
+    :total-count="services.length"
+    item-label="servicio"
+    empty-label="Sin servicios"
+    no-results-label="No se encontraron servicios"
+    empty-hint="Agrega el primer servicio con el botón de arriba"
+    empty-icon="mdi-spa-outline"
+    :loading="loading"
+    @create="handleOpenCreate"
+    @edit="handleOpenEdit"
+    @delete="handleOpenDelete"
+    @cancel-form="handleCloseServiceForm"
+    @update:search-term="searchTerm = $event"
+  >
+    <template #form>
+      <v-form
+        ref="serviceFormRef"
+        v-model="isValid"
+        class="app-form"
+        lazy-validation
+        :disabled="loading"
+        @submit.prevent="handleSubmit"
       >
-        <v-card-text class="d-flex justify-space-between align-start">
-          <div>
-            <div class="font-weight-bold">Nombre: {{ service.name }}</div>
-            <div class="text-body-2">Dirección {{ service.description }}</div>
-            <div class="text-body-2">Ciudad: {{ service.longDescription }}</div>
-            <div class="text-body-2">Ciudad: {{ service.price }}</div>
-            <div class="text-body-2">Ciudad: {{ service.isActive ? 'Activo' : 'Inactivo' }}</div>
-          </div>
+        <AppFormSection title="Servicio" subtitle="Información y precio">
+          <v-text-field
+            v-model="serviceFormData.name"
+            v-bind="field"
+            label="Nombre del servicio"
+            :rules="[rules.required, rules.maxLength(150)]"
+          />
 
-          <div class="d-flex ga-2">
-            <v-btn icon size="small" color="primary" @click="handleOpenEdit(service)">
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn>
+          <v-textarea
+            v-model="serviceFormData.description"
+            v-bind="textarea"
+            label="Descripción corta"
+            rows="2"
+            :rules="[rules.maxLength(300)]"
+          />
 
-            <v-btn icon size="small" color="error" @click="handleOpenDelete(service)">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
-          </div>
-        </v-card-text>
-      </v-card>
-    </div>
-  </div>
+          <v-textarea
+            v-model="serviceFormData.longDescription"
+            v-bind="textarea"
+            label="Descripción detallada"
+            rows="4"
+            :rules="[rules.maxLength(2000)]"
+          />
+
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="serviceFormData.price"
+                v-bind="field"
+                label="Precio"
+                type="number"
+                prefix="S/"
+                :rules="[rules.required, rules.decimal, rules.positiveNumber, rules.money]"
+              />
+            </v-col>
+            <v-col cols="12" md="6" class="d-flex align-center">
+              <v-switch
+                v-model="serviceFormData.isActive"
+                label="Servicio activo"
+                color="primary"
+                inset
+                hide-details
+              />
+            </v-col>
+          </v-row>
+        </AppFormSection>
+
+        <AppFormActions>
+          <v-btn
+            variant="outlined"
+            color="primary"
+            rounded="lg"
+            @click="handleCloseServiceForm"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            type="submit"
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            class="app-form-btn--primary"
+            :loading="loading"
+          >
+            {{ formMode === "create" ? "Crear" : "Guardar" }}
+          </v-btn>
+        </AppFormActions>
+      </v-form>
+    </template>
+
+    <template #item="{ item: service }">
+      <div class="d-flex align-center flex-wrap ga-2 mb-1">
+        <p class="text-body-1 font-weight-bold mb-0">{{ service.name }}</p>
+        <v-chip
+          size="x-small"
+          :color="service.isActive ? 'success' : 'error'"
+          variant="tonal"
+        >
+          {{ service.isActive ? "Activo" : "Inactivo" }}
+        </v-chip>
+      </div>
+      <p v-if="service.description" class="text-body-2 text-medium-emphasis mb-2">
+        {{ service.description }}
+      </p>
+      <div class="d-flex flex-wrap ga-2">
+        <v-chip size="x-small" variant="tonal" color="primary" prepend-icon="mdi-currency-usd">
+          S/ {{ formatPrice(service.price) }}
+        </v-chip>
+      </div>
+    </template>
+  </DrawerItemList>
 
   <ConfirmationModal
-      v-model="showDeleteDialog"
-      title="Eliminar servicio"
-      message="¿Seguro que deseas eliminar esta servicio?"
-      :require-text="false"
-      @confirm="handleDelete"
+    v-model="showDeleteDialog"
+    title="Eliminar servicio"
+    message="¿Seguro que deseas eliminar este servicio?"
+    :require-text="false"
+    @confirm="handleDelete"
   />
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from "vue"
 import { validationRules as rules } from "~/helpers/validationFormRules"
-import type { Service } from "~/interfaces/serviceInterfaces";
-import type { serviceCategoryDataModalForm } from "~/interfaces/serviceCategoryInterfaces";
 
-// Props
+const { field, textarea } = useFormFields()
+import type { Service } from "~/interfaces/serviceInterfaces"
+import type { serviceCategoryDataModalForm } from "~/interfaces/serviceCategoryInterfaces"
+
 const props = defineProps<{
   dataModalForm: serviceCategoryDataModalForm
 }>()
 
-// 🔥 Copia para evitar mutación del store
-const loading = ref<boolean>(false);
+const loading = ref(false)
 const services = ref<Service[]>([])
-const isValid = ref<boolean>(false);
-const serviceFormRef = ref<any>(null);
-const showDeleteDialog = ref<boolean>(false)
+const isValid = ref(false)
+const serviceFormRef = ref<any>(null)
+const showDeleteDialog = ref(false)
 const serviceToRemove = ref<Service>()
 
 watch(
-    () => props.dataModalForm,
-    (newVal) => {
-      services.value = newVal?.services || []
-    },
-    {immediate: true, deep: true}
+  () => props.dataModalForm,
+  (newVal) => {
+    services.value = newVal?.services || []
+  },
+  { immediate: true, deep: true }
 )
 
-// Estado
-const formMode = ref<'create' | 'edit' | null>(null)
-const editingId = ref<number | undefined>()
-const searchTerm = ref('')
+const formMode = ref<"create" | "edit" | null>(null)
+const editingId = ref<number | string | undefined>()
+const searchTerm = ref("")
 
 const serviceFormData = reactive<Service>({
-  name: '',
-  description: '',
-  longDescription: '',
+  name: "",
+  description: "",
+  longDescription: "",
   price: null,
-  isActive: true
+  isActive: true,
 })
 
-// Computed
-const filteredServices = computed(() =>
-    services.value.filter(b =>
-        b.name.toLowerCase().includes(searchTerm.value.toLowerCase())
-    )
-)
+const filteredServices = computed(() => {
+  const query = searchTerm.value.trim().toLowerCase()
+  if (!query) return services.value
 
-// Actions
+  return services.value.filter((service) => {
+    const haystack = [
+      service.name,
+      service.description,
+      service.longDescription,
+      String(service.price ?? ""),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+
+    return haystack.includes(query)
+  })
+})
+
+const formatPrice = (price?: number | null) => {
+  if (price === null || price === undefined) return "0.00"
+  return Number(price).toFixed(2)
+}
+
+const resetServiceForm = () => {
+  Object.assign(serviceFormData, {
+    name: "",
+    description: "",
+    longDescription: "",
+    price: null,
+    isActive: true,
+  })
+}
+
 const handleOpenCreate = () => {
-  formMode.value = 'create'
+  formMode.value = "create"
   editingId.value = undefined
-  Object.assign(serviceFormData, {name: '', address: '', city: ''})
+  resetServiceForm()
 }
 
 const handleOpenEdit = (service: Service) => {
-  formMode.value = 'edit'
+  formMode.value = "edit"
   editingId.value = service.id
   Object.assign(serviceFormData, service)
 }
@@ -214,8 +227,8 @@ const handleCloseServiceForm = () => {
 
 const handleCreateService = async (service: Service) => {
   try {
-    loading.value = true;
-    const {$api} = useNuxtApp();
+    loading.value = true
+    const { $api } = useNuxtApp()
     return await $api("/api/services", {
       method: "POST",
       body: {
@@ -224,21 +237,21 @@ const handleCreateService = async (service: Service) => {
         longDescription: service.longDescription,
         isActive: service.isActive,
         price: service.price,
-        categoryId: props.dataModalForm.rowId
+        categoryId: props.dataModalForm.rowId,
       },
     })
   } catch (err) {
-    console.error("=======> Error: ", err);
+    console.error("=======> Error: ", err)
     return null
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 const handleUpdateService = async (service: Service) => {
   try {
-    loading.value = true;
-    const {$api} = useNuxtApp();
+    loading.value = true
+    const { $api } = useNuxtApp()
     await $api(`/api/services/${service.id}`, {
       method: "PUT",
       body: {
@@ -246,33 +259,30 @@ const handleUpdateService = async (service: Service) => {
         description: service.description,
         longDescription: service.longDescription,
         isActive: service.isActive,
-        price: service.price
+        price: service.price,
       },
-    });
+    })
   } catch (err) {
-    console.error("=======> Error: ", err);
+    console.error("=======> Error: ", err)
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 const handleSubmit = async () => {
-  const valid = await serviceFormRef.value?.validate();
-  if (!valid.valid) {
-    return;
-  }
+  const valid = await serviceFormRef.value?.validate()
+  if (!valid.valid) return
 
-  if (formMode.value === 'create') {
+  if (formMode.value === "create") {
     const created = await handleCreateService(serviceFormData)
-    services.value.push(created as Service)
+    if (created) services.value.push(created as Service)
   }
 
-  if (formMode.value === 'edit' && editingId.value) {
+  if (formMode.value === "edit" && editingId.value) {
     await handleUpdateService(serviceFormData)
-
-    const index = services.value.findIndex(b => b.id === editingId.value)
+    const index = services.value.findIndex((s) => s.id === editingId.value)
     if (index !== -1) {
-      services.value[index] = {...services.value[index], ...serviceFormData}
+      services.value[index] = { ...services.value[index], ...serviceFormData }
     }
   }
 
@@ -281,15 +291,20 @@ const handleSubmit = async () => {
 
 const handleDelete = async () => {
   try {
-    loading.value = true;
-    const {$api} = useNuxtApp();
+    loading.value = true
+    const { $api } = useNuxtApp()
     await $api(`/api/services/${serviceToRemove.value?.id}`, {
       method: "DELETE",
-    });
+    })
+    services.value = services.value.filter(
+      (s) => s.id !== serviceToRemove.value?.id
+    )
   } catch (err) {
-    console.error("=======> Error: ", err);
+    console.error("=======> Error: ", err)
   } finally {
-    loading.value = false;
+    loading.value = false
+    showDeleteDialog.value = false
   }
 }
 </script>
+

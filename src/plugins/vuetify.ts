@@ -44,8 +44,7 @@ export default defineNuxtPlugin(nuxtApp => {
     defaults : {
       VBtn: {
         variant: 'flat',
-        color: 'warning',
-        class: 'text-white',
+        color: 'primary',
         elevation: 0,
       },
       VSecondaryBtn: {

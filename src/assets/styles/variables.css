@@ -16,3 +16,63 @@
   --sidebar-bg: #212121;
   --sidebar-text: #FFFFFF;
 }
+
+/* Botones outlined/text visibles sobre fondos claros */
+.v-btn.v-btn--variant-outlined {
+  color: rgb(var(--v-theme-primary)) !important;
+  border-color: rgba(var(--v-theme-primary), 0.45) !important;
+  background: rgb(var(--v-theme-surface)) !important;
+}
+
+.v-btn.v-btn--variant-outlined .v-btn__overlay,
+.v-btn.v-btn--variant-text .v-btn__overlay {
+  background-color: currentColor;
+}
+
+.v-btn.v-btn--variant-text {
+  color: rgba(var(--v-theme-on-surface), 0.78) !important;
+}
+
+.v-btn.v-btn--variant-flat.bg-primary,
+.v-btn.v-btn--variant-flat.text-primary {
+  color: #fff !important;
+}
+
+/* Formularios */
+.app-form {
+  padding: 0.5rem 0;
+}
+
+.app-form .v-row {
+  margin-top: -4px;
+  margin-bottom: -4px;
+}
+
+.app-form .v-col {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.app-form .v-field--variant-outlined {
+  background: rgb(var(--v-theme-surface));
+}
+
+.app-form .v-field--variant-outlined .v-field__outline {
+  --v-field-border-opacity: 0.22;
+}
+
+.app-form .v-field--focused .v-field__outline {
+  --v-field-border-opacity: 0.55;
+}
+
+.app-form-actions {
+  margin-top: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.app-form-btn--primary {
+  color: #fff !important;
+  text-transform: none;
+  letter-spacing: normal;
+  min-width: 140px;
+}

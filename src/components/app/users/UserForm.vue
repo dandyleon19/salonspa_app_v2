@@ -1,68 +1,107 @@
 <template>
-  <v-form @submit.prevent="onSubmit" ref="userFormRef" v-model="isValid" lazy-validation class="pa-4">
+  <v-form
+    ref="userFormRef"
+    v-model="isValid"
+    class="app-form"
+    lazy-validation
+    @submit.prevent="onSubmit"
+  >
     <template v-if="!['changePassword', 'changeBranches'].includes(dataModalForm.action)">
-      <v-text-field
-        v-model="user.firstName"
-        label="Nombres"
-        :rules="[rules.required]"
-      />
-
-      <v-text-field
-        v-model="user.lastName"
-        label="Apellidos"
-        :rules="[rules.required]"
-      />
-
-      <v-text-field
-        v-model="user.email"
-        label="Correo"
-        type="email"
-        :rules="[rules.required, rules.email]"
-      />
-
-      <v-text-field
-        v-model="user.commissionPercentage"
-        label="Porcentaje de Comisión"
-        type="number"
-        :rules="[rules.required, rules.decimal]"
-      />
+      <AppFormSection title="Datos del trabajador" subtitle="Información personal y laboral">
+        <v-row dense>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="user.firstName"
+              v-bind="field"
+              label="Nombres"
+              :rules="[rules.required]"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="user.lastName"
+              v-bind="field"
+              label="Apellidos"
+              :rules="[rules.required]"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="user.email"
+              v-bind="field"
+              label="Correo"
+              type="email"
+              prepend-inner-icon="mdi-email-outline"
+              :rules="[rules.required, rules.email]"
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="user.commissionPercentage"
+              v-bind="field"
+              label="Porcentaje de comisión"
+              type="number"
+              suffix="%"
+              :rules="[rules.required, rules.decimal]"
+            />
+          </v-col>
+        </v-row>
+      </AppFormSection>
     </template>
 
     <template v-if="['create', 'changePassword'].includes(dataModalForm.action)">
-      <v-text-field
-        v-model="user.password"
-        label="Contraseña"
-        type="password"
-        autocomplete="off"
-        :rules="[rules.required, rules.minLength(6)]"
-      />
-
-      <v-text-field
-        v-model="user.passwordConfirmation"
-        label="Confirmar Contraseña"
-        type="password"
-        autocomplete="off"
-        :rules="[rules.required, rules.matchPassword(user.password)]"
-      />
+      <AppFormSection
+        :title="dataModalForm.action === 'changePassword' ? 'Nueva contraseña' : 'Acceso'"
+        subtitle="Credenciales de ingreso al sistema"
+      >
+        <v-row dense>
+          <v-col cols="12">
+            <v-text-field
+              v-model="user.password"
+              v-bind="field"
+              label="Contraseña"
+              type="password"
+              autocomplete="off"
+              prepend-inner-icon="mdi-lock-outline"
+              :rules="[rules.required, rules.minLength(6)]"
+            />
+          </v-col>
+          <v-col cols="12">
+            <v-text-field
+              v-model="user.passwordConfirmation"
+              v-bind="field"
+              label="Confirmar contraseña"
+              type="password"
+              autocomplete="off"
+              prepend-inner-icon="mdi-lock-check-outline"
+              :rules="[rules.required, rules.matchPassword(user.password)]"
+            />
+          </v-col>
+        </v-row>
+      </AppFormSection>
     </template>
 
-    <div class="d-flex justify-end mt-4">
-      <v-btn type="submit" color="primary">
+    <AppFormActions>
+      <v-btn
+        type="submit"
+        color="primary"
+        variant="flat"
+        rounded="lg"
+        class="app-form-btn--primary"
+      >
         {{ actionLabel }}
       </v-btn>
-    </div>
+    </AppFormActions>
   </v-form>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue"
-import type { ResponseInterface } from "~/interfaces/appInterfaces"
 import type { User, userDataModalForm } from "~/interfaces/userInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
-import { useBranchesStore, useUsersStore } from "~/store";
+import { useUsersStore } from "~/store"
 
-// Composables
-const usersStore = useUsersStore();
+const { field } = useFormFields()
+const usersStore = useUsersStore()
 
 const props = defineProps<{
   dataModalForm: userDataModalForm
@@ -72,8 +111,8 @@ const emit = defineEmits<{
   (e: "create" | "update" | "changePassword", user: User): void
 }>()
 
-const isValid = ref<boolean>(false);
-const userFormRef = ref<any>(null);
+const isValid = ref(false)
+const userFormRef = ref<any>(null)
 
 const user = ref<User>({
   firstName: "",
@@ -82,47 +121,38 @@ const user = ref<User>({
   isActive: true,
   commissionPercentage: "",
   password: "",
-  passwordConfirmation: ""
+  passwordConfirmation: "",
 })
 
 const actionLabel = computed(() => {
   switch (props.dataModalForm.action) {
     case "create":
-      return "Nuevo Trabajador"
+      return "Crear trabajador"
     case "update":
       getUser()
-      return "Actualizar Trabajador"
+      return "Guardar cambios"
     case "changePassword":
       getUser()
-      return "Actualizar Contraseña"
+      return "Actualizar contraseña"
     default:
       return "Guardar"
   }
 })
 
-// Computed
-const usersList = computed(() => {
-  return usersStore.list;
-});
+const usersList = computed(() => usersStore.data?.content ?? [])
 
 async function getUser() {
   try {
-    const getUser = usersList.value.find(user => user.id == props.dataModalForm.rowId)
-    user.value = { ...getUser } as User
+    const found = usersList.value.find((u) => u.id == props.dataModalForm.rowId)
+    user.value = { ...found, password: "", passwordConfirmation: "" } as User
   } catch (err) {
     console.error(err)
   }
 }
 
 const onSubmit = async () => {
-    const valid = await userFormRef.value?.validate();
-    if (!valid.valid) {
-        return;
-    }
-    emit(props.dataModalForm.action, user.value)
+  const valid = await userFormRef.value?.validate()
+  if (!valid.valid) return
+  emit(props.dataModalForm.action, user.value)
 }
-
-onMounted(() => {
-
-})
 </script>
