@@ -6,8 +6,11 @@
     :rowOptions="rowOptions"
     :filters="tableFilters"
     :items="usersList"
-    :total-items="usersList.length"
     :loading="loadingUsersList"
+    :page="currentPage"
+    :items-per-page="itemsPerPage"
+    :total-items="totalItems"
+    @update:pagination="handlePagination"
     @handle-create-button="handleCreateButton"
     @handle-export-button="handleExportData"
     @handle-row-action-button="handleRowActionButton"
@@ -66,11 +69,12 @@ const loading = ref<boolean>(false);
 const openUserDrawer = ref<boolean>(false);
 const showDeleteDialog = ref<boolean>(false)
 const userToRemove = ref<User>()
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
-  { title: "Nombre", key: "firstName" },
-  { title: "Nombre", key: "lastName" },
+  { title: "Nombre", key: "fullName" },
   { title: "Email", key: "email" },
   // { title: "Activo", key: "isActive" },
   { title: "% Comisión", key: "commissionPercentage" },
@@ -211,7 +215,7 @@ const handleDeleteUser = async () => {
     console.error("Error: ", err);
   } finally {
     loading.value = false;
-    usersStore.fetchUsers();
+    await usersStore.fetchUsers();
   }  
 }
 
@@ -219,8 +223,25 @@ const handleChangePassword = () => {};
 
 const handleChangeBranchOffices = () => {};
 
+const handlePagination = async ({
+  page,
+  itemsPerPage: newItemsPerPage,
+}: {
+  page: number
+  itemsPerPage: number
+}) => {
+
+  currentPage.value = page
+  itemsPerPage.value = newItemsPerPage
+
+  await usersStore.fetchUsers(
+      page - 1,
+      newItemsPerPage
+  )
+}
+
 // Mounted
 onMounted(() => {
-  usersStore.fetchUsers();
+  usersStore.fetchUsers(0, itemsPerPage.value);
 });
 </script>

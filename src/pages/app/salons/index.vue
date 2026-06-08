@@ -6,8 +6,11 @@
     :rowOptions="rowOptions"
     :filters="tableFilters"
     :items="salonsList"
-    :total-items="salonsList.length"
     :loading="loadingSalonsList"
+    :page="currentPage"
+    :items-per-page="itemsPerPage"
+    :total-items="totalItems"
+    @update:pagination="handlePagination"
     @handle-create-button="handleCreateButton"
     @handle-row-action-button="handleRowActionButton"
   />
@@ -71,6 +74,8 @@ const openSalonDrawer = ref<boolean>(false);
 const openBranchDrawer = ref<boolean>(false)
 const showDeleteDialog = ref<boolean>(false)
 const salonToRemove = ref<Salon>()
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
@@ -108,8 +113,12 @@ const dataModalForm = ref<salonDataModalForm>({
 
 // Computed
 const salonsList = computed(() => {
-  return salonsStore.list;
+  return salonsStore.data?.content ?? [];
 });
+
+const totalItems = computed(() => {
+  return salonsStore.data?.totalElements ?? 0
+})
 
 const loadingSalonsList = computed(() => {
   return salonsStore.loading;
@@ -207,8 +216,25 @@ const handleDeleteSalon = async () => {
   }  
 }
 
+const handlePagination = async ({
+  page,
+  itemsPerPage: newItemsPerPage,
+}: {
+  page: number
+  itemsPerPage: number
+}) => {
+
+  currentPage.value = page
+  itemsPerPage.value = newItemsPerPage
+
+  await salonsStore.fetchSalons(
+      page - 1,
+      newItemsPerPage
+  )
+}
+
 // Mounted
 onMounted(() => {
-  salonsStore.fetchSalons();
+  salonsStore.fetchSalons(0, itemsPerPage.value);
 });
 </script>

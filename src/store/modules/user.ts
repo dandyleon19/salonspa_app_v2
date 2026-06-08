@@ -1,22 +1,25 @@
 import { defineStore } from 'pinia'
 import type { User } from "~/interfaces/userInterfaces";
-import type { ResponseInterface } from "~/interfaces/appInterfaces";
+import type { PageResponse } from '~/interfaces/PageResponse';
 
 export const useUsersStore = defineStore('users', {
     state: () => ({
-        list: [] as User[],
+        data: null as PageResponse<User> | null,
         loading: false,
     }),
 
     actions: {
-        async fetchUsers() {
+        async fetchUsers(page: number, size: number) {
             this.loading = true
             try {
                 const { $api } = useNuxtApp()
-                const res: any = await $api('/api/users', {
+                this.data = await $api('/api/users', {
                     method: 'GET',
+                    query: {
+                        page,
+                        size,
+                    },
                 })
-                this.list = res
             } catch (err) {
                 console.error('Error al obtener usuarios:', err)
             } finally {

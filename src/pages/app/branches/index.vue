@@ -6,8 +6,11 @@
       :rowOptions="rowOptions"
       :filters="tableFilters"
       :items="branchesList"
-      :total-items="branchesList.length"
       :loading="loadingBranchesList"
+      :page="currentPage"
+      :items-per-page="itemsPerPage"
+      :total-items="totalItems"
+      @update:pagination="handlePagination"
       @handle-create-button="handleCreateButton"
       @handle-row-action-button="handleRowActionButton"
   />
@@ -55,6 +58,8 @@ const loading = ref<boolean>(false);
 const openBranchDrawer = ref<boolean>(false);
 const showDeleteDialog = ref<boolean>(false)
 const branchToRemove = ref<Branch>()
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
@@ -90,8 +95,12 @@ const dataModalForm = ref<branchDataModalForm>({
 
 // Computed
 const branchesList = computed(() => {
-  return branchesStore.list;
+  return branchesStore.data?.content ?? [];
 });
+
+const totalItems = computed(() => {
+  return branchesStore.data?.totalElements ?? 0
+})
 
 const loadingBranchesList = computed(() => {
   return branchesStore.loading;
@@ -179,8 +188,25 @@ const handleDeleteBranch = async () => {
   }
 }
 
+const handlePagination = async ({
+  page,
+  itemsPerPage: newItemsPerPage,
+}: {
+  page: number
+  itemsPerPage: number
+}) => {
+
+  currentPage.value = page
+  itemsPerPage.value = newItemsPerPage
+
+  await branchesStore.fetchBranches(
+      page - 1,
+      newItemsPerPage
+  )
+}
+
 // Mounted
 onMounted(() => {
-  branchesStore.fetchBranches();
+  branchesStore.fetchBranches(0, itemsPerPage.value);
 });
 </script>

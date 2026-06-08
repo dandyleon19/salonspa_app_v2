@@ -6,8 +6,11 @@
       :rowOptions="rowOptions"
       :filters="tableFilters"
       :items="clientsList"
-      :total-items="clientsList.length"
       :loading="loadingClientsList"
+      :page="currentPage"
+      :items-per-page="itemsPerPage"
+      :total-items="totalItems"
+      @update:pagination="handlePagination"
       @handle-create-button="handleCreateButton"
       @handle-row-action-button="handleRowActionButton"
   />
@@ -28,6 +31,22 @@
     />
   </AppDrawer>
 
+  <AppDrawer
+      v-model="openClinicalRecordDrawer"
+      title="Gestión de Historiales Clínicos"
+      :loading="loading"
+      size="large"
+      location="end"
+      :temporary="true"
+      @close="closeClientDrawer"
+  >
+    <ClinicalRecordForm
+        :data-modal-form="dataModalForm"
+        @create="handleCreateClient"
+        @update="handleUpdateClient"
+    />
+  </AppDrawer>
+
   <ConfirmationModal
       v-model="showDeleteDialog"
       title="Eliminar usuario"
@@ -42,6 +61,7 @@ import { ref } from "vue";
 import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
 import type { Client, clientDataModalForm } from "~/interfaces/clientInterfaces";
 import { useClientsStore } from "~/store/modules/client";
+import { useRouter } from "#vue-router";
 
 definePageMeta({
   layout: 'app'
@@ -49,23 +69,26 @@ definePageMeta({
 
 // Composables
 const clientsStore = useClientsStore();
+const router = useRouter()
 
 // Variables
 const loading = ref<boolean>(false);
 const openClientDrawer = ref<boolean>(false);
-const openBranchDrawer = ref<boolean>(false)
+const openClinicalRecordDrawer = ref<boolean>(false)
 const showDeleteDialog = ref<boolean>(false)
 const clientToRemove = ref<Client>()
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const headers = ref<Array<TableHeader>>([
-  { title: "ID", key: "id" },
-  { title: "Nombres", key: "firstName" },
-  { title: "Apellidos", key: "lastName" },
-  { title: "Nro Documento", key: "documentNumber" },
-  { title: "Teléfono", key: "phone" },
-  { title: "Email", key: "email" },
-  { title: "Cumpleaños", key: "birthDate" },
-  { title: "Acciones", key: "actions", sortable: false },
+  {title: "ID", key: "id"},
+  {title: "Nombres", key: "firstName"},
+  {title: "Apellidos", key: "lastName"},
+  {title: "Nro Documento", key: "documentNumber"},
+  {title: "Teléfono", key: "phone"},
+  {title: "Email", key: "email"},
+  {title: "Cumpleaños", key: "birthDate"},
+  {title: "Acciones", key: "actions", sortable: false},
 ]);
 
 const rowOptions = ref<Array<TableRowOption>>([
@@ -94,8 +117,12 @@ const dataModalForm = ref<clientDataModalForm>({
 
 // Computed
 const clientsList = computed(() => {
-  return clientsStore.list;
+  return clientsStore.data?.content ?? [];
 });
+
+const totalItems = computed(() => {
+  return clientsStore.data?.totalElements ?? 0
+})
 
 const loadingClientsList = computed(() => {
   return clientsStore.loading;
@@ -108,7 +135,7 @@ const handleCreateButton = (): void => {
 
 const handleRowActionButton = (client: Client, action: string): void => {
   console.log("apply Action Button:", action);
-  switch (action) {
+  switch ( action ) {
     case 'update':
       dataModalForm.value.action = action
       dataModalForm.value.rowId = client.id
@@ -116,10 +143,7 @@ const handleRowActionButton = (client: Client, action: string): void => {
       break;
 
     case 'clinicalRecords':
-      dataModalForm.value.action = action
-      dataModalForm.value.rowId = client.id
-      // dataModalForm.value.branches = client.branches
-      openBranchDrawer.value = true
+      router.push(`/app/clients/${client.id}/clinical-records`)
       break;
 
     case 'delete':
@@ -134,17 +158,17 @@ const handleRowActionButton = (client: Client, action: string): void => {
 
 const closeClientDrawer = () => {
   openClientDrawer.value = false;
-  openBranchDrawer.value = false;
+  openClinicalRecordDrawer.value = false;
   clientsStore.fetchClients();
 };
 
 const handleCreateClient = async (client: Client) => {
   try {
     loading.value = true;
-    const { $api } = useNuxtApp();
+    const {$api} = useNuxtApp();
     await $api("/api/clients", {
       method: "POST",
-      body: { ...client, salonId: 1},
+      body: {...client},
     });
     closeClientDrawer();
   } catch (err) {
@@ -158,7 +182,7 @@ const handleCreateClient = async (client: Client) => {
 const handleUpdateClient = async (client: Client) => {
   try {
     loading.value = true;
-    const { $api } = useNuxtApp();
+    const {$api} = useNuxtApp();
     await $api(`/api/clients/${client.id}`, {
       method: "PUT",
       body: {
@@ -182,7 +206,7 @@ const handleUpdateClient = async (client: Client) => {
 const handleDeleteClient = async () => {
   try {
     loading.value = true;
-    const { $api } = useNuxtApp();
+    const {$api} = useNuxtApp();
     await $api(`/api/clients/${clientToRemove.value?.id}`, {
       method: "DELETE",
     });
@@ -194,8 +218,25 @@ const handleDeleteClient = async () => {
   }
 }
 
+const handlePagination = async ({
+  page,
+  itemsPerPage: newItemsPerPage,
+}: {
+  page: number
+  itemsPerPage: number
+}) => {
+
+  currentPage.value = page
+  itemsPerPage.value = newItemsPerPage
+
+  await clientsStore.fetchClients(
+      page - 1,
+      newItemsPerPage
+  )
+}
+
 // Mounted
 onMounted(() => {
-  clientsStore.fetchClients();
+  clientsStore.fetchClients(0, itemsPerPage.value)
 });
 </script>

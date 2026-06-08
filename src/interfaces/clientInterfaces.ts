@@ -1,3 +1,5 @@
+import type { ClinicalRecord } from "~/interfaces/clinicalRecordInterfaces";
+
 export interface Client {
     id?: string
     firstName: string
@@ -8,6 +10,7 @@ export interface Client {
     birthDate?: string
     gender?: Gender
     salonId?: string
+    clinicalRecords: ClinicalRecord[]
 }
 
 enum Gender {

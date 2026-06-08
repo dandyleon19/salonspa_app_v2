@@ -1,21 +1,25 @@
 import { defineStore } from 'pinia'
 import type { Client } from '~/interfaces/clientInterfaces';
+import type { PageResponse } from "~/interfaces/PageResponse";
 
 export const useClientsStore = defineStore('clients', {
     state: () => ({
-        list: [] as Client[],
+        data: null as PageResponse<Client> | null,
         loading: false,
     }),
 
     actions: {
-        async fetchClients() {
+        async fetchClients(page = 0, size = 10) {
             this.loading = true
             try {
                 const { $api } = useNuxtApp()
-                const res: any = await $api('/api/clients', {
+                this.data = await $api<PageResponse<Client>>('/api/clients', {
                     method: 'GET',
+                    query: {
+                        page,
+                        size,
+                    },
                 })
-                this.list = res
             } catch (err) {
                 console.error('Error al obtener clientes:', err)
             } finally {

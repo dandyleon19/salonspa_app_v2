@@ -1,28 +1,52 @@
 export const validationRules = {
-  required: (value: string | number) =>
-    !!value || "Este campo es requerido",
+  required: (value: string | number | boolean) =>
+      value !== null &&
+      value !== undefined &&
+      value !== '' ||
+      "Este campo es requerido",
 
   textOnly: (value: string) =>
-    /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]*$/.test(value) || "Solo se permiten letras",
+      /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]*$/.test(value) ||
+      "Solo se permiten letras",
 
   email: (value: string) =>
-    /^\S+@\S+\.\S+$/.test(value) || "Correo inválido",
+      /^\S+@\S+\.\S+$/.test(value) ||
+      "Correo inválido",
 
   number: (value: string | number) =>
-    !isNaN(Number(value)) || "Debe ser un número válido",
+      !isNaN(Number(value)) ||
+      "Debe ser un número válido",
 
   decimal: (value: string | number) =>
-    /^-?\d+(\.\d+)?$/.test(String(value)) || "Debe ser un número válido (entero o decimal)",
+      /^-?\d+(\.\d+)?$/.test(String(value)) ||
+      "Debe ser un número decimal válido",
+
+  positiveNumber: (value: string | number) =>
+      Number(value) >= 0 ||
+      "Debe ser mayor o igual a 0",
+
+  money: (value: string | number) =>
+      /^\d+(\.\d{1,2})?$/.test(String(value)) ||
+      "Máximo 2 decimales",
+
+  maxLength:
+      (max: number) =>
+          (value: string) =>
+              !value ||
+              value.length <= max ||
+              `Máximo ${max} caracteres`,
 
   minLength:
-    (min: number) =>
-    (value: string) =>
-      value?.length >= min || `Debe tener al menos ${min} caracteres`,
+      (min: number) =>
+          (value: string) =>
+              value?.length >= min ||
+              `Debe tener al menos ${min} caracteres`,
 
   matchPassword:
-    (password: string) =>
-    (value: string) =>
-      value === password || "Las contraseñas no coinciden",
+      (password: string) =>
+          (value: string) =>
+              value === password ||
+              "Las contraseñas no coinciden",
 
   ruc: (v: string) =>
       !v ||
@@ -38,4 +62,4 @@ export const validationRules = {
       !v ||
       /^\d+$/.test(v) ||
       'Solo números'
-};
+}

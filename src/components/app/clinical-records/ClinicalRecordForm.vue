@@ -6,6 +6,12 @@
         type="date"
     />
 
+    <v-text-field
+        v-model="sessionTime"
+        label="Hora"
+        type="time"
+    />
+
     <v-textarea
         v-model="clinicalRecord.diagnosis"
         label="Diagnóstico"
@@ -28,14 +34,7 @@
     />
 
     <v-select
-        label="Cliente"
-        :items="genderOptions"
-        item-title="label"
-        item-value="value"
-        :rules="[rules.required]"
-    />
-
-    <v-select
+        v-model="clinicalRecord.branchId"
         label="Sucursal"
         :items="branchesList"
         item-title="label"
@@ -44,11 +43,20 @@
     />
 
     <v-select
+        v-model="clinicalRecord.userId"
         label="Trabajador"
-        :items="genderOptions"
+        :items="usersList"
         item-title="label"
         item-value="value"
         :rules="[rules.required]"
+    />
+
+    <v-select
+        v-model="clinicalRecord.serviceId"
+        label="Servicio asociado"
+        :items="servicesList"
+        item-title="label"
+        item-value="value"
     />
 
     <div class="d-flex justify-end mt-4">
@@ -63,11 +71,15 @@ import { validationRules as rules } from "~/helpers/validationFormRules";
 import { useClinicalRecordsStore } from "~/store/modules/clinicalRecord";
 import type { ClinicalRecord, clinicalRecordDataModalForm } from "~/interfaces/clinicalRecordInterfaces";
 import { computed } from "vue";
-import { useBranchesStore } from "~/store";
+import { useBranchesStore, useClientsStore, useUsersStore } from "~/store";
+import { useServicesStore } from "~/store/modules/service";
 
 // Composables
 const clinicalRecordsStore = useClinicalRecordsStore();
 const branchesStore = useBranchesStore();
+const usersStore = useUsersStore()
+const clientsStore = useClientsStore();
+const servicesStore = useServicesStore();
 
 const props = defineProps<{
   dataModalForm: clinicalRecordDataModalForm
@@ -79,15 +91,16 @@ const emit = defineEmits<{
 
 const isValid = ref<boolean>(false);
 const clinicalRecordFormRef = ref<any>(null);
+const sessionTime = ref<string>("")
 
 const clinicalRecord = ref<ClinicalRecord>({
   diagnosis: "",
   treatment: "",
   observations: "",
   sessionDate: "",
-  clientId: "",
   userId: "",
   branchId: "",
+  serviceId: ""
 })
 
 const genderOptions = [
@@ -113,6 +126,16 @@ const clinicalRecordsList = computed(() => {
   return clinicalRecordsStore.list;
 });
 
+const clientsList = computed(() => {
+  const options = [
+    { value: null, label: "Seleccione un salón..." }
+  ]
+  clientsStore.list.forEach(b =>
+      options.push({ value: b.id, label: `${b.firstName} ${b.lastName}` })
+  )
+  return options
+});
+
 const branchesList = computed(() => {
   const options = [
     { value: null, label: "Seleccione un salón..." }
@@ -121,7 +144,27 @@ const branchesList = computed(() => {
       options.push({ value: b.id, label: b.name })
   )
   return options
-})
+});
+
+const servicesList = computed(() => {
+  const options = [
+    { value: null, label: "Seleccione un salón..." }
+  ]
+  servicesStore.list.forEach(b =>
+      options.push({ value: b.id, label: b.name })
+  )
+  return options
+});
+
+const usersList = computed(() => {
+  const options = [
+    { value: null, label: "Seleccione un salón..." }
+  ]
+  usersStore.list.forEach(b =>
+      options.push({ value: b.id, label: `${b.firstName} ${b.lastName}` })
+  )
+  return options
+});
 
 async function getClinicalRecord() {
   try {
@@ -137,6 +180,15 @@ const onSubmit = async () => {
   if (!valid.valid) {
     return;
   }
+  clinicalRecord.value = { ...clinicalRecord.value, sessionDate: `${clinicalRecord.value.sessionDate}T${sessionTime.value}`}
   emit(props.dataModalForm.action, clinicalRecord.value)
 }
+
+// Mounted
+onMounted(() => {
+  branchesStore.fetchBranches();
+  usersStore.fetchUsers();
+  clientsStore.fetchClients();
+  servicesStore.fetchServices();
+});
 </script>

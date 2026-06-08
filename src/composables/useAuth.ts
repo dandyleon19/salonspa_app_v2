@@ -1,8 +1,13 @@
+import { useAuthStore } from "~/store/modules/auth";
+
 export const useAuth = () => {
   const config = useRuntimeConfig()
 
   const login = async (email: string, password: string) => {
-    const response = await $fetch(`${config.public.apiBase}/api/auth/login`, {
+
+    const authStore = useAuthStore()
+
+    const response: any = await $fetch(`${config.public.apiBase}/api/auth/login`, {
       method: 'POST',
       body: {
         email: email,
@@ -10,9 +15,10 @@ export const useAuth = () => {
       }
     })
 
-    // Guarda el access_token en cookies
     const accessToken = useCookie('access_token')
     accessToken.value = response.token
+
+    authStore.setAuth(response)
     await navigateTo('/app')
 
     return response

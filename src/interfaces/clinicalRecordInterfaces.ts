@@ -7,6 +7,10 @@ export interface ClinicalRecord {
     clientId?: string
     userId?: string
     branchId?: string
+    serviceId?: string
+    associatedServices?: string[]
+    userName?: string
+    branchName?: string
 }
 
 export interface clinicalRecordDataModalForm {

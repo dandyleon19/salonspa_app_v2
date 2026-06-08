@@ -181,8 +181,7 @@ const handleCreateBranch = async (branch: Branch) => {
       body: {
         name: branch.name,
         address: branch.address,
-        city: branch.city,
-        salonId: props.dataModalForm.rowId
+        city: branch.city
       },
     })
   } catch (err) {

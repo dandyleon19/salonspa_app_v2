@@ -34,7 +34,7 @@
 
         <!-- TABLE -->
         <v-data-table-server :headers="headers" :items="items" :items-length="totalItems" :loading="loading"
-            :search="search" :items-per-page="itemsPerPage" v-model:page="page">
+            :search="search" :items-per-page="props.itemsPerPage" :page="props.page" @update:options="handleOptionsUpdate">
             <!-- CUSTOM COLUMNS -->
             <template #item.actions="{ item }">
                 <div class="d-flex align-center ga-1">
@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import type { TableHeader, FilterOption, TableRowOption } from "~/interfaces/tableInterfaces";
 
 // Props
@@ -68,6 +68,8 @@ const props = withDefaults(
         items: any[];
         totalItems: number;
         filters?: FilterOption[];
+        page: number;
+        itemsPerPage: number;
         loading?: boolean;
     }>(),
     {
@@ -82,7 +84,11 @@ const emit = defineEmits<{
     (e: "handleCreateButton"): void
     (e: "handleExportButton"): void
     (e: "handleRowActionButton", item: any, action: string): void
-    (e: "handleUpdateFilters", values: Record<string, any>): void
+    (e: "handleUpdateFilters", values: Record<string, any>): void,
+    (e: "update:pagination", value: {
+      page: number,
+      itemsPerPage: number
+    }): void
 }>()
 
 // State
@@ -90,6 +96,13 @@ const search = ref("");
 const page = ref(1);
 const itemsPerPage = ref(10);
 const selectedFilters = ref<Record<string, any>>({})
+
+const handleOptionsUpdate = (options: any) => {
+  emit("update:pagination", {
+    page: options.page,
+    itemsPerPage: options.itemsPerPage,
+  })
+}
 
 watch(selectedFilters, (val) => {
     emit("handleUpdateFilters", val)
