@@ -11,13 +11,13 @@
     </v-btn>
 
     <v-skeleton-loader
-      v-if="loading && !clienteSelected"
+      v-if="loadingClient && !clienteSelected"
       type="article, paragraph, card"
       class="mb-6"
     />
 
     <v-alert
-      v-else-if="!loading && !clienteSelected"
+      v-else-if="!loadingClient && !clienteSelected"
       type="warning"
       variant="tonal"
       rounded="lg"
@@ -65,7 +65,7 @@
                     variant="tonal"
                     prepend-icon="mdi-clipboard-text-outline"
                   >
-                    {{ clinicalRecords.length }} historial{{ clinicalRecords.length === 1 ? "" : "es" }}
+                    {{ totalClinicalRecords }} historial{{ totalClinicalRecords === 1 ? "" : "es" }}
                   </v-chip>
                 </div>
               </div>
@@ -95,7 +95,7 @@
                 </p>
               </div>
               <v-chip size="small" color="primary" variant="tonal">
-                {{ clinicalRecords.length }}
+                {{ totalClinicalRecords }}
               </v-chip>
             </v-card-title>
 
@@ -103,16 +103,31 @@
 
             <v-card-text class="pa-4 clinical-records-page__list">
               <v-skeleton-loader
-                v-if="loading"
+                v-if="loadingRecords"
                 type="list-item-three-line@3"
               />
-              <ClinicalRecordList
-                v-else
-                :records="clinicalRecords"
-                :selected-record-id="selectedClinicalRecordId"
-                @select="selectedClinicalRecordId = $event ?? null"
-                @delete="openClinicalRecordDialog"
-              />
+              <template v-else>
+                <ClinicalRecordList
+                  :records="clinicalRecords"
+                  :selected-record-id="selectedClinicalRecordId"
+                  @select="selectedClinicalRecordId = $event ?? null"
+                  @delete="openClinicalRecordDialog"
+                />
+
+                <div
+                  v-if="totalPages > 1"
+                  class="d-flex justify-center mt-4 clinical-records-page__pagination"
+                >
+                  <v-pagination
+                    v-model="currentPage"
+                    :length="totalPages"
+                    :total-visible="5"
+                    density="compact"
+                    rounded="lg"
+                    @update:model-value="handlePageChange"
+                  />
+                </div>
+              </template>
             </v-card-text>
           </v-card>
         </v-col>
@@ -140,7 +155,7 @@
   <AppDrawer
     v-model="openClinicalRecordDrawer"
     title="Gestión de Historiales Clínicos"
-    :loading="loading"
+    :loading="loadingClient || loadingRecords"
     size="large"
     location="end"
     :temporary="true"
@@ -167,6 +182,7 @@ import { ref, computed } from "vue"
 import { useRoute } from "vue-router"
 import type { ClinicalRecord, clinicalRecordDataModalForm } from "~/interfaces/clinicalRecordInterfaces"
 import type { Client } from "~/interfaces/clientInterfaces"
+import type { PageResponse } from "~/interfaces/PageResponse"
 
 definePageMeta({
   layout: "app",
@@ -175,14 +191,22 @@ definePageMeta({
 const route = useRoute()
 const clientId = Number(route.params.id)
 
-const loading = ref(false)
+const loadingClient = ref(false)
+const loadingRecords = ref(false)
 const showDeleteDialog = ref(false)
 const clinicalRecordToRemove = ref<ClinicalRecord>()
 const openClinicalRecordDrawer = ref(false)
 const selectedClinicalRecordId = ref<string | number | null>(null)
 
+const currentPage = ref(1)
+const itemsPerPage = ref(5)
+
 const clienteSelected = ref<Client>()
-const clinicalRecords = ref<ClinicalRecord[]>([])
+const clinicalRecordsPage = ref<PageResponse<ClinicalRecord> | null>(null)
+
+const clinicalRecords = computed(() => clinicalRecordsPage.value?.content ?? [])
+const totalClinicalRecords = computed(() => clinicalRecordsPage.value?.totalElements ?? 0)
+const totalPages = computed(() => clinicalRecordsPage.value?.totalPages ?? 0)
 
 const dataModalForm = ref<clinicalRecordDataModalForm>({
   action: "create",
@@ -211,41 +235,107 @@ const handleCreateButton = (): void => {
   openClinicalRecordDrawer.value = true
 }
 
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
+
+const syncSelectedRecord = () => {
+  const hasSelected = clinicalRecords.value.some(
+    (record) => String(record.id) === String(selectedClinicalRecordId.value)
+  )
+
+  if (!hasSelected) {
+    selectedClinicalRecordId.value = clinicalRecords.value[0]?.id ?? null
+  }
+}
+
+const fetchClient = async () => {
+  try {
+    loadingClient.value = true
+    const { $api } = useNuxtApp()
+    clienteSelected.value = await $api<Client>(`/api/clients/${clientId}`, {
+      method: "GET",
+    })
+  } catch (err) {
+    notifyError(err, "cargar el cliente")
+  } finally {
+    loadingClient.value = false
+  }
+}
+
+const fetchClinicalRecords = async (
+  page = currentPage.value - 1,
+  size = itemsPerPage.value
+) => {
+  try {
+    loadingRecords.value = true
+    const { $api } = useNuxtApp()
+    clinicalRecordsPage.value = await $api<PageResponse<ClinicalRecord>>(
+      `/api/clients/${clientId}/clinical-records`,
+      {
+        method: "GET",
+        query: { page, size },
+      }
+    )
+    syncSelectedRecord()
+  } catch (err) {
+    notifyError(err, "cargar los historiales clínicos")
+  } finally {
+    loadingRecords.value = false
+  }
+}
+
+const handlePageChange = async (page: number) => {
+  currentPage.value = page
+  await fetchClinicalRecords(page - 1, itemsPerPage.value)
+}
+
+const refreshClinicalRecords = async (page = currentPage.value) => {
+  if (page < 1) page = 1
+  currentPage.value = page
+  await fetchClinicalRecords(page - 1, itemsPerPage.value)
+
+  if (!clinicalRecords.value.length && currentPage.value > 1) {
+    currentPage.value--
+    await fetchClinicalRecords(currentPage.value - 1, itemsPerPage.value)
+  }
+}
+
 const handleCreateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
   try {
-    loading.value = true
+    loadingRecords.value = true
     const { $api } = useNuxtApp()
     await $api("/api/clinical-records", {
       method: "POST",
       body: { ...clinicalRecord, clientId },
     })
+    notifyCreated("historial clínico")
     await closeClinicalRecordDrawer()
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "crear el historial clínico")
   } finally {
-    loading.value = false
+    loadingRecords.value = false
   }
 }
 
 const handleUpdateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
   try {
-    loading.value = true
+    loadingRecords.value = true
     const { $api } = useNuxtApp()
     await $api(`/api/clinical-records/${clinicalRecord.id}`, {
       method: "PUT",
       body: {},
     })
+    notifyUpdated("historial clínico")
     await closeClinicalRecordDrawer()
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "actualizar el historial clínico")
   } finally {
-    loading.value = false
+    loadingRecords.value = false
   }
 }
 
 const handleDeleteClinicalRecord = async () => {
   try {
-    loading.value = true
+    loadingRecords.value = true
     const { $api } = useNuxtApp()
     await $api(`/api/clinical-records/${clinicalRecordToRemove.value?.id}`, {
       method: "DELETE",
@@ -258,11 +348,12 @@ const handleDeleteClinicalRecord = async () => {
       selectedClinicalRecordId.value = null
     }
 
-    await fetchSelectedClient()
+    notifyDeleted("historial clínico")
+    await refreshClinicalRecords()
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "eliminar el historial clínico")
   } finally {
-    loading.value = false
+    loadingRecords.value = false
   }
 }
 
@@ -273,36 +364,15 @@ const openClinicalRecordDialog = (clinicalRecord: ClinicalRecord) => {
 
 const closeClinicalRecordDrawer = async () => {
   openClinicalRecordDrawer.value = false
-  await fetchSelectedClient()
-}
-
-const fetchSelectedClient = async () => {
-  try {
-    loading.value = true
-    const { $api } = useNuxtApp()
-    const res: any = await $api(`/api/clients/${clientId}`, {
-      method: "GET",
-    })
-
-    clienteSelected.value = res as Client
-    clinicalRecords.value = (res.clinicalRecords as ClinicalRecord[]) ?? []
-
-    const hasSelected = clinicalRecords.value.some(
-      (record) => String(record.id) === String(selectedClinicalRecordId.value)
-    )
-
-    if (!hasSelected) {
-      selectedClinicalRecordId.value = clinicalRecords.value[0]?.id ?? null
-    }
-  } catch (err) {
-    console.error("Error al obtener historiales clínicos:", err)
-  } finally {
-    loading.value = false
-  }
+  currentPage.value = 1
+  await refreshClinicalRecords(1)
 }
 
 onMounted(async () => {
-  await fetchSelectedClient()
+  await Promise.all([
+    fetchClient(),
+    fetchClinicalRecords(0, itemsPerPage.value),
+  ])
 })
 </script>
 
@@ -334,6 +404,11 @@ onMounted(async () => {
 .clinical-records-page__list {
   max-height: 620px;
   overflow-y: auto;
+}
+
+.clinical-records-page__pagination :deep(.v-pagination__item--is-active .v-btn) {
+  background: rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-on-primary));
 }
 
 .clinical-records-page__detail {

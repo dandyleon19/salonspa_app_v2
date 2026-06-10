@@ -162,6 +162,8 @@ const closeClientDrawer = () => {
   clientsStore.fetchClients();
 };
 
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
+
 const handleCreateClient = async (client: Client) => {
   try {
     loading.value = true;
@@ -170,12 +172,12 @@ const handleCreateClient = async (client: Client) => {
       method: "POST",
       body: {...client},
     });
+    notifyCreated("cliente");
     closeClientDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "crear el cliente");
   } finally {
     loading.value = false;
-
   }
 };
 
@@ -195,9 +197,10 @@ const handleUpdateClient = async (client: Client) => {
         email: client.email,
       },
     });
+    notifyUpdated("cliente");
     closeClientDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "actualizar el cliente");
   } finally {
     loading.value = false;
   }
@@ -210,9 +213,10 @@ const handleDeleteClient = async () => {
     await $api(`/api/clients/${clientToRemove.value?.id}`, {
       method: "DELETE",
     });
+    notifyDeleted("cliente");
     await clientsStore.fetchClients();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "eliminar el cliente");
   } finally {
     loading.value = false;
   }

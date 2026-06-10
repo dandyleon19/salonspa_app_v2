@@ -104,6 +104,7 @@ import { computed, reactive, ref, watch } from "vue"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 
 const { field } = useFormFields()
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
 import type { Branch, salonDataModalForm } from "~/interfaces/salonInterfaces"
 
 const props = defineProps<{
@@ -170,10 +171,10 @@ const handleCloseBranchForm = () => {
 }
 
 const handleCreateBranch = async (branch: Branch) => {
+  loading.value = true
   try {
-    loading.value = true
     const { $api } = useNuxtApp()
-    return await $api("/api/branches", {
+    const created = await $api("/api/branches", {
       method: "POST",
       body: {
         name: branch.name,
@@ -181,8 +182,10 @@ const handleCreateBranch = async (branch: Branch) => {
         city: branch.city,
       },
     })
+    notifyCreated("sucursal")
+    return created
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "crear la sucursal")
     return null
   } finally {
     loading.value = false
@@ -190,8 +193,8 @@ const handleCreateBranch = async (branch: Branch) => {
 }
 
 const handleUpdateBranch = async (branch: Branch) => {
+  loading.value = true
   try {
-    loading.value = true
     const { $api } = useNuxtApp()
     await $api(`/api/branches/${branch.id}`, {
       method: "PUT",
@@ -201,8 +204,11 @@ const handleUpdateBranch = async (branch: Branch) => {
         city: branch.city,
       },
     })
+    notifyUpdated("sucursal")
+    return true
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "actualizar la sucursal")
+    return false
   } finally {
     loading.value = false
   }
@@ -214,18 +220,23 @@ const handleSubmit = async () => {
 
   if (formMode.value === "create") {
     const created = await handleCreateBranch(branchFormData)
-    if (created) branches.value.push(created as Branch)
+    if (created) {
+      branches.value.push(created as Branch)
+      handleCloseBranchForm()
+    }
+    return
   }
 
   if (formMode.value === "edit" && editingId.value) {
-    await handleUpdateBranch(branchFormData)
-    const index = branches.value.findIndex((b) => b.id === editingId.value)
-    if (index !== -1) {
-      branches.value[index] = { ...branches.value[index], ...branchFormData }
+    const updated = await handleUpdateBranch(branchFormData)
+    if (updated) {
+      const index = branches.value.findIndex((b) => b.id === editingId.value)
+      if (index !== -1) {
+        branches.value[index] = { ...branches.value[index], ...branchFormData }
+      }
+      handleCloseBranchForm()
     }
   }
-
-  handleCloseBranchForm()
 }
 
 const handleDelete = async () => {
@@ -238,8 +249,9 @@ const handleDelete = async () => {
     branches.value = branches.value.filter(
       (b) => b.id !== branchToRemove.value?.id
     )
+    notifyDeleted("sucursal")
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "eliminar la sucursal")
   } finally {
     loading.value = false
     showDeleteDialog.value = false

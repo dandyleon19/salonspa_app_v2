@@ -86,7 +86,7 @@ const actionLabel = computed(() => {
   }
 })
 
-const serviceCategoriesList = computed(() => serviceCategoriesStore.list)
+const serviceCategoriesList = computed(() => serviceCategoriesStore.data?.content ?? [])
 
 async function getServiceCategory() {
   try {

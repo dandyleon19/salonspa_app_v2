@@ -126,6 +126,8 @@ const closeClinicalRecordDrawer = () => {
   clinicalRecordsStore.fetchClinicalRecords();
 };
 
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
+
 const handleCreateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
   try {
     loading.value = true;
@@ -134,12 +136,12 @@ const handleCreateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
       method: "POST",
       body: { ...clinicalRecord },
     });
+    notifyCreated("historial clínico");
     closeClinicalRecordDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "crear el historial clínico");
   } finally {
     loading.value = false;
-
   }
 };
 
@@ -153,9 +155,10 @@ const handleUpdateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
 
       },
     });
+    notifyUpdated("historial clínico");
     closeClinicalRecordDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "actualizar el historial clínico");
   } finally {
     loading.value = false;
   }
@@ -168,9 +171,10 @@ const handleDeleteClinicalRecord = async () => {
     await $api(`/api/clinical-records/${clinicalRecordToRemove.value?.id}`, {
       method: "DELETE",
     });
+    notifyDeleted("historial clínico");
     await clinicalRecordsStore.fetchClinicalRecords();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "eliminar el historial clínico");
   } finally {
     loading.value = false;
   }

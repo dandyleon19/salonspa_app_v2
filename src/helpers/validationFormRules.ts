@@ -1,3 +1,10 @@
+import {
+  getCurrentTime,
+  getTodayDate,
+  isDateAfterToday,
+  isDateTimeAfterNow,
+} from "~/helpers/dateTimeHelpers"
+
 export const validationRules = {
   required: (value: string | number | boolean) =>
       value !== null &&
@@ -61,5 +68,22 @@ export const validationRules = {
   onlyNumbers: (v: string) =>
       !v ||
       /^\d+$/.test(v) ||
-      'Solo números'
+      'Solo números',
+
+  maxDateToday: (value: string) =>
+      !value ||
+      !isDateAfterToday(value) ||
+      "La fecha no puede ser posterior a hoy",
+
+  maxTimeForDate: (date: string) => (time: string) => {
+    if (!time || !date) return true
+    if (date !== getTodayDate()) return true
+    return time <= getCurrentTime() || "La hora no puede ser posterior a la actual"
+  },
+
+  maxDateTimeNow: (date: string, time: string) => () =>
+      !date ||
+      !time ||
+      !isDateTimeAfterNow(date, time) ||
+      "La fecha y hora no pueden ser posteriores al momento actual",
 }

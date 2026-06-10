@@ -135,6 +135,7 @@ import { computed, reactive, ref, watch } from "vue"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 
 const { field, textarea } = useFormFields()
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
 import type { Service } from "~/interfaces/serviceInterfaces"
 import type { serviceCategoryDataModalForm } from "~/interfaces/serviceCategoryInterfaces"
 
@@ -226,10 +227,10 @@ const handleCloseServiceForm = () => {
 }
 
 const handleCreateService = async (service: Service) => {
+  loading.value = true
   try {
-    loading.value = true
     const { $api } = useNuxtApp()
-    return await $api("/api/services", {
+    const created = await $api("/api/services", {
       method: "POST",
       body: {
         name: service.name,
@@ -240,8 +241,10 @@ const handleCreateService = async (service: Service) => {
         categoryId: props.dataModalForm.rowId,
       },
     })
+    notifyCreated("servicio")
+    return created
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "crear el servicio")
     return null
   } finally {
     loading.value = false
@@ -249,8 +252,8 @@ const handleCreateService = async (service: Service) => {
 }
 
 const handleUpdateService = async (service: Service) => {
+  loading.value = true
   try {
-    loading.value = true
     const { $api } = useNuxtApp()
     await $api(`/api/services/${service.id}`, {
       method: "PUT",
@@ -262,8 +265,11 @@ const handleUpdateService = async (service: Service) => {
         price: service.price,
       },
     })
+    notifyUpdated("servicio")
+    return true
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "actualizar el servicio")
+    return false
   } finally {
     loading.value = false
   }
@@ -275,18 +281,23 @@ const handleSubmit = async () => {
 
   if (formMode.value === "create") {
     const created = await handleCreateService(serviceFormData)
-    if (created) services.value.push(created as Service)
+    if (created) {
+      services.value.push(created as Service)
+      handleCloseServiceForm()
+    }
+    return
   }
 
   if (formMode.value === "edit" && editingId.value) {
-    await handleUpdateService(serviceFormData)
-    const index = services.value.findIndex((s) => s.id === editingId.value)
-    if (index !== -1) {
-      services.value[index] = { ...services.value[index], ...serviceFormData }
+    const updated = await handleUpdateService(serviceFormData)
+    if (updated) {
+      const index = services.value.findIndex((s) => s.id === editingId.value)
+      if (index !== -1) {
+        services.value[index] = { ...services.value[index], ...serviceFormData }
+      }
+      handleCloseServiceForm()
     }
   }
-
-  handleCloseServiceForm()
 }
 
 const handleDelete = async () => {
@@ -299,8 +310,9 @@ const handleDelete = async () => {
     services.value = services.value.filter(
       (s) => s.id !== serviceToRemove.value?.id
     )
+    notifyDeleted("servicio")
   } catch (err) {
-    console.error("=======> Error: ", err)
+    notifyError(err, "eliminar el servicio")
   } finally {
     loading.value = false
     showDeleteDialog.value = false

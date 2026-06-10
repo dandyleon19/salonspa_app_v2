@@ -52,7 +52,6 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import type { ResponseInterface } from "~/interfaces/appInterfaces";
 import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
 import type { User, userDataModalForm } from "~/interfaces/userInterfaces";
 import { useUsersStore } from "~/store";
@@ -120,7 +119,11 @@ const dataModalForm = ref<userDataModalForm>({
 
 // Computed
 const usersList = computed(() => {
-  return usersStore.list;
+  return usersStore.data?.content ?? [];
+});
+
+const totalItems = computed(() => {
+  return usersStore.data?.totalElements ?? 0;
 });
 
 const loadingUsersList = computed(() => {
@@ -163,8 +166,13 @@ const handleApplyFilters = (user: any): void => {
 
 const closeUserDrawer = () => {
   openUserDrawer.value = false;
-  usersStore.fetchUsers();
+  usersStore.fetchUsers(
+    currentPage.value - 1,
+    itemsPerPage.value
+  );
 };
+
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
 
 const handleCreateUser = async (user: User) => {
   try {
@@ -174,11 +182,12 @@ const handleCreateUser = async (user: User) => {
       method: "POST",
       body: { ...user },
     });
+    notifyCreated("usuario");
+    closeUserDrawer();
   } catch (err) {
-    console.error("Error: ", err);
+    notifyError(err, "crear el usuario");
   } finally {
     loading.value = false;
-    closeUserDrawer();
   }
 };
 
@@ -196,11 +205,12 @@ const handleUpdateUser = async (user: User) => {
         commissionPercentage: user.commissionPercentage,
       },
     });
+    notifyUpdated("usuario");
+    closeUserDrawer();
   } catch (err) {
-    console.error("Error: ", err);
+    notifyError(err, "actualizar el usuario");
   } finally {
     loading.value = false;
-    closeUserDrawer();
   }
 };
 
@@ -211,11 +221,15 @@ const handleDeleteUser = async () => {
     await $api(`/api/users/${userToRemove.value?.id}`, {
       method: "DELETE",
     });
+    notifyDeleted("usuario");
+    await usersStore.fetchUsers(
+      currentPage.value - 1,
+      itemsPerPage.value
+    );
   } catch (err) {
-    console.error("Error: ", err);
+    notifyError(err, "eliminar el usuario");
   } finally {
     loading.value = false;
-    await usersStore.fetchUsers();
   }  
 }
 

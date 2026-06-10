@@ -162,6 +162,8 @@ const closeSalonDrawer = () => {
   salonsStore.fetchSalons();
 };
 
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
+
 const handleCreateSalon = async (salon: Salon) => {
   try {
     loading.value = true;
@@ -170,12 +172,12 @@ const handleCreateSalon = async (salon: Salon) => {
       method: "POST",
       body: { ...salon },
     });
+    notifyCreated("salón");
     closeSalonDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "crear el salón");
   } finally {
     loading.value = false;
-
   }
 };
 
@@ -193,9 +195,10 @@ const handleUpdateSalon = async (salon: Salon) => {
         phone: salon.phone,
       },
     });
+    notifyUpdated("salón");
     closeSalonDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "actualizar el salón");
   } finally {
     loading.value = false;
   }
@@ -208,9 +211,10 @@ const handleDeleteSalon = async () => {
     await $api(`/api/salons/${salonToRemove.value?.id}`, {
       method: "DELETE",
     });
+    notifyDeleted("salón");
     await salonsStore.fetchSalons();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "eliminar el salón");
   } finally {
     loading.value = false;
   }  

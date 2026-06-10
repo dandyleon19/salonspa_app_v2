@@ -9,21 +9,20 @@
     <AppFormSection title="Sesión" subtitle="Fecha y hora de atención">
       <v-row dense>
         <v-col cols="12" md="6">
-          <v-text-field
-            v-model="clinicalRecord.sessionDate"
-            v-bind="field"
-            label="Fecha"
-            type="date"
-            prepend-inner-icon="mdi-calendar-outline"
+          <AppDateField
+            v-model="sessionDate"
+            label="Fecha de sesión"
+            required
+            max-today
           />
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field
+          <AppTimeField
             v-model="sessionTime"
-            v-bind="field"
-            label="Hora"
-            type="time"
-            prepend-inner-icon="mdi-clock-outline"
+            :related-date="sessionDate"
+            label="Hora de sesión"
+            required
+            max-now
           />
         </v-col>
       </v-row>
@@ -110,12 +109,17 @@
 
 <script setup lang="ts">
 import { validationRules as rules } from "~/helpers/validationFormRules"
+import {
+  combineDateAndTime,
+  isDateTimeAfterNow,
+  splitIsoDateTime,
+} from "~/helpers/dateTimeHelpers"
 import { useClinicalRecordsStore } from "~/store/modules/clinicalRecord"
 import type { ClinicalRecord, clinicalRecordDataModalForm } from "~/interfaces/clinicalRecordInterfaces"
 import { useBranchesStore, useUsersStore } from "~/store"
 import { useServicesStore } from "~/store/modules/service"
 
-const { field, textarea, select } = useFormFields()
+const { textarea, select } = useFormFields()
 
 const clinicalRecordsStore = useClinicalRecordsStore()
 const branchesStore = useBranchesStore()
@@ -132,6 +136,7 @@ const emit = defineEmits<{
 
 const isValid = ref(false)
 const clinicalRecordFormRef = ref<any>(null)
+const sessionDate = ref("")
 const sessionTime = ref("")
 
 const clinicalRecord = ref<ClinicalRecord>({
@@ -197,6 +202,10 @@ async function getClinicalRecord() {
       (r) => r.id == props.dataModalForm.rowId
     )
     clinicalRecord.value = { ...found } as ClinicalRecord
+
+    const { date, time } = splitIsoDateTime(found?.sessionDate)
+    sessionDate.value = date
+    sessionTime.value = time
   } catch (err) {
     console.error(err)
   }
@@ -206,9 +215,13 @@ const onSubmit = async () => {
   const valid = await clinicalRecordFormRef.value?.validate()
   if (!valid.valid) return
 
+  if (isDateTimeAfterNow(sessionDate.value, sessionTime.value)) {
+    return
+  }
+
   clinicalRecord.value = {
     ...clinicalRecord.value,
-    sessionDate: `${clinicalRecord.value.sessionDate}T${sessionTime.value}`,
+    sessionDate: combineDateAndTime(sessionDate.value, sessionTime.value),
   }
   emit(props.dataModalForm.action, clinicalRecord.value)
 }

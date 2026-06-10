@@ -6,8 +6,11 @@
       :rowOptions="rowOptions"
       :filters="tableFilters"
       :items="serviceCategoriesList"
-      :total-items="serviceCategoriesList.length"
       :loading="loadingServiceCategoriesList"
+      :page="currentPage"
+      :items-per-page="itemsPerPage"
+      :total-items="totalItems"
+      @update:pagination="handlePagination"
       @handle-create-button="handleCreateButton"
       @handle-row-action-button="handleRowActionButton"
   />
@@ -53,7 +56,6 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import type { ResponseInterface } from "~/interfaces/appInterfaces";
 import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
 import type { ServiceCategory, serviceCategoryDataModalForm } from "~/interfaces/serviceCategoryInterfaces";
 import { useServiceCategoriesStore } from "~/store";
@@ -72,6 +74,8 @@ const openServiceCategoryDrawer = ref<boolean>(false);
 const openServiceDrawer = ref<boolean>(false)
 const showDeleteDialog = ref<boolean>(false)
 const serviceCategoryToRemove = ref<ServiceCategory>()
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
@@ -107,8 +111,12 @@ const dataModalForm = ref<serviceCategoryDataModalForm>({
 
 // Computed
 const serviceCategoriesList = computed(() => {
-  return serviceCategoriesStore.list;
+  return serviceCategoriesStore.data?.content ?? [];
 });
+
+const totalItems = computed(() => {
+  return serviceCategoriesStore.data?.totalElements ?? 0
+})
 
 const loadingServiceCategoriesList = computed(() => {
   return serviceCategoriesStore.loading;
@@ -149,8 +157,13 @@ const handleRowActionButton = (serviceCategory: ServiceCategory, action: string)
 const closeServiceCategoryDrawer = () => {
   openServiceCategoryDrawer.value = false;
   openServiceDrawer.value = false;
-  serviceCategoriesStore.fetchServiceCategories();
+  serviceCategoriesStore.fetchServiceCategories(
+    currentPage.value - 1,
+    itemsPerPage.value
+  );
 };
+
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
 
 const handleCreateServiceCategory = async (serviceCategory: ServiceCategory) => {
   try {
@@ -160,12 +173,12 @@ const handleCreateServiceCategory = async (serviceCategory: ServiceCategory) => 
       method: "POST",
       body: { ...serviceCategory },
     });
+    notifyCreated("categoría de servicio");
     closeServiceCategoryDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "crear la categoría de servicio");
   } finally {
     loading.value = false;
-
   }
 };
 
@@ -181,9 +194,10 @@ const handleUpdateServiceCategory = async (serviceCategory: ServiceCategory) => 
         longDescription: serviceCategory.longDescription,
       },
     });
+    notifyUpdated("categoría de servicio");
     closeServiceCategoryDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "actualizar la categoría de servicio");
   } finally {
     loading.value = false;
   }
@@ -196,16 +210,36 @@ const handleDeleteServiceCategory = async () => {
     await $api(`/api/service-categories/${serviceCategoryToRemove.value?.id}`, {
       method: "DELETE",
     });
-    await serviceCategoriesStore.fetchServiceCategories();
+    notifyDeleted("categoría de servicio");
+    await serviceCategoriesStore.fetchServiceCategories(
+      currentPage.value - 1,
+      itemsPerPage.value
+    );
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "eliminar la categoría de servicio");
   } finally {
     loading.value = false;
   }
 }
 
+const handlePagination = async ({
+  page,
+  itemsPerPage: newItemsPerPage,
+}: {
+  page: number
+  itemsPerPage: number
+}) => {
+  currentPage.value = page
+  itemsPerPage.value = newItemsPerPage
+
+  await serviceCategoriesStore.fetchServiceCategories(
+    page - 1,
+    newItemsPerPage
+  )
+}
+
 // Mounted
 onMounted(() => {
-  serviceCategoriesStore.fetchServiceCategories();
+  serviceCategoriesStore.fetchServiceCategories(0, itemsPerPage.value);
 });
 </script>

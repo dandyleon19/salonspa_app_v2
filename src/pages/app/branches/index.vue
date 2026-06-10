@@ -76,11 +76,6 @@ const rowOptions = ref<Array<TableRowOption>>([
     icon: 'mdi-pencil',
   },
   {
-    action: 'clinicalRecords',
-    color: 'primary',
-    icon: 'mdi-folder-heart-outline',
-  },
-  {
     action: 'delete',
     color: 'error',
     icon: 'mdi-delete',
@@ -136,6 +131,8 @@ const closeBranchDrawer = () => {
   branchesStore.fetchBranches();
 };
 
+const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
+
 const handleCreateBranch = async (branch: Branch) => {
   try {
     loading.value = true;
@@ -144,12 +141,12 @@ const handleCreateBranch = async (branch: Branch) => {
       method: "POST",
       body: { ...branch },
     });
+    notifyCreated("sucursal");
     closeBranchDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "crear la sucursal");
   } finally {
     loading.value = false;
-
   }
 };
 
@@ -165,9 +162,10 @@ const handleUpdateBranch = async (branch: Branch) => {
         city: branch.city
       },
     });
+    notifyUpdated("sucursal");
     closeBranchDrawer();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "actualizar la sucursal");
   } finally {
     loading.value = false;
   }
@@ -180,9 +178,10 @@ const handleDeleteBranch = async () => {
     await $api(`/api/branches/${branchToRemove.value?.id}`, {
       method: "DELETE",
     });
+    notifyDeleted("sucursal");
     await branchesStore.fetchBranches();
   } catch (err) {
-    console.error("=======> Error: ", err);
+    notifyError(err, "eliminar la sucursal");
   } finally {
     loading.value = false;
   }

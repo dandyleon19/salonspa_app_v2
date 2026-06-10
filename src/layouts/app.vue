@@ -27,7 +27,7 @@
 
     <v-main>
       <NavBar/>
-      <v-container>
+      <v-container class="app-layout-container" fluid>
         <slot/>
       </v-container>
     </v-main>
@@ -65,3 +65,11 @@ const filteredItems = computed(() => {
   })
 })
 </script>
+
+<style scoped>
+.app-layout-container {
+  width: 100%;
+  padding-top: 8px;
+  padding-bottom: 24px;
+}
+</style>

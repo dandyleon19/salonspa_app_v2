@@ -9,11 +9,11 @@ export const useUsersStore = defineStore('users', {
     }),
 
     actions: {
-        async fetchUsers(page: number, size: number) {
+        async fetchUsers(page = 0, size = 10) {
             this.loading = true
             try {
                 const { $api } = useNuxtApp()
-                this.data = await $api('/api/users', {
+                this.data = await $api<PageResponse<User>>('/api/users', {
                     method: 'GET',
                     query: {
                         page,

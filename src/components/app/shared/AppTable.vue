@@ -98,7 +98,7 @@
 
             <v-data-table-server
                 class="app-table__data"
-                :headers="headers"
+                :headers="tableHeaders"
                 :items="items"
                 :items-length="totalItems"
                 :loading="loading"
@@ -108,6 +108,10 @@
                 hover
                 @update:options="handleOptionsUpdate"
             >
+                <template v-if="!$slots['item.id']" v-slot:[`item.id`]="{ index }">
+                    {{ rowNumber(index) }}
+                </template>
+
                 <template
                     v-for="(_, slotName) in customColumnSlots"
                     :key="slotName"
@@ -171,9 +175,42 @@ const slots = useSlots();
 
 const customColumnSlots = computed(() =>
     Object.keys(slots).filter(
-        (name) => name.startsWith("item.") && name !== "item.actions"
+        (name) =>
+            name.startsWith("item.") &&
+            name !== "item.actions" &&
+            name !== "item.id"
     )
 );
+
+const tableHeaders = computed(() =>
+    props.headers.map((header) => {
+        if (header.key === "id") {
+            return {
+                ...header,
+                title: "N°",
+                sortable: false,
+                width: 64,
+                minWidth: 64,
+                maxWidth: 72,
+            }
+        }
+
+        if (header.key === "actions") {
+            return {
+                ...header,
+                sortable: false,
+                width: 128,
+                minWidth: 128,
+                maxWidth: 148,
+            }
+        }
+
+        return header
+    })
+);
+
+const rowNumber = (index: number) =>
+    (props.page - 1) * props.itemsPerPage + index + 1;
 
 const props = withDefaults(
     defineProps<{
@@ -232,6 +269,13 @@ watch(selectedFilters, (val) => {
 </script>
 
 <style scoped>
+.app-table-wrapper {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    min-width: 0;
+}
+
 .app-table__hero {
     border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
     background: linear-gradient(
@@ -264,6 +308,39 @@ watch(selectedFilters, (val) => {
     border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
     overflow: hidden;
     background: rgb(var(--v-theme-surface));
+    width: 100%;
+}
+
+.app-table__data {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.app-table__data :deep(.v-table) {
+    width: 100%;
+    min-width: min(100%, 720px);
+    table-layout: auto;
+}
+
+.app-table__data :deep(.v-data-table__tbody td:not(:last-child)),
+.app-table__data :deep(.v-data-table__thead th:not(:last-child)) {
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-table__data :deep(.v-data-table__tbody td:first-child),
+.app-table__data :deep(.v-data-table__thead th:first-child) {
+    max-width: 72px;
+    width: 64px;
+}
+
+.app-table__data :deep(.v-data-table__tbody td:last-child),
+.app-table__data :deep(.v-data-table__thead th:last-child) {
+    max-width: none;
+    white-space: nowrap;
 }
 
 .app-table__search {
@@ -363,5 +440,40 @@ watch(selectedFilters, (val) => {
 .app-table__data :deep(.v-pagination__item--is-active .v-btn) {
     background: rgba(var(--v-theme-primary), 0.12) !important;
     color: rgb(var(--v-theme-primary)) !important;
+}
+
+@media (max-width: 960px) {
+    .app-table__hero :deep(.v-card-text) {
+        padding: 1.25rem !important;
+    }
+
+    .app-table__toolbar {
+        padding-inline: 1rem !important;
+    }
+
+    .app-table__search,
+    .app-table__filter {
+        min-width: 100%;
+        max-width: 100%;
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .app-table__data :deep(.v-data-table-footer) {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding-block: 12px !important;
+    }
+
+    .app-table__data :deep(.v-data-table-footer__info) {
+        justify-content: center;
+        margin-inline: 0 !important;
+    }
+
+    .app-table__data :deep(.v-data-table-footer__pagination) {
+        justify-content: center;
+    }
 }
 </style>

@@ -43,11 +43,10 @@
           />
         </v-col>
         <v-col cols="12" md="6">
-          <v-text-field
+          <AppDateField
             v-model="client.birthDate"
-            v-bind="field"
             label="Fecha de nacimiento"
-            type="date"
+            max-today
           />
         </v-col>
       </v-row>
@@ -91,6 +90,7 @@
 
 <script setup lang="ts">
 import { validationRules as rules } from "~/helpers/validationFormRules"
+import { splitIsoDateTime } from "~/helpers/dateTimeHelpers"
 import { useClientsStore } from "~/store/modules/client"
 import type { Client, clientDataModalForm } from "~/interfaces/clientInterfaces"
 
@@ -143,6 +143,10 @@ async function getClient() {
   try {
     const found = clientsList.value.find((c) => c.id == props.dataModalForm.rowId)
     client.value = { ...found } as Client
+
+    if (client.value.birthDate?.includes("T")) {
+      client.value.birthDate = splitIsoDateTime(client.value.birthDate).date
+    }
   } catch (err) {
     console.error(err)
   }

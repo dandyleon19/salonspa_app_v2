@@ -5,6 +5,7 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createVuetify } from 'vuetify'
 import { VBtn } from 'vuetify/components/VBtn'
+import { VTimePicker } from 'vuetify/labs/VTimePicker'
 
 export default defineNuxtPlugin(nuxtApp => {
   const myCustomLightTheme = {
@@ -27,7 +28,10 @@ export default defineNuxtPlugin(nuxtApp => {
 
   const vuetify = createVuetify({
     ssr: false,
-    components,
+    components: {
+      ...components,
+      VTimePicker,
+    },
     directives,
     aliases: {
       VBtnSalonSpaPrimary: VBtn,

@@ -11,6 +11,8 @@ export interface ClinicalRecord {
     associatedServices?: string[]
     userName?: string
     branchName?: string
+    createdAt?: string
+    updatedAt?: string
 }
 
 export interface clinicalRecordDataModalForm {
