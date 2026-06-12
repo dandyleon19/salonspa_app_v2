@@ -19,6 +19,9 @@ defineProps<{
 
 <style scoped>
 .app-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
   margin-bottom: 1.25rem;
 }
 

@@ -1,28 +1,37 @@
 <template>
-  <v-row
-      class="mb-6 v-login"
-      no-gutters>
-    <v-col
-        cols="12" md="7" xl="4"
-        offset-xl="7" offset-md="5">
-      <v-card class="overflow-hidden">
-        <v-card-text>
-          <div class="d-flex flex-column align-center mb-4">
-            <v-avatar size="72" rounded="lg" class="mb-3">
-              <v-img src="/apple-touch-icon.png" alt="Marité Salón & Spa" cover />
-            </v-avatar>
-            <p class="text-center v-login__title mb-0">Iniciar Sesión</p>
+  <div class="login-page">
+    <v-card class="login-page__card" rounded="xl" elevation="0">
+      <v-card-text class="login-page__body">
+        <div class="login-page__brand">
+          <div class="login-page__logo-wrap">
+            <img
+              :src="logoMarite"
+              alt="Marité Salon & Spa"
+              class="login-page__logo"
+            />
           </div>
-          <LoginForm/>
-        </v-card-text>
-      </v-card>
-    </v-col>
-  </v-row>
+
+          <h1 class="login-page__title">Ingresa a tu cuenta</h1>
+          <p class="login-page__subtitle">
+            Usa tus credenciales para acceder al sistema
+          </p>
+        </div>
+
+        <LoginForm />
+      </v-card-text>
+    </v-card>
+
+    <p class="login-page__footer">
+      Gestión integral para tu salón y spa
+    </p>
+  </div>
 </template>
 
 <script setup lang="ts">
+import logoMarite from "../assets/img/logo-marite.png"
+
 useHead({
-  title: "Login",
+  title: "Iniciar sesión",
   link: [
     { rel: "icon", href: "/favicon.ico", sizes: "any" },
     { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
@@ -31,13 +40,66 @@ useHead({
 </script>
 
 <style scoped>
-.v-login .v-card {
-  border-radius: 15px;
-  opacity: 0.8;
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: auto;
 }
 
-.v-login__title {
-  font-size: 20px;
-  font-weight: bold;
+.login-page__card {
+  width: 100%;
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 48px rgba(235, 88, 137, 0.1);
+}
+
+.login-page__body {
+  padding: 2.25rem 2rem 2rem !important;
+}
+
+.login-page__brand {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.login-page__logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-page__logo {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  border-radius: 50%;
+  box-shadow: 0 12px 32px rgba(235, 88, 137, 0.2);
+}
+
+.login-page__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: rgba(var(--v-theme-on-surface), 0.92);
+}
+
+.login-page__subtitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: rgba(var(--v-theme-on-surface), 0.58);
+}
+
+.login-page__footer {
+  margin: 1.25rem 0 0;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: rgba(var(--v-theme-on-surface), 0.45);
 }
 </style>

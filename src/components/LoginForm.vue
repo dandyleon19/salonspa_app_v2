@@ -4,15 +4,15 @@
       :model-value="isSubmitting"
       contained
       persistent
-      class="align-center justify-center"
-      scrim="rgba(255, 255, 255, 0.85)"
+      class="align-center justify-center login-form__overlay"
+      scrim="rgba(255, 255, 255, 0.88)"
     >
       <div class="d-flex flex-column align-center">
         <v-progress-circular
           indeterminate
-          color="success"
-          size="52"
-          width="4"
+          color="primary"
+          size="48"
+          width="3"
         />
         <span class="text-body-2 mt-3 font-weight-medium text-medium-emphasis">
           Iniciando sesión...
@@ -20,54 +20,50 @@
       </div>
     </v-overlay>
 
-    <v-form v-model="valid" class="app-form" @submit.prevent="handleLogin">
-      <v-row dense>
-        <v-col cols="12">
-          <v-text-field
-            v-model="credentials.email"
-            v-bind="field"
-            :rules="emailRules"
-            label="Correo electrónico"
-            placeholder="johndoe@gmail.com"
-            autocomplete="email"
-            prepend-inner-icon="mdi-email-outline"
-            :disabled="isSubmitting"
-          />
-        </v-col>
-        <v-col cols="12">
-          <v-text-field
-            v-model="credentials.password"
-            v-bind="field"
-            :rules="passwordRules"
-            label="Contraseña"
-            type="password"
-            autocomplete="current-password"
-            prepend-inner-icon="mdi-lock-outline"
-            :disabled="isSubmitting"
-          />
-        </v-col>
-        <v-col cols="12" class="pt-2">
-          <v-btn
-            size="large"
-            type="submit"
-            block
-            rounded="lg"
-            color="primary"
-            variant="flat"
-            class="app-form-btn--primary"
-            :loading="isSubmitting"
-            :disabled="!valid || isSubmitting"
-          >
-            Ingresar
-          </v-btn>
-        </v-col>
-      </v-row>
+    <v-form v-model="valid" class="login-form__form" @submit.prevent="handleLogin">
+      <v-text-field
+        v-model="credentials.email"
+        v-bind="field"
+        :rules="emailRules"
+        label="Correo electrónico"
+        placeholder="tu@correo.com"
+        autocomplete="email"
+        prepend-inner-icon="mdi-email-outline"
+        :disabled="isSubmitting"
+      />
+
+      <v-text-field
+        v-model="credentials.password"
+        v-bind="field"
+        :rules="passwordRules"
+        label="Contraseña"
+        :type="showPassword ? 'text' : 'password'"
+        autocomplete="current-password"
+        prepend-inner-icon="mdi-lock-outline"
+        :append-inner-icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+        :disabled="isSubmitting"
+        @click:append-inner="showPassword = !showPassword"
+      />
+
+      <v-btn
+        type="submit"
+        size="large"
+        block
+        rounded="lg"
+        color="primary"
+        variant="flat"
+        class="login-form__submit"
+        :loading="isSubmitting"
+        :disabled="!valid || isSubmitting"
+      >
+        Ingresar
+      </v-btn>
     </v-form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from "vue"
 
 const { login: authLogin } = useAuth()
 const { success, error: showError } = useNotification()
@@ -76,28 +72,29 @@ const { field } = useFormFields()
 const credentials = reactive({
   email: "",
   password: "",
-});
+})
 
-const valid = ref(false);
-const isSubmitting = ref(false);
+const valid = ref(false)
+const isSubmitting = ref(false)
+const showPassword = ref(false)
 
 const emailRules = ref([
   (value: string) => {
-    if (value?.trim()) return true;
-    return "El correo es obligatorio.";
+    if (value?.trim()) return true
+    return "El correo es obligatorio."
   },
   (value: string) => {
-    if (/.+@.+\..+/.test(value)) return true;
-    return "Ingresa un correo válido.";
+    if (/.+@.+\..+/.test(value)) return true
+    return "Ingresa un correo válido."
   },
-]);
+])
 
 const passwordRules = ref([
   (value: string) => {
-    if (value) return true;
-    return "La contraseña es obligatoria.";
+    if (value) return true
+    return "La contraseña es obligatoria."
   },
-]);
+])
 
 const getLoginErrorMessage = (err: unknown): string => {
   if (err && typeof err === "object") {
@@ -145,6 +142,38 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-form {
-  min-height: 220px;
+  min-height: 200px;
+}
+
+.login-form__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login-form__form :deep(.v-field) {
+  background: rgb(var(--v-theme-surface));
+}
+
+.login-form__form :deep(.v-field--variant-outlined .v-field__outline) {
+  --v-field-border-opacity: 0.2;
+}
+
+.login-form__form :deep(.v-field--focused .v-field__outline) {
+  --v-field-border-opacity: 0.5;
+}
+
+.login-form__submit {
+  color: #fff !important;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 600;
+  min-height: 48px;
+  margin-top: 0.75rem !important;
+  box-shadow: 0 10px 24px rgba(235, 88, 137, 0.24);
+}
+
+.login-form__overlay {
+  border-radius: 20px;
 }
 </style>

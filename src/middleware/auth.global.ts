@@ -1,6 +1,11 @@
-import { useAuthStore } from "~/store/modules/auth";
+import { useAuthStore } from "~/store/modules/auth"
+
+const isPublicAsset = (path: string) =>
+  /\.(?:ico|png|jpe?g|gif|svg|webp|css|js|mjs|woff2?|ttf|txt|map)$/i.test(path) ||
+  path.startsWith("/_nuxt/")
 
 export default defineNuxtRouteMiddleware(async (to) => {
+  if (isPublicAsset(to.path)) return
 
   const accessToken = useCookie('access_token')
   const authStore = useAuthStore()
