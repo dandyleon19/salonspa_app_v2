@@ -4,6 +4,7 @@ export interface Service {
     description?: string
     longDescription?: string
     price?: number | null
+    durationMinutes?: number | null
     isActive: boolean
     salonId?: string
     categoryId?: string

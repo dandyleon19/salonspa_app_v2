@@ -12,6 +12,8 @@ export const useAuthStore = defineStore('auth', {
         isSuperAdmin: (state) => state.role === 'SUPER_ADMIN',
         isAdmin: (state) => state.role === 'ADMIN_USER',
         isStaff: (state) => state.role === 'STAFF_USER',
+        canManageAppointments: (state) =>
+            state.role === 'ADMIN_USER' || state.role === 'SUPER_ADMIN',
     },
 
     actions: {

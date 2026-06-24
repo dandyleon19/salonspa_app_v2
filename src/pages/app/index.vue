@@ -21,19 +21,70 @@
                 {{ salonName }}
               </p>
               <p class="text-caption text-medium-emphasis mt-2 mb-0">
-                {{ currentDate }}
+                {{ selectedDateLabel }}
               </p>
             </div>
           </div>
 
-          <!-- <v-chip
-            v-if="commissionLabel"
-            color="primary"
+          <v-btn
+            to="/app/appointments"
             variant="tonal"
-            prepend-icon="mdi-percent"
+            color="primary"
+            rounded="lg"
+            prepend-icon="mdi-calendar-month-outline"
           >
-            {{ commissionLabel }}
-          </v-chip> -->
+            Ver citas
+          </v-btn>
+        </div>
+      </v-card-text>
+    </v-card>
+
+    <v-card class="dashboard__filters mb-4" rounded="xl" elevation="0">
+      <v-card-text class="pa-4">
+        <div class="dashboard__filters-inner">
+          <v-text-field
+            v-model="filterDate"
+            label="Fecha"
+            type="date"
+            hide-details
+            density="comfortable"
+            variant="solo-filled"
+            flat
+            rounded="lg"
+            class="dashboard__filter"
+          />
+
+          <v-select
+            v-if="showAdvancedFilters"
+            v-model="filterBranchId"
+            label="Sucursal"
+            :items="branchFilterItems"
+            item-title="title"
+            item-value="value"
+            hide-details
+            density="comfortable"
+            variant="solo-filled"
+            flat
+            rounded="lg"
+            clearable
+            class="dashboard__filter"
+          />
+
+          <v-select
+            v-if="showAdvancedFilters"
+            v-model="filterUserId"
+            label="Profesional"
+            :items="userFilterItems"
+            item-title="title"
+            item-value="value"
+            hide-details
+            density="comfortable"
+            variant="solo-filled"
+            flat
+            rounded="lg"
+            clearable
+            class="dashboard__filter"
+          />
         </div>
       </v-card-text>
     </v-card>
@@ -56,210 +107,231 @@
       </v-col>
     </v-row>
 
+    <v-row v-if="todayBreakdownStats.length" class="mb-4">
+      <v-col
+        v-for="stat in todayBreakdownStats"
+        :key="stat.key"
+        cols="6"
+        sm="4"
+        md="3"
+        lg="2"
+      >
+        <DashboardStatCard
+          :label="stat.label"
+          :value="stat.value"
+          :icon="stat.icon"
+          :color="stat.color"
+          :loading="loading"
+        />
+      </v-col>
+    </v-row>
+
     <v-row>
       <v-col cols="12" lg="7">
-        <v-row>
-          <v-col v-if="showClientsSection" cols="12" md="6">
-            <v-card class="dashboard__panel" rounded="xl" elevation="0">
-              <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
-                <div>
-                  <p class="text-subtitle-1 font-weight-bold mb-0">Últimos clientes</p>
-                  <p class="text-caption text-medium-emphasis mb-0">Registros recientes</p>
-                </div>
-                <v-btn
-                  v-if="authStore.isAdmin"
-                  to="/app/clients"
-                  variant="text"
-                  color="primary"
-                  size="small"
-                >
-                  Ver todos
-                </v-btn>
-              </v-card-title>
-              <v-divider />
-              <v-card-text class="pa-0">
-                <v-skeleton-loader v-if="loading" type="list-item-three-line@3" class="pa-4" />
-                <div v-else-if="!recentClients.length" class="dashboard__empty pa-6">
-                  <p class="text-body-2 text-medium-emphasis mb-0">No hay clientes registrados</p>
-                </div>
-                <v-list v-else lines="two" class="py-0">
-                  <v-list-item
-                    v-for="client in recentClients"
-                    :key="client.id"
-                    :to="`/app/clients/${client.id}/clinical-records`"
-                    rounded="lg"
-                    class="mx-2 my-1"
-                  >
-                    <template #prepend>
-                      <v-avatar color="primary" variant="tonal" size="36">
-                        <span class="text-caption font-weight-bold">
-                          {{ getClientInitials(client) }}
-                        </span>
-                      </v-avatar>
-                    </template>
-                    <v-list-item-title class="font-weight-medium">
-                      {{ client.firstName }} {{ client.lastName }}
-                    </v-list-item-title>
-                    <v-list-item-subtitle>
-                      {{ client.email || client.phone || "Sin contacto" }}
-                    </v-list-item-subtitle>
-                  </v-list-item>
-                </v-list>
-              </v-card-text>
-            </v-card>
-          </v-col>
-
-          <v-col v-if="showClinicalSection" cols="12" :md="showClientsSection ? 6 : 12">
-            <v-card class="dashboard__panel" rounded="xl" elevation="0">
-              <v-card-title class="py-4 px-5">
-                <p class="text-subtitle-1 font-weight-bold mb-0">Historiales recientes</p>
-                <p class="text-caption text-medium-emphasis mb-0">Últimas sesiones clínicas</p>
-              </v-card-title>
-              <v-divider />
-              <v-card-text class="pa-4">
-                <v-skeleton-loader v-if="loading" type="list-item-two-line@3" />
-                <div v-else-if="!recentClinicalRecords.length" class="dashboard__empty">
-                  <p class="text-body-2 text-medium-emphasis mb-0">No hay historiales registrados</p>
-                </div>
-                <div v-else class="d-flex flex-column ga-2">
-                  <v-card
-                    v-for="record in recentClinicalRecords"
-                    :key="record.id"
-                    class="dashboard__record-item pa-3"
-                    variant="flat"
-                    rounded="lg"
-                  >
-                    <p class="text-caption text-medium-emphasis mb-1">
-                      {{ formatDate(record.sessionDate) }}
-                    </p>
-                    <p class="text-body-2 font-weight-medium mb-2">
-                      {{ record.diagnosis || "Sin diagnóstico" }}
-                    </p>
-                    <div class="d-flex flex-wrap ga-2">
-                      <v-chip size="x-small" variant="tonal" prepend-icon="mdi-account-outline">
-                        {{ record.userName || "—" }}
-                      </v-chip>
-                      <v-chip size="x-small" variant="tonal" prepend-icon="mdi-store-outline">
-                        {{ record.branchName || "—" }}
-                      </v-chip>
-                    </div>
-                  </v-card>
-                </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
-
-      <v-col cols="12" lg="5">
-        <!-- <v-card class="dashboard__panel mb-4" rounded="xl" elevation="0">
-          <v-card-title class="py-4 px-5">
-            <p class="text-subtitle-1 font-weight-bold mb-0">Accesos rápidos</p>
-            <p class="text-caption text-medium-emphasis mb-0">Ir directo a cada módulo</p>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <v-row dense>
-              <v-col
-                v-for="action in quickActions"
-                :key="action.to"
-                cols="6"
-              >
-                <v-card
-                  :to="action.to"
-                  class="dashboard__quick-action pa-4 text-center"
-                  variant="flat"
-                  rounded="lg"
-                >
-                  <v-avatar :color="action.color" variant="tonal" size="40" class="mb-2">
-                    <v-icon :icon="action.icon" size="20" />
-                  </v-avatar>
-                  <p class="text-body-2 font-weight-medium mb-0">{{ action.title }}</p>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-card-text>
-        </v-card> -->
-
-        <v-card
-          v-if="showCategoriesSection"
-          class="dashboard__panel"
-          rounded="xl"
-          elevation="0"
-        >
+        <v-card class="dashboard__panel" rounded="xl" elevation="0">
           <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
             <div>
-              <p class="text-subtitle-1 font-weight-bold mb-0">Categorías de servicio</p>
-              <p class="text-caption text-medium-emphasis mb-0">Catálogo del salón</p>
+              <p class="text-subtitle-1 font-weight-bold mb-0">Agenda del día</p>
+              <p class="text-caption text-medium-emphasis mb-0">
+                {{ todaySchedule.length }} cita{{ todaySchedule.length === 1 ? "" : "s" }}
+              </p>
             </div>
-            <v-btn to="/app/service-categories" variant="text" color="primary" size="small">
+            <v-btn
+              :to="appointmentsLink"
+              variant="text"
+              color="primary"
+              size="small"
+            >
               Ver todas
             </v-btn>
           </v-card-title>
           <v-divider />
-          <v-card-text class="pa-0">
-            <v-skeleton-loader v-if="loading" type="list-item-two-line@3" class="pa-4" />
-            <div v-else-if="!serviceCategories.length" class="dashboard__empty pa-6">
-              <p class="text-body-2 text-medium-emphasis mb-0">No hay categorías registradas</p>
-            </div>
-            <v-list v-else lines="two" class="py-0">
-              <v-list-item
-                v-for="category in serviceCategoriesPreview"
-                :key="category.id"
-                rounded="lg"
-                class="mx-2 my-1"
+          <v-card-text class="pa-4">
+            <AppSkeletonTransition>
+              <v-skeleton-loader
+                v-if="loading"
+                key="dashboard-schedule-skeleton"
+                type="list-item-two-line@4"
+              />
+              <div
+                v-else-if="!todaySchedule.length"
+                key="dashboard-schedule-empty"
+                class="dashboard__empty"
               >
-                <template #prepend>
-                  <v-avatar color="primary" variant="tonal" size="36">
-                    <v-icon size="18">mdi-spa-outline</v-icon>
-                  </v-avatar>
-                </template>
-                <v-list-item-title class="font-weight-medium">
-                  {{ category.name }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ category.services?.length ?? 0 }} servicio{{ (category.services?.length ?? 0) === 1 ? "" : "s" }}
-                </v-list-item-subtitle>
-              </v-list-item>
-            </v-list>
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  No hay citas programadas para esta fecha
+                </p>
+              </div>
+              <div
+                v-else
+                key="dashboard-schedule-content"
+                class="d-flex flex-column ga-2"
+              >
+                <DashboardAppointmentItem
+                  v-for="appointment in todaySchedule"
+                  :key="appointment.id ?? `${appointment.startAt}-${appointment.clientId}`"
+                  :appointment="appointment"
+                  :time-label="formatAppointmentTimeRange(appointment)"
+                  @open-client-contact="openClientContact"
+                />
+              </div>
+            </AppSkeletonTransition>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" lg="5">
+        <v-card class="dashboard__panel mb-4" rounded="xl" elevation="0">
+          <v-card-title class="py-4 px-5">
+            <p class="text-subtitle-1 font-weight-bold mb-0">Próximas citas</p>
+            <p class="text-caption text-medium-emphasis mb-0">Siguientes citas activas</p>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-4">
+            <AppSkeletonTransition>
+              <v-skeleton-loader
+                v-if="loading"
+                key="dashboard-upcoming-skeleton"
+                type="list-item-two-line@3"
+              />
+              <div
+                v-else-if="!upcomingAppointments.length"
+                key="dashboard-upcoming-empty"
+                class="dashboard__empty"
+              >
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  No hay próximas citas
+                </p>
+              </div>
+              <div
+                v-else
+                key="dashboard-upcoming-content"
+                class="d-flex flex-column ga-2"
+              >
+                <DashboardAppointmentItem
+                  v-for="appointment in upcomingAppointments"
+                  :key="appointment.id ?? `${appointment.startAt}-${appointment.clientId}`"
+                  :appointment="appointment"
+                  :time-label="formatUpcomingAppointmentLabel(appointment)"
+                  @open-client-contact="openClientContact"
+                />
+              </div>
+            </AppSkeletonTransition>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="dashboard__panel" rounded="xl" elevation="0">
+          <v-card-title class="py-4 px-5">
+            <p class="text-subtitle-1 font-weight-bold mb-0">Resumen del mes</p>
+            <p class="text-caption text-medium-emphasis mb-0">
+              {{ monthLabel }}
+            </p>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-4">
+            <AppSkeletonTransition>
+              <v-skeleton-loader
+                v-if="loading"
+                key="dashboard-month-skeleton"
+                type="chip@6"
+              />
+              <div
+                v-else
+                key="dashboard-month-content"
+                class="d-flex flex-column ga-3"
+              >
+                <div class="d-flex flex-wrap ga-2">
+                  <v-chip
+                    v-for="item in monthStatusBreakdown"
+                    :key="item.status"
+                    size="small"
+                    variant="tonal"
+                    rounded="pill"
+                    :color="item.color"
+                  >
+                    {{ item.label }}: {{ item.value }}
+                  </v-chip>
+                </div>
+
+                <div class="d-flex flex-wrap ga-2">
+                  <v-chip size="small" variant="outlined" color="error">
+                    Canceladas: {{ dashboardData?.monthCancelled ?? 0 }}
+                  </v-chip>
+                  <v-chip size="small" variant="outlined" color="error">
+                    No asistió: {{ dashboardData?.monthNoShow ?? 0 }}
+                  </v-chip>
+                </div>
+              </div>
+            </AppSkeletonTransition>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
+
+    <AppointmentClientContactModal
+      v-model="showClientContactModal"
+      :appointment="selectedClientAppointment"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { PageResponse } from "~/interfaces/PageResponse"
-import type { Client } from "~/interfaces/clientInterfaces"
-import type { ClinicalRecord } from "~/interfaces/clinicalRecordInterfaces"
-import type { ServiceCategory } from "~/interfaces/serviceCategoryInterfaces"
+import { ref, computed, watch } from "vue"
+import type { Appointment, AppointmentStatus } from "~/interfaces/appointmentInterfaces"
+import {
+  APPOINTMENT_STATUS_LABELS,
+  getAppointmentStatusColor,
+} from "~/interfaces/appointmentInterfaces"
+import type { DashboardFilters } from "~/interfaces/dashboardInterfaces"
 import { useAuthStore } from "~/store/modules/auth"
+import {
+  useBranchesStore,
+  useDashboardStore,
+  useUsersStore,
+} from "~/store"
+import {
+  areDashboardFiltersEqual,
+  normalizeDashboardFilters,
+} from "~/helpers/dashboardHelpers"
+import {
+  formatDateDisplay,
+  formatTimeDisplay,
+  getTodayDate,
+  splitIsoDateTime,
+} from "~/helpers/dateTimeHelpers"
+import { CALENDAR_MONTH_LABELS } from "~/helpers/appointmentHelpers"
 
 definePageMeta({
   layout: "app",
 })
 
 const authStore = useAuthStore()
+const dashboardStore = useDashboardStore()
+const branchesStore = useBranchesStore()
+const usersStore = useUsersStore()
 
-const loading = ref(true)
-const totals = ref({
-  salons: 0,
-  branches: 0,
-  users: 0,
-  clients: 0,
-  categories: 0,
-  clinicalRecords: 0,
-})
+const filterDate = ref(getTodayDate())
+const filterBranchId = ref<number | null>(null)
+const filterUserId = ref<number | null>(null)
+const activeFilters = ref<DashboardFilters>({ date: getTodayDate() })
 
-const recentClients = ref<Client[]>([])
-const recentClinicalRecords = ref<ClinicalRecord[]>([])
-const serviceCategories = ref<ServiceCategory[]>([])
+const showClientContactModal = ref(false)
+const selectedClientAppointment = ref<Appointment | null>(null)
 
-const userName = computed(() =>
-  authStore.user?.fullName ||
-  [authStore.user?.firstName, authStore.user?.lastName].filter(Boolean).join(" ") ||
-  "Usuario"
+const loading = computed(() => dashboardStore.loading)
+const dashboardData = computed(() => dashboardStore.data)
+const todaySchedule = computed(() => dashboardData.value?.todaySchedule ?? [])
+const upcomingAppointments = computed(
+  () => dashboardData.value?.upcomingAppointments ?? []
+)
+
+const userName = computed(
+  () =>
+    authStore.user?.fullName ||
+    [authStore.user?.firstName, authStore.user?.lastName]
+      .filter(Boolean)
+      .join(" ") ||
+    "Usuario"
 )
 
 const userInitials = computed(() => {
@@ -279,24 +351,29 @@ const roleLabel = computed(() => {
   return "Usuario"
 })
 
-const commissionLabel = computed(() => {
-  const value = authStore.user?.commissionPercentage
-  if (value === undefined || value === null || value === "") return ""
-  return `Comisión ${value}%`
-})
+const showAdvancedFilters = computed(
+  () => authStore.isAdmin || authStore.isSuperAdmin
+)
 
-const currentDate = computed(() =>
-  new Date().toLocaleDateString("es-PE", {
+const selectedDateLabel = computed(() => {
+  const date = dashboardData.value?.date ?? filterDate.value
+  if (!date) return ""
+
+  return new Date(`${date}T12:00:00`).toLocaleDateString("es-PE", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   })
-)
+})
 
-const showClientsSection = computed(() => authStore.isAdmin)
-const showClinicalSection = computed(() => authStore.isAdmin || authStore.isStaff)
-const showCategoriesSection = computed(() => authStore.isAdmin)
+const monthLabel = computed(() => {
+  const data = dashboardData.value
+  if (!data) return ""
+
+  const monthName = CALENDAR_MONTH_LABELS[data.month - 1] ?? data.month
+  return `${monthName} ${data.year}`
+})
 
 const statCols = computed(() => {
   const count = visibleStats.value.length
@@ -305,137 +382,181 @@ const statCols = computed(() => {
 })
 
 const visibleStats = computed(() => {
-  if (authStore.isSuperAdmin) {
-    return [
-      { key: "salons", label: "Salones", value: totals.value.salons, icon: "mdi-domain", color: "primary" },
-      { key: "branches", label: "Sucursales", value: totals.value.branches, icon: "mdi-store-outline", color: "info" },
-      { key: "users", label: "Usuarios", value: totals.value.users, icon: "mdi-account-group-outline", color: "success" },
-    ]
-  }
-
-  if (authStore.isAdmin) {
-    return [
-      { key: "clients", label: "Clientes", value: totals.value.clients, icon: "mdi-account-outline", color: "primary" },
-      { key: "users", label: "Usuarios", value: totals.value.users, icon: "mdi-account-group-outline", color: "success" },
-      { key: "branches", label: "Sucursales", value: totals.value.branches, icon: "mdi-store-outline", color: "info" },
-      { key: "categories", label: "Categorías", value: totals.value.categories, icon: "mdi-spa-outline", color: "warning" },
-    ]
-  }
+  const data = dashboardData.value
 
   return [
-    { key: "clinicalRecords", label: "Historiales", value: totals.value.clinicalRecords, icon: "mdi-clipboard-pulse-outline", color: "primary" },
-    { key: "branches", label: "Sucursales", value: totals.value.branches, icon: "mdi-store-outline", color: "info" },
+    {
+      key: "totalClients",
+      label: "Clientes",
+      value: data?.totalClients ?? 0,
+      icon: "mdi-account-outline",
+      color: "primary",
+    },
+    {
+      key: "activeUsers",
+      label: "Usuarios activos",
+      value: data?.activeUsers ?? 0,
+      icon: "mdi-account-group-outline",
+      color: "success",
+    },
+    {
+      key: "todayAppointments",
+      label: "Citas hoy",
+      value: data?.todayAppointments ?? 0,
+      icon: "mdi-calendar-today",
+      color: "info",
+    },
+    {
+      key: "monthAppointments",
+      label: "Citas del mes",
+      value: data?.monthAppointments ?? 0,
+      icon: "mdi-calendar-month-outline",
+      color: "warning",
+    },
   ]
 })
 
-const quickActions = computed(() => {
-  const actions = [
-    { title: "Dashboard", icon: "mdi-view-dashboard", to: "/app", color: "primary", onlyFor: [] as string[] },
-    { title: "Salones", icon: "mdi-domain", to: "/app/salons", color: "primary", onlyFor: ["SUPER_ADMIN"] },
-    { title: "Sucursales", icon: "mdi-store-outline", to: "/app/branches", color: "info", onlyFor: ["SUPER_ADMIN", "ADMIN_USER"] },
-    { title: "Usuarios", icon: "mdi-account-cog-outline", to: "/app/users", color: "success", onlyFor: ["SUPER_ADMIN", "ADMIN_USER"] },
-    { title: "Clientes", icon: "mdi-account-outline", to: "/app/clients", color: "primary", onlyFor: ["ADMIN_USER"] },
-    { title: "Categorías", icon: "mdi-spa-outline", to: "/app/service-categories", color: "warning", onlyFor: ["ADMIN_USER"] },
-  ]
+const todayBreakdownStats = computed(() => {
+  const data = dashboardData.value
+  if (!data) return []
 
-  return actions.filter((action) => {
-    if (!action.onlyFor.length) return false
-    return action.onlyFor.includes(authStore.role as string)
-  })
+  return [
+    {
+      key: "todayScheduled",
+      label: "Agendadas",
+      value: data.todayScheduled,
+      icon: "mdi-clock-outline",
+      color: "grey",
+    },
+    {
+      key: "todayConfirmed",
+      label: "Confirmadas",
+      value: data.todayConfirmed,
+      icon: "mdi-check-circle-outline",
+      color: "primary",
+    },
+    {
+      key: "todayInProgress",
+      label: "En curso",
+      value: data.todayInProgress,
+      icon: "mdi-play-circle-outline",
+      color: "warning",
+    },
+    {
+      key: "todayCompleted",
+      label: "Completadas",
+      value: data.todayCompleted,
+      icon: "mdi-check-all",
+      color: "success",
+    },
+  ]
 })
 
-const serviceCategoriesPreview = computed(() => serviceCategories.value.slice(0, 5))
+const monthStatusBreakdown = computed(() => {
+  const byStatus = dashboardData.value?.appointmentsByStatus ?? {}
 
-const fetchTotal = async (endpoint: string): Promise<number> => {
-  const { $api } = useNuxtApp()
-  const res = await $api<PageResponse<unknown>>(endpoint, {
-    method: "GET",
-    query: { page: 0, size: 1 },
-  })
-  return res.totalElements ?? 0
-}
+  return (Object.keys(APPOINTMENT_STATUS_LABELS) as AppointmentStatus[])
+    .map((status) => ({
+      status,
+      label: APPOINTMENT_STATUS_LABELS[status],
+      value: byStatus[status] ?? 0,
+      color: getAppointmentStatusColor(status),
+    }))
+    .filter((item) => item.value > 0)
+})
 
-const getClientInitials = (client: Client) => {
-  const first = client.firstName?.charAt(0) ?? ""
-  const last = client.lastName?.charAt(0) ?? ""
-  return `${first}${last}`.toUpperCase() || "C"
-}
+const branchFilterItems = computed(() =>
+  (branchesStore.data?.content ?? []).map((branch) => ({
+    title: branch.name,
+    value: Number(branch.id),
+  }))
+)
 
-const formatDate = (date?: string) => {
-  if (!date) return "Sin fecha"
-  return new Date(date).toLocaleDateString("es-PE", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
+const userFilterItems = computed(() =>
+  (usersStore.data?.content ?? [])
+    .filter((user) => user.isActive)
+    .map((user) => ({
+      title:
+        user.fullName ||
+        `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
+      value: Number(user.id),
+    }))
+)
 
-const sortClinicalRecords = (records: ClinicalRecord[]) =>
-  [...records].sort((a, b) => {
-    const dateA = a.sessionDate ? new Date(a.sessionDate).getTime() : 0
-    const dateB = b.sessionDate ? new Date(b.sessionDate).getTime() : 0
-    return dateB - dateA
-  })
-
-const loadDashboard = async () => {
-  loading.value = true
-  const { $api } = useNuxtApp()
-
-  try {
-    const tasks: Promise<void>[] = []
-
-    if (authStore.isSuperAdmin) {
-      tasks.push(
-        fetchTotal("/api/salons").then((v) => { totals.value.salons = v }),
-        fetchTotal("/api/branches").then((v) => { totals.value.branches = v }),
-        fetchTotal("/api/users").then((v) => { totals.value.users = v }),
-      )
-    }
-
-    if (authStore.isAdmin) {
-      tasks.push(
-        fetchTotal("/api/clients").then((v) => { totals.value.clients = v }),
-        fetchTotal("/api/users").then((v) => { totals.value.users = v }),
-        fetchTotal("/api/branches").then((v) => { totals.value.branches = v }),
-        $api<ServiceCategory[]>("/api/service-categories", { method: "GET" }).then((res) => {
-          const list = Array.isArray(res) ? res : []
-          serviceCategories.value = list
-          totals.value.categories = list.length
-        }),
-        $api<PageResponse<Client>>("/api/clients", {
-          method: "GET",
-          query: { page: 0, size: 5 },
-        }).then((res) => {
-          recentClients.value = res.content ?? []
-        }),
-        $api<ClinicalRecord[]>("/api/clinical-records", { method: "GET" }).then((res) => {
-          const list = Array.isArray(res) ? res : []
-          totals.value.clinicalRecords = list.length
-          recentClinicalRecords.value = sortClinicalRecords(list).slice(0, 5)
-        }),
-      )
-    }
-
-    if (authStore.isStaff) {
-      tasks.push(
-        fetchTotal("/api/branches").then((v) => { totals.value.branches = v }),
-        $api<ClinicalRecord[]>("/api/clinical-records", { method: "GET" }).then((res) => {
-          const list = Array.isArray(res) ? res : []
-          totals.value.clinicalRecords = list.length
-          recentClinicalRecords.value = sortClinicalRecords(list).slice(0, 5)
-        }),
-      )
-    }
-
-    await Promise.allSettled(tasks)
-  } catch (err) {
-    console.error("Error al cargar dashboard:", err)
-  } finally {
-    loading.value = false
+const appointmentsLink = computed(() => {
+  const query = new URLSearchParams()
+  const date = activeFilters.value.date ?? filterDate.value
+  if (date) query.set("date", date)
+  if (activeFilters.value.branchId != null) {
+    query.set("branchId", String(activeFilters.value.branchId))
   }
+  if (activeFilters.value.userId != null) {
+    query.set("userId", String(activeFilters.value.userId))
+  }
+
+  const suffix = query.toString()
+  return suffix ? `/app/appointments?${suffix}` : "/app/appointments"
+})
+
+const formatAppointmentTimeRange = (appointment: Appointment) => {
+  const { time: startTime } = splitIsoDateTime(appointment.startAt)
+  const { time: endTime } = splitIsoDateTime(appointment.endAt)
+  const startLabel = formatTimeDisplay(startTime)
+  const endLabel = formatTimeDisplay(endTime)
+
+  if (startLabel && endLabel) return `${startLabel} – ${endLabel}`
+  return startLabel || "Sin hora"
 }
 
-onMounted(loadDashboard)
+const formatUpcomingAppointmentLabel = (appointment: Appointment) => {
+  const { date, time } = splitIsoDateTime(appointment.startAt)
+  const dateLabel = formatDateDisplay(date)
+  const timeLabel = formatTimeDisplay(time)
+
+  if (dateLabel && timeLabel) return `${dateLabel} · ${timeLabel}`
+  return dateLabel || timeLabel || "Sin fecha"
+}
+
+const openClientContact = (appointment: Appointment) => {
+  if (!appointment.clientName) return
+  selectedClientAppointment.value = appointment
+  showClientContactModal.value = true
+}
+
+const buildFiltersFromInputs = (): DashboardFilters =>
+  normalizeDashboardFilters({
+    date: filterDate.value,
+    branchId: filterBranchId.value ?? undefined,
+    userId: filterUserId.value ?? undefined,
+  })
+
+const fetchDashboard = async () => {
+  await dashboardStore.fetchDashboard(activeFilters.value)
+}
+
+const loadFilterOptions = async () => {
+  if (!showAdvancedFilters.value) return
+
+  await Promise.allSettled([
+    branchesStore.fetchBranches(0, 100),
+    usersStore.fetchUsers(0, 100, { isActive: true }),
+  ])
+}
+
+watch([filterDate, filterBranchId, filterUserId], () => {
+  const nextFilters = buildFiltersFromInputs()
+
+  if (areDashboardFiltersEqual(activeFilters.value, nextFilters)) {
+    return
+  }
+
+  activeFilters.value = nextFilters
+  fetchDashboard()
+})
+
+onMounted(async () => {
+  await Promise.allSettled([fetchDashboard(), loadFilterOptions()])
+})
 </script>
 
 <style scoped>
@@ -444,8 +565,14 @@ onMounted(loadDashboard)
   margin: 0 auto;
 }
 
-.dashboard__welcome {
+.dashboard__welcome,
+.dashboard__filters,
+.dashboard__panel {
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  background: rgb(var(--v-theme-surface));
+}
+
+.dashboard__welcome {
   background: linear-gradient(
     135deg,
     rgba(var(--v-theme-primary), 0.08) 0%,
@@ -457,32 +584,19 @@ onMounted(loadDashboard)
   box-shadow: 0 8px 20px rgba(235, 88, 137, 0.25);
 }
 
-.dashboard__panel {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  background: rgb(var(--v-theme-surface));
-  height: 100%;
+.dashboard__filters-inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.dashboard__filter {
+  min-width: min(100%, 220px);
+  flex: 1 1 220px;
 }
 
 .dashboard__empty {
   text-align: center;
-}
-
-.dashboard__record-item {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  background: rgba(var(--v-theme-on-surface), 0.02);
-}
-
-.dashboard__quick-action {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-decoration: none;
-  color: inherit;
-}
-
-.dashboard__quick-action:hover {
-  border-color: rgba(var(--v-theme-primary), 0.35);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
 }
 </style>

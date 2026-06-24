@@ -40,17 +40,27 @@
 
 /* Formularios */
 .app-form {
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
 }
 
 .app-form .v-row {
-  margin-top: -4px;
-  margin-bottom: -4px;
+  margin: 0;
+  row-gap: 0.875rem;
 }
 
 .app-form .v-col {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.app-form .v-row.v-row--dense .v-col {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.app-form .v-input__details {
+  min-height: 1.125rem;
   padding-top: 4px;
-  padding-bottom: 4px;
 }
 
 .app-form .v-field--variant-outlined {
@@ -66,8 +76,8 @@
 }
 
 .app-form-actions {
-  margin-top: 1rem;
-  padding-top: 0.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
 }
 
 .app-form-btn--primary {

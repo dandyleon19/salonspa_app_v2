@@ -14,9 +14,18 @@ export interface TableRowOption {
 }
 
 export interface FilterOption {
-    type: "select" | "multiselect"
+    type: "select" | "searchable-select" | "multiselect" | "date"
     label: string
     key: string
     items: Array<any>
     multiple?: boolean
+}
+
+export interface TableChipColumn {
+    key: string
+    valueKey?: string
+    color?: string | ((item: any) => string)
+    icon?: string | ((item: any) => string)
+    class?: string
+    emptyText?: string
 }

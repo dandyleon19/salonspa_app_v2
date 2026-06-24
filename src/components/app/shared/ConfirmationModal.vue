@@ -12,7 +12,7 @@
           </v-avatar>
         </div>
 
-        <h2 class="confirm-modal__title text-h6 font-weight-bold mb-2">
+        <h2 class="confirm-modal__title text-h6 font-weight-bold mb-2 app-font-heading">
           {{ title }}
         </h2>
 

@@ -6,13 +6,16 @@
       :rowOptions="rowOptions"
       :filters="tableFilters"
       :items="serviceCategoriesList"
+      :chip-columns="serviceCategoryChipColumns"
       :loading="loadingServiceCategoriesList"
       :page="currentPage"
       :items-per-page="itemsPerPage"
       :total-items="totalItems"
+      server-search
       @update:pagination="handlePagination"
       @handle-create-button="handleCreateButton"
       @handle-row-action-button="handleRowActionButton"
+      @handle-update-search="handleApplySearch"
   />
 
   <AppDrawer
@@ -56,10 +59,18 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
+import type { FilterOption, TableChipColumn, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
 import type { ServiceCategory, serviceCategoryDataModalForm } from "~/interfaces/serviceCategoryInterfaces";
+import {
+  formatServiceCategoryServicesCount,
+  getServiceCategoryServicesCount,
+} from "~/interfaces/serviceCategoryInterfaces";
 import { useServiceCategoriesStore } from "~/store";
 import ManageServices from "~/components/app/service-categories/ManageServices.vue";
+import {
+  areTableSearchEqual,
+  normalizeTableSearch,
+} from "~/helpers/tableSearchHelpers";
 
 definePageMeta({
   layout: 'app'
@@ -76,14 +87,24 @@ const showDeleteDialog = ref<boolean>(false)
 const serviceCategoryToRemove = ref<ServiceCategory>()
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
+const activeSearch = ref("")
 
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
   { title: "Nombre", key: "name" },
   { title: "Descripción", key: "description" },
   { title: "Descripción Larga", key: "longDescription" },
+  { title: "Servicios", key: "servicesCountLabel" },
   { title: "Acciones", key: "actions", sortable: false },
 ]);
+
+const serviceCategoryChipColumns: TableChipColumn[] = [
+  {
+    key: "servicesCountLabel",
+    color: "primary",
+    icon: "mdi-scissors-cutting",
+  },
+];
 
 const rowOptions = ref<Array<TableRowOption>>([
   {
@@ -111,7 +132,15 @@ const dataModalForm = ref<serviceCategoryDataModalForm>({
 
 // Computed
 const serviceCategoriesList = computed(() => {
-  return serviceCategoriesStore.data?.content ?? [];
+  return (serviceCategoriesStore.data?.content ?? []).map((category: ServiceCategory) => {
+    const servicesCount = getServiceCategoryServicesCount(category)
+
+    return {
+      ...category,
+      servicesCount,
+      servicesCountLabel: formatServiceCategoryServicesCount(servicesCount),
+    }
+  });
 });
 
 const totalItems = computed(() => {
@@ -121,6 +150,26 @@ const totalItems = computed(() => {
 const loadingServiceCategoriesList = computed(() => {
   return serviceCategoriesStore.loading;
 });
+
+const fetchServiceCategories = async () => {
+  await serviceCategoriesStore.fetchServiceCategories(
+    currentPage.value - 1,
+    itemsPerPage.value,
+    activeSearch.value
+  )
+}
+
+const handleApplySearch = (value: string) => {
+  const nextSearch = normalizeTableSearch(value)
+
+  if (areTableSearchEqual(activeSearch.value, nextSearch)) {
+    return
+  }
+
+  activeSearch.value = nextSearch
+  currentPage.value = 1
+  fetchServiceCategories()
+}
 
 // Methods
 const handleCreateButton = (): void => {
@@ -157,10 +206,7 @@ const handleRowActionButton = (serviceCategory: ServiceCategory, action: string)
 const closeServiceCategoryDrawer = () => {
   openServiceCategoryDrawer.value = false;
   openServiceDrawer.value = false;
-  serviceCategoriesStore.fetchServiceCategories(
-    currentPage.value - 1,
-    itemsPerPage.value
-  );
+  fetchServiceCategories();
 };
 
 const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
@@ -211,10 +257,7 @@ const handleDeleteServiceCategory = async () => {
       method: "DELETE",
     });
     notifyDeleted("categoría de servicio");
-    await serviceCategoriesStore.fetchServiceCategories(
-      currentPage.value - 1,
-      itemsPerPage.value
-    );
+    await fetchServiceCategories();
   } catch (err) {
     notifyError(err, "eliminar la categoría de servicio");
   } finally {
@@ -232,14 +275,11 @@ const handlePagination = async ({
   currentPage.value = page
   itemsPerPage.value = newItemsPerPage
 
-  await serviceCategoriesStore.fetchServiceCategories(
-    page - 1,
-    newItemsPerPage
-  )
+  await fetchServiceCategories()
 }
 
 // Mounted
 onMounted(() => {
-  serviceCategoriesStore.fetchServiceCategories(0, itemsPerPage.value);
+  fetchServiceCategories();
 });
 </script>

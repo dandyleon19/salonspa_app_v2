@@ -3,7 +3,11 @@
     <v-navigation-drawer color="sidebar" v-model="drawer" :rail="rail" permanent @click="rail = false"
                          class="transition-all duration-300">
       <!-- Header -->
-      <v-list-item prepend-avatar="https://cdn.vuetifyjs.com/images/logos/logo.svg" title="Marite Salon & Spa">
+        <v-list-item
+            prepend-avatar="https://cdn.vuetifyjs.com/images/logos/logo.svg"
+            title="Marite Salon & Spa"
+            class="app-font-heading"
+        >
         <template #append>
           <v-btn variant="text" icon="mdi-chevron-left" @click.stop="rail = !rail"/>
         </template>
@@ -25,7 +29,7 @@
       </v-list>
     </v-navigation-drawer>
 
-    <v-main>
+    <v-main class="app-layout-main">
       <NavBar/>
       <v-container class="app-layout-container" fluid>
         <slot/>
@@ -50,6 +54,7 @@ const items = [
   {title: "Sucursales", icon: "mdi-account-cog", to: "/app/branches", onlyFor: ["SUPER_ADMIN", "ADMIN_USER"]},
   {title: "Usuarios", icon: "mdi-account-cog", to: "/app/users", onlyFor: ["SUPER_ADMIN", "ADMIN_USER"]},
   {title: "Clientes", icon: "mdi-account", to: "/app/clients", onlyFor: ["ADMIN_USER"]},
+  {title: "Citas", icon: "mdi-calendar-clock", to: "/app/appointments"},
   {title: "Categorías de Servicio", icon: "mdi-account", to: "/app/service-categories", onlyFor: ["ADMIN_USER"]},
   /*{ title: "Historiales Clínicos", icon: "mdi-folder-heart-outline", to: "/app/clinical-records" },
   { title: "Reportes", icon: "mdi-file-chart", to: "/app/reports" },
@@ -67,6 +72,10 @@ const filteredItems = computed(() => {
 </script>
 
 <style scoped>
+.app-layout-main {
+  background: rgb(var(--v-theme-surface));
+}
+
 .app-layout-container {
   width: 100%;
   padding-top: 8px;

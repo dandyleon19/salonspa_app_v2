@@ -1,11 +1,20 @@
 <template>
-  <v-form
-    ref="clientFormRef"
-    v-model="isValid"
-    class="app-form"
-    lazy-validation
-    @submit.prevent="onSubmit"
-  >
+  <AppSkeletonTransition>
+    <AppFormSkeleton
+      v-if="isFormLoading"
+      key="client-form-skeleton"
+      :sections="2"
+      :fields-per-section="3"
+    />
+    <v-form
+      v-else
+      key="client-form-content"
+      ref="clientFormRef"
+      v-model="isValid"
+      class="app-form"
+      lazy-validation
+      @submit.prevent="onSubmit"
+    >
     <AppFormSection title="Datos personales" subtitle="Información básica del cliente">
       <v-row dense>
         <v-col cols="12" md="6">
@@ -85,7 +94,8 @@
         {{ actionLabel }}
       </v-btn>
     </AppFormActions>
-  </v-form>
+    </v-form>
+  </AppSkeletonTransition>
 </template>
 
 <script setup lang="ts">
@@ -138,6 +148,11 @@ const actionLabel = computed(() => {
 })
 
 const clientsList = computed(() => clientsStore.data?.content ?? [])
+
+const isFormLoading = useFormLoading({
+  action: computed(() => props.dataModalForm.action),
+  stores: [clientsStore],
+})
 
 async function getClient() {
   try {

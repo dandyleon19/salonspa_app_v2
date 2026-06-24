@@ -1,63 +1,51 @@
 <template>
-    <div class="app-table-wrapper">
-        <v-card class="app-table__hero mb-4" rounded="xl" elevation="0">
-            <v-card-text class="pa-5 pa-md-6">
-                <div class="d-flex align-center justify-space-between flex-wrap ga-4">
-                    <div>
-                        <p v-if="subtitle" class="text-overline text-medium-emphasis mb-1">
-                            {{ subtitle }}
-                        </p>
-                        <h1 class="text-h5 text-md-h4 font-weight-bold mb-2">
-                            {{ title }}
-                        </h1>
-                        <v-chip
-                            size="small"
-                            color="primary"
-                            variant="tonal"
-                            prepend-icon="mdi-format-list-bulleted"
-                        >
-                            {{ totalItems }} registro{{ totalItems === 1 ? "" : "s" }}
-                        </v-chip>
-                    </div>
-
-                    <div class="d-flex ga-2">
-                        <v-btn
-                            class="app-table__btn-export"
-                            color="primary"
-                            variant="tonal"
-                            size="large"
-                            rounded="lg"
-                            @click="$emit('handleExportButton')"
-                        >
-                            <v-icon start>mdi-download</v-icon>
-                            Exportar
-                        </v-btn>
-                        <v-btn
-                            class="app-table__btn-primary"
-                            color="primary"
-                            variant="flat"
-                            size="large"
-                            rounded="lg"
-                            @click="$emit('handleCreateButton')"
-                        >
-                            <v-icon start>mdi-plus</v-icon>
-                            Nuevo
-                        </v-btn>
-                    </div>
-                </div>
-            </v-card-text>
-        </v-card>
+    <div :class="hidePageTitle ? 'app-table-wrapper app-table-wrapper--embedded' : 'app-table-wrapper'">
+        <AppPageTitle
+            v-if="!hidePageTitle"
+            :title="title"
+            :subtitle="subtitle"
+            :total-items="totalItems"
+        >
+            <template v-if="showCreateButton || showExportButton" #actions>
+                <v-btn
+                    v-if="showExportButton"
+                    class="app-table__btn-export"
+                    color="primary"
+                    variant="tonal"
+                    size="large"
+                    rounded="lg"
+                    @click="$emit('handleExportButton')"
+                >
+                    <v-icon start>mdi-download</v-icon>
+                    Exportar
+                </v-btn>
+                <v-btn
+                    v-if="showCreateButton"
+                    class="app-table__btn-primary"
+                    color="primary"
+                    variant="flat"
+                    size="large"
+                    rounded="lg"
+                    @click="$emit('handleCreateButton')"
+                >
+                    <v-icon start>mdi-plus</v-icon>
+                    Nuevo
+                </v-btn>
+            </template>
+        </AppPageTitle>
 
         <v-card class="app-table" rounded="xl" elevation="0">
-            <div class="app-table__toolbar px-4 py-4">
-                <div class="d-flex align-center flex-wrap ga-2">
+            <div class="app-table__toolbar">
+                <div class="app-table__toolbar-inner">
                     <v-text-field
+                        v-if="showSearch"
                         v-model="search"
-                        placeholder="Buscar..."
+                        placeholder="Buscar en la tabla..."
                         prepend-inner-icon="mdi-magnify"
                         hide-details
-                        density="compact"
-                        variant="outlined"
+                        density="comfortable"
+                        variant="solo-filled"
+                        flat
                         rounded="lg"
                         clearable
                         class="app-table__search"
@@ -70,10 +58,28 @@
                             :label="filter.label"
                             :items="filter.items"
                             hide-details
-                            density="compact"
-                            variant="outlined"
+                            density="comfortable"
+                            variant="solo-filled"
+                            flat
                             rounded="lg"
                             clearable
+                            class="app-table__filter"
+                        />
+
+                        <v-autocomplete
+                            v-else-if="filter.type === 'searchable-select'"
+                            v-model="selectedFilters[filter.key]"
+                            :label="filter.label"
+                            :items="filter.items"
+                            item-title="title"
+                            item-value="value"
+                            hide-details
+                            density="comfortable"
+                            variant="solo-filled"
+                            flat
+                            rounded="lg"
+                            clearable
+                            no-data-text="Sin coincidencias"
                             class="app-table__filter"
                         />
 
@@ -85,45 +91,106 @@
                             multiple
                             clearable
                             hide-details
-                            density="compact"
-                            variant="outlined"
+                            density="comfortable"
+                            variant="solo-filled"
+                            flat
                             rounded="lg"
+                            class="app-table__filter"
+                        />
+
+                        <v-text-field
+                            v-else-if="filter.type === 'date'"
+                            v-model="selectedFilters[filter.key]"
+                            :label="filter.label"
+                            type="date"
+                            hide-details
+                            density="comfortable"
+                            variant="solo-filled"
+                            flat
+                            rounded="lg"
+                            clearable
                             class="app-table__filter"
                         />
                     </template>
                 </div>
             </div>
 
-            <v-divider />
-
-            <v-data-table-server
-                class="app-table__data"
-                :headers="tableHeaders"
-                :items="items"
-                :items-length="totalItems"
-                :loading="loading"
-                :search="search"
-                :items-per-page="props.itemsPerPage"
-                :page="props.page"
-                hover
-                @update:options="handleOptionsUpdate"
-            >
-                <template v-if="!$slots['item.id']" v-slot:[`item.id`]="{ index }">
-                    {{ rowNumber(index) }}
-                </template>
-
-                <template
-                    v-for="(_, slotName) in customColumnSlots"
-                    :key="slotName"
-                    v-slot:[slotName]="slotData"
+            <div class="app-table__body">
+                <v-data-table-server
+                    class="app-table__data"
+                    :headers="tableHeaders"
+                    :items="items"
+                    :items-length="totalItems"
+                    :loading="loading"
+                    :search="tableSearch"
+                    :items-per-page="props.itemsPerPage"
+                    :page="props.page"
+                    :item-class="itemClass"
+                    hover
+                    @update:options="handleOptionsUpdate"
                 >
-                    <slot :name="slotName" v-bind="slotData" />
-                </template>
+                    <template #loading>
+                        <AppSkeletonTransition>
+                            <AppTableSkeleton
+                                key="table-skeleton"
+                                :columns="skeletonColumns"
+                                :rows="skeletonRows"
+                            />
+                        </AppSkeletonTransition>
+                    </template>
+
+                    <template v-if="!$slots['item.id']" v-slot:[`item.id`]="{ index }">
+                        <span class="app-table__row-num">{{ rowNumber(index) }}</span>
+                    </template>
+
+                    <template
+                        v-for="chip in chipColumns"
+                        :key="`chip-${chip.key}`"
+                        v-slot:[`item.${chip.key}`]="{ item }"
+                    >
+                        <v-chip
+                            v-if="resolveChipValue(item, chip)"
+                            size="small"
+                            variant="tonal"
+                            rounded="pill"
+                            :color="resolveChipColor(item, chip)"
+                            :prepend-icon="resolveChipIcon(item, chip)"
+                            :class="['app-table__chip', chip.class]"
+                        >
+                            {{ resolveChipValue(item, chip) }}
+                        </v-chip>
+                        <span v-else class="text-medium-emphasis">
+                            {{ chip.emptyText ?? "—" }}
+                        </span>
+                    </template>
+
+                    <template
+                        v-for="header in customHeaderSlots"
+                        :key="`custom-${header.key}`"
+                        v-slot:[`item.${header.key}`]="slotData"
+                    >
+                        <slot :name="`item.${header.key}`" v-bind="slotData" />
+                    </template>
+
+                    <template
+                        v-for="columnKey in defaultCellColumns"
+                        :key="`cell-${columnKey}`"
+                        v-slot:[`item.${columnKey}`]="{ item }"
+                    >
+                        <span
+                            :class="{
+                                'app-table__empty-cell text-medium-emphasis':
+                                    isEmptyCellValue(item[columnKey]),
+                            }"
+                        >
+                            {{ formatCellValue(item[columnKey]) }}
+                        </span>
+                    </template>
 
                 <template v-if="!$slots['item.actions']" v-slot:[`item.actions`]="{ item }">
                     <div class="app-table__actions">
                         <v-tooltip
-                            v-for="rowOption in rowOptions"
+                            v-for="rowOption in resolveRowOptions(item)"
                             :key="rowOption.action"
                             :text="rowOption.title || getActionLabel(rowOption.action)"
                             location="top"
@@ -135,6 +202,7 @@
                                     :class="[
                                         'app-table__action',
                                         `app-table__action--${rowOption.color}`,
+                                        rowOption.class,
                                     ]"
                                     @click="$emit('handleRowActionButton', item, rowOption.action)"
                                 >
@@ -148,39 +216,139 @@
                     <slot name="item.actions" v-bind="slotData" />
                 </template>
 
-                <template #loading>
-                    <div class="app-table__state py-6">
-                        <v-progress-circular indeterminate color="primary" size="28" width="2" />
-                    </div>
-                </template>
-
                 <template #no-data>
-                    <div class="app-table__state py-8">
-                        <v-icon size="28" color="disabled" class="mb-2">mdi-inbox-outline</v-icon>
+                    <div
+                        v-if="!loading"
+                        class="app-table__state app-table__state--empty"
+                    >
+                        <div class="app-table__state-icon app-table__state-icon--muted">
+                            <v-icon size="26">mdi-table-search</v-icon>
+                        </div>
+                        <p class="text-subtitle-2 font-weight-medium mb-1">Sin resultados</p>
                         <p class="text-body-2 text-medium-emphasis mb-0">
-                            No se encontraron registros
+                            No se encontraron registros con los filtros actuales
                         </p>
                     </div>
                 </template>
-            </v-data-table-server>
+                </v-data-table-server>
+            </div>
         </v-card>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, useSlots, computed, watch } from "vue";
-import type { TableHeader, FilterOption, TableRowOption } from "~/interfaces/tableInterfaces";
+import { ref, useSlots, computed, watch, onBeforeUnmount } from "vue";
+import type { TableHeader, FilterOption, TableRowOption, TableChipColumn } from "~/interfaces/tableInterfaces";
+import { normalizeTableSearch } from "~/helpers/tableSearchHelpers";
 
 const slots = useSlots();
 
-const customColumnSlots = computed(() =>
-    Object.keys(slots).filter(
-        (name) =>
-            name.startsWith("item.") &&
-            name !== "item.actions" &&
-            name !== "item.id"
+const hasCustomCellSlot = (key: string) => Boolean(slots[`item.${key}`])
+
+const customHeaderSlots = computed(() =>
+    props.headers.filter((header) => hasCustomCellSlot(header.key))
+)
+
+const EMPTY_CELL_TEXT = "—"
+
+const chipColumnKeys = computed(
+    () => new Set(props.chipColumns.map((chip) => chip.key))
+)
+
+const defaultCellColumns = computed(() =>
+    props.headers
+        .map((header) => header.key)
+        .filter(
+            (key) =>
+                key !== "id" &&
+                key !== "actions" &&
+                !chipColumnKeys.value.has(key) &&
+                !hasCustomCellSlot(key)
+        )
+)
+
+const isEmptyCellValue = (value: unknown) => {
+    if (value == null || value === "") return true
+    if (typeof value === "string" && value.trim() === "") return true
+    return false
+}
+
+const formatCellValue = (value: unknown) => {
+    if (isEmptyCellValue(value)) return EMPTY_CELL_TEXT
+    return String(value)
+}
+
+const ACTION_BUTTON_SIZE = 34
+const ACTION_BUTTON_GAP = 6
+const ACTION_CELL_PADDING = 40
+const MIN_ACTIONS_COLUMN_COUNT = 3
+
+const getActionsColumnWidth = (actionCount: number) => {
+    const count = Math.max(actionCount, MIN_ACTIONS_COLUMN_COUNT)
+    return (
+        ACTION_CELL_PADDING +
+        count * ACTION_BUTTON_SIZE +
+        Math.max(0, count - 1) * ACTION_BUTTON_GAP
     )
+}
+
+const props = withDefaults(
+    defineProps<{
+        title: string;
+        subtitle?: string;
+        headers: TableHeader[];
+        rowOptions: TableRowOption[];
+        items: any[];
+        totalItems: number;
+        filters?: FilterOption[];
+        page: number;
+        itemsPerPage: number;
+        loading?: boolean;
+        showCreateButton?: boolean;
+        showExportButton?: boolean;
+        showSearch?: boolean;
+        serverSearch?: boolean;
+        hidePageTitle?: boolean;
+        chipColumns?: TableChipColumn[];
+        itemClass?: string | ((item: Record<string, unknown>) => string);
+        getRowOptions?: (item: Record<string, unknown>) => TableRowOption[];
+    }>(),
+    {
+        subtitle: "",
+        filters: () => [],
+        loading: false,
+        showCreateButton: true,
+        showExportButton: true,
+        showSearch: true,
+        serverSearch: false,
+        hidePageTitle: false,
+        chipColumns: () => [],
+        itemClass: undefined,
+        getRowOptions: undefined,
+    }
 );
+
+const resolveRowOptions = (item: Record<string, unknown>) =>
+    props.getRowOptions ? props.getRowOptions(item) : props.rowOptions
+
+const maxRowActionsCount = computed(() => {
+    const staticCount = props.rowOptions.length
+
+    if (!props.getRowOptions || props.items.length === 0) {
+        return Math.max(staticCount, MIN_ACTIONS_COLUMN_COUNT)
+    }
+
+    const dynamicMax = Math.max(
+        ...props.items.map((item) => resolveRowOptions(item).length),
+        staticCount
+    )
+
+    return Math.max(dynamicMax, MIN_ACTIONS_COLUMN_COUNT)
+})
+
+const actionsColumnWidth = computed(() =>
+    getActionsColumnWidth(maxRowActionsCount.value)
+)
 
 const tableHeaders = computed(() =>
     props.headers.map((header) => {
@@ -196,12 +364,14 @@ const tableHeaders = computed(() =>
         }
 
         if (header.key === "actions") {
+            const width = actionsColumnWidth.value
+
             return {
                 ...header,
                 sortable: false,
-                width: 128,
-                minWidth: 128,
-                maxWidth: 148,
+                align: "end",
+                width,
+                minWidth: width,
             }
         }
 
@@ -212,31 +382,16 @@ const tableHeaders = computed(() =>
 const rowNumber = (index: number) =>
     (props.page - 1) * props.itemsPerPage + index + 1;
 
-const props = withDefaults(
-    defineProps<{
-        title: string;
-        subtitle?: string;
-        headers: TableHeader[];
-        rowOptions: TableRowOption[];
-        items: any[];
-        totalItems: number;
-        filters?: FilterOption[];
-        page: number;
-        itemsPerPage: number;
-        loading?: boolean;
-    }>(),
-    {
-        subtitle: "",
-        filters: () => [],
-        loading: false,
-    }
-);
+const skeletonColumns = computed(() => Math.max(props.headers.length, 4))
+
+const skeletonRows = 1
 
 const emit = defineEmits<{
     (e: "handleCreateButton"): void
     (e: "handleExportButton"): void
     (e: "handleRowActionButton", item: any, action: string): void
     (e: "handleUpdateFilters", values: Record<string, any>): void,
+    (e: "handleUpdateSearch", value: string): void,
     (e: "update:pagination", value: {
       page: number,
       itemsPerPage: number
@@ -244,7 +399,33 @@ const emit = defineEmits<{
 }>()
 
 const search = ref("");
+
+const tableSearch = computed(() => {
+    if (!props.showSearch || props.serverSearch) return undefined
+    return search.value
+});
 const selectedFilters = ref<Record<string, any>>({})
+
+const SEARCH_DEBOUNCE_MS = 300
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(search, (value) => {
+    if (!props.serverSearch) return
+
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer)
+    }
+
+    searchDebounceTimer = setTimeout(() => {
+        emit("handleUpdateSearch", normalizeTableSearch(value))
+    }, SEARCH_DEBOUNCE_MS)
+})
+
+onBeforeUnmount(() => {
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer)
+    }
+})
 
 const actionLabels: Record<string, string> = {
     update: "Editar",
@@ -256,11 +437,40 @@ const actionLabels: Record<string, string> = {
 
 const getActionLabel = (action: string) => actionLabels[action] ?? action
 
-const handleOptionsUpdate = (options: any) => {
-  emit("update:pagination", {
+const resolveChipValue = (item: any, chip: TableChipColumn) => {
+    const value = item?.[chip.valueKey ?? chip.key]
+    if (value == null || value === "" || value === "—") return ""
+    return String(value)
+}
+
+const resolveChipColor = (item: any, chip: TableChipColumn) => {
+    if (typeof chip.color === "function") return chip.color(item)
+    return chip.color
+}
+
+const resolveChipIcon = (item: any, chip: TableChipColumn) => {
+    if (!chip.icon) return undefined
+    if (typeof chip.icon === "function") return chip.icon(item)
+    return chip.icon
+}
+
+const lastPagination = ref<{ page: number; itemsPerPage: number } | null>(null)
+
+const handleOptionsUpdate = (options: { page: number; itemsPerPage: number }) => {
+  const next = {
     page: options.page,
     itemsPerPage: options.itemsPerPage,
-  })
+  }
+
+  if (
+    lastPagination.value?.page === next.page &&
+    lastPagination.value?.itemsPerPage === next.itemsPerPage
+  ) {
+    return
+  }
+
+  lastPagination.value = next
+  emit("update:pagination", next)
 }
 
 watch(selectedFilters, (val) => {
@@ -276,27 +486,19 @@ watch(selectedFilters, (val) => {
     min-width: 0;
 }
 
-.app-table__hero {
-    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-    background: linear-gradient(
-        135deg,
-        rgba(var(--v-theme-primary), 0.08) 0%,
-        rgba(var(--v-theme-surface), 1) 55%
-    );
-}
-
 .app-table__btn-primary {
     color: #fff !important;
     text-transform: none;
     letter-spacing: normal;
+    box-shadow: 0 4px 14px rgba(var(--v-theme-primary), 0.28);
 }
 
 .app-table__btn-export {
     text-transform: none;
     letter-spacing: normal;
     color: rgb(var(--v-theme-primary)) !important;
-    background: rgba(var(--v-theme-primary), 0.14) !important;
-    border: 1px solid rgba(var(--v-theme-primary), 0.28) !important;
+    background: rgba(var(--v-theme-primary), 0.08) !important;
+    border: 1px solid rgba(var(--v-theme-primary), 0.18) !important;
 }
 
 .app-table__btn-export :deep(.v-btn__content),
@@ -305,22 +507,50 @@ watch(selectedFilters, (val) => {
 }
 
 .app-table {
-    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    border: 1px solid rgba(var(--v-border-color), 0.55);
     overflow: hidden;
-    background: rgb(var(--v-theme-surface));
+    background: rgb(var(--v-theme-background));
     width: 100%;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 12px 32px rgba(15, 23, 42, 0.06);
+}
+
+.app-table__toolbar {
+    padding: 1rem 1.25rem;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(var(--v-theme-primary), 0.045) 0%,
+            rgba(var(--v-theme-background), 1) 100%
+        );
+    border-bottom: 1px solid rgba(var(--v-border-color), 0.45);
+}
+
+.app-table__toolbar-inner {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.app-table__body {
+    position: relative;
+    min-height: 280px;
 }
 
 .app-table__data {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background: rgb(var(--v-theme-background));
 }
 
 .app-table__data :deep(.v-table) {
     width: 100%;
     min-width: min(100%, 720px);
     table-layout: auto;
+    background: transparent;
 }
 
 .app-table__data :deep(.v-data-table__tbody td:not(:last-child)),
@@ -331,69 +561,194 @@ watch(selectedFilters, (val) => {
     white-space: nowrap;
 }
 
+.app-table__data :deep(.v-data-table__tbody td:has(.app-table__chip)) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+}
+
+.app-table__data :deep(.v-data-table__tbody td:has(.appointment-client-cell)) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+}
+
+.app-table__chip {
+    font-weight: 500;
+    letter-spacing: normal;
+}
+
+.app-table__chip--branch :deep(.v-chip__underlay),
+.app-table__chip--branch {
+    background: rgba(79, 195, 247, 0.16) !important;
+    color: #0277bd !important;
+}
+
+.app-table__chip--service :deep(.v-chip__underlay),
+.app-table__chip--service {
+    background: rgba(126, 87, 194, 0.14) !important;
+    color: #5e35b1 !important;
+}
+
 .app-table__data :deep(.v-data-table__tbody td:first-child),
 .app-table__data :deep(.v-data-table__thead th:first-child) {
-    max-width: 72px;
-    width: 64px;
+    max-width: 80px;
+    width: 72px;
+    padding-left: 1.25rem !important;
 }
 
 .app-table__data :deep(.v-data-table__tbody td:last-child),
 .app-table__data :deep(.v-data-table__thead th:last-child) {
-    max-width: none;
+    width: auto !important;
+    min-width: fit-content;
+    max-width: none !important;
     white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+    padding-right: 1.25rem !important;
+}
+
+.app-table__data :deep(.v-data-table__tbody td:has(.app-table__actions)),
+.app-table__data :deep(.v-data-table__thead th:has(.app-table__actions)) {
+    width: auto !important;
+    min-width: fit-content;
+    max-width: none !important;
+    white-space: nowrap;
+    overflow: visible;
 }
 
 .app-table__search {
-    min-width: 220px;
-    max-width: 280px;
-    flex: 1 1 220px;
+    min-width: 240px;
+    max-width: 320px;
+    flex: 1 1 240px;
 }
 
 .app-table__filter {
-    min-width: 160px;
+    min-width: 170px;
     max-width: 220px;
-    flex: 1 1 160px;
+    flex: 1 1 170px;
+}
+
+.app-table__search :deep(.v-field),
+.app-table__filter :deep(.v-field) {
+    background: rgba(var(--v-theme-surface), 0.65) !important;
+    box-shadow: inset 0 0 0 1px rgba(var(--v-border-color), 0.55);
+    transition: box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.app-table__search :deep(.v-field--focused),
+.app-table__filter :deep(.v-field--focused) {
+    box-shadow:
+        inset 0 0 0 1px rgba(var(--v-theme-primary), 0.45),
+        0 0 0 3px rgba(var(--v-theme-primary), 0.1);
+}
+
+.app-table__row-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 1.75rem;
+    padding-inline: 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgba(var(--v-theme-on-surface), 0.72);
+    background: rgba(var(--v-theme-on-surface), 0.05);
+}
+
+.app-table__empty-cell {
+    color: rgba(var(--v-theme-on-surface), 0.42);
 }
 
 .app-table__actions {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 2px;
-    opacity: 0.55;
-    transition: opacity 0.15s ease;
-}
-
-.app-table__data :deep(tr:hover) .app-table__actions {
-    opacity: 1;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 0.375rem;
+    width: max-content;
+    max-width: none;
+    margin-left: auto;
 }
 
 .app-table__action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 8px;
-    background: transparent;
-    color: rgba(var(--v-theme-on-surface), 0.55);
+    flex-shrink: 0;
+    width: 2.125rem;
+    height: 2.125rem;
+    border: 1px solid rgba(var(--v-border-color), 0.65);
+    border-radius: 0.75rem;
+    background: rgba(var(--v-theme-surface), 0.55);
+    color: rgba(var(--v-theme-on-surface), 0.62);
     cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    transition:
+        transform 0.15s ease,
+        background-color 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
 .app-table__action:hover {
-    background: rgba(var(--v-theme-on-surface), 0.06);
-    color: rgba(var(--v-theme-on-surface), 0.87);
+    transform: translateY(-1px);
+    background: rgba(var(--v-theme-on-surface), 0.04);
+    color: rgba(var(--v-theme-on-surface), 0.9);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.app-table__action--primary {
+    color: rgb(var(--v-theme-primary));
+    border-color: rgba(var(--v-theme-primary), 0.18);
+    background: rgba(var(--v-theme-primary), 0.08);
 }
 
 .app-table__action--primary:hover {
-    background: rgba(var(--v-theme-primary), 0.1);
+    background: rgba(var(--v-theme-primary), 0.14);
     color: rgb(var(--v-theme-primary));
+    border-color: rgba(var(--v-theme-primary), 0.28);
+}
+
+.app-table__action--error {
+    color: rgb(var(--v-theme-error));
+    border-color: rgba(var(--v-theme-error), 0.18);
+    background: rgba(var(--v-theme-error), 0.08);
 }
 
 .app-table__action--error:hover {
-    background: rgba(var(--v-theme-error), 0.1);
+    background: rgba(var(--v-theme-error), 0.14);
     color: rgb(var(--v-theme-error));
+    border-color: rgba(var(--v-theme-error), 0.28);
+}
+
+.app-table__action--warning {
+    color: rgb(var(--v-theme-warning));
+    border-color: rgba(var(--v-theme-warning), 0.18);
+    background: rgba(var(--v-theme-warning), 0.08);
+}
+
+.app-table__action--warning:hover {
+    background: rgba(var(--v-theme-warning), 0.14);
+    color: rgb(var(--v-theme-warning));
+    border-color: rgba(var(--v-theme-warning), 0.28);
+}
+
+.app-table__action--success {
+    color: rgb(var(--v-theme-success));
+    border-color: rgba(var(--v-theme-success), 0.18);
+    background: rgba(var(--v-theme-success), 0.08);
+}
+
+.app-table__action--success:hover {
+    background: rgba(var(--v-theme-success), 0.14);
+    color: rgb(var(--v-theme-success));
+    border-color: rgba(var(--v-theme-success), 0.28);
+}
+
+.app-table__data :deep(.app-table__row--muted td) {
+    opacity: 0.55;
 }
 
 .app-table__state {
@@ -402,53 +757,108 @@ watch(selectedFilters, (val) => {
     align-items: center;
     justify-content: center;
     text-align: center;
+    padding: 3rem 1.5rem;
+}
+
+.app-table__state--loading {
+    min-height: 220px;
+}
+
+.app-table__state--empty {
+    min-height: 260px;
+}
+
+.app-table__state-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 0.875rem;
+    border-radius: 1rem;
+    background: rgba(var(--v-theme-primary), 0.1);
+    color: rgb(var(--v-theme-primary));
+}
+
+.app-table__state-icon--muted {
+    background: rgba(var(--v-theme-on-surface), 0.06);
+    color: rgba(var(--v-theme-on-surface), 0.45);
+}
+
+.app-table__data :deep(.v-data-table__thead) {
+    background:
+        linear-gradient(
+            180deg,
+            rgba(var(--v-theme-on-surface), 0.03) 0%,
+            rgba(var(--v-theme-on-surface), 0.015) 100%
+        );
 }
 
 .app-table__data :deep(.v-data-table__thead th) {
     background: transparent !important;
-    color: rgba(var(--v-theme-on-surface), 0.55) !important;
-    font-size: 0.72rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.03em;
+    color: rgba(var(--v-theme-on-surface), 0.58) !important;
+    font-size: 0.6875rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity)) !important;
-    height: 44px !important;
+    border-bottom: 1px solid rgba(var(--v-border-color), 0.55) !important;
+    height: 3rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
 }
 
 .app-table__data :deep(.v-data-table__tbody td) {
-    border-bottom: 1px solid rgba(var(--v-border-color), 0.45) !important;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
+    border-bottom: 1px solid rgba(var(--v-border-color), 0.32) !important;
+    padding-top: 0.875rem !important;
+    padding-bottom: 0.875rem !important;
     font-size: 0.875rem;
-    color: rgba(var(--v-theme-on-surface), 0.87);
+    line-height: 1.45;
+    color: rgba(var(--v-theme-on-surface), 0.88);
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.app-table__data :deep(.v-data-table__tbody tr:nth-child(even) td) {
+    background: rgba(var(--v-theme-on-surface), 0.018);
+}
+
+.app-table__data :deep(.v-data-table__tbody tr:hover td) {
+    background: rgba(var(--v-theme-primary), 0.05) !important;
+}
+
+.app-table__data :deep(.v-data-table__tbody tr) {
+    position: relative;
 }
 
 .app-table__data :deep(.v-data-table__tbody tr:hover) {
-    background: rgba(var(--v-theme-on-surface), 0.03) !important;
+    box-shadow: inset 3px 0 0 rgb(var(--v-theme-primary));
 }
 
 .app-table__data :deep(.v-data-table-footer) {
-    border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-    padding-inline: 16px;
+    border-top: 1px solid rgba(var(--v-border-color), 0.55);
+    padding-inline: 1.25rem;
+    padding-block: 0.75rem;
     font-size: 0.8125rem;
+    background: rgba(var(--v-theme-on-surface), 0.02);
+}
+
+.app-table__data :deep(.v-data-table-footer .v-field) {
+    border-radius: 0.75rem;
 }
 
 .app-table__data :deep(.v-pagination .v-btn) {
-    color: rgba(var(--v-theme-on-surface), 0.7) !important;
+    color: rgba(var(--v-theme-on-surface), 0.68) !important;
+    border-radius: 0.75rem;
 }
 
 .app-table__data :deep(.v-pagination__item--is-active .v-btn) {
-    background: rgba(var(--v-theme-primary), 0.12) !important;
+    background: rgba(var(--v-theme-primary), 0.14) !important;
     color: rgb(var(--v-theme-primary)) !important;
+    box-shadow: inset 0 0 0 1px rgba(var(--v-theme-primary), 0.18);
 }
 
 @media (max-width: 960px) {
-    .app-table__hero :deep(.v-card-text) {
-        padding: 1.25rem !important;
-    }
-
     .app-table__toolbar {
-        padding-inline: 1rem !important;
+        padding-inline: 1rem;
     }
 
     .app-table__search,

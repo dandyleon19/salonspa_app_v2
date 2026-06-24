@@ -10,23 +10,27 @@
       Volver a Clientes
     </v-btn>
 
-    <v-skeleton-loader
-      v-if="loadingClient && !clienteSelected"
-      type="article, paragraph, card"
-      class="mb-6"
-    />
+    <AppSkeletonTransition>
+      <v-skeleton-loader
+        v-if="loadingClient && !clienteSelected"
+        key="clinical-patient-skeleton"
+        type="article"
+        class="clinical-records-page__patient-skeleton mb-6"
+      />
 
-    <v-alert
-      v-else-if="!loadingClient && !clienteSelected"
-      type="warning"
-      variant="tonal"
-      rounded="lg"
-      class="mb-6"
-    >
-      Cliente no encontrado
-    </v-alert>
+      <v-alert
+        v-else-if="!loadingClient && !clienteSelected"
+        key="clinical-patient-not-found"
+        type="warning"
+        variant="tonal"
+        rounded="lg"
+        class="mb-6"
+      >
+        Cliente no encontrado
+      </v-alert>
+    </AppSkeletonTransition>
 
-    <template v-else-if="clienteSelected">
+    <template v-if="clienteSelected">
       <v-card class="clinical-records-page__patient-card mb-6" rounded="xl" elevation="0">
         <v-card-text class="pa-5 pa-md-6">
           <div class="d-flex align-center justify-space-between flex-wrap ga-4">
@@ -102,32 +106,31 @@
             <v-divider />
 
             <v-card-text class="pa-4 clinical-records-page__list">
-              <v-skeleton-loader
-                v-if="loadingRecords"
-                type="list-item-three-line@3"
-              />
-              <template v-else>
-                <ClinicalRecordList
-                  :records="clinicalRecords"
-                  :selected-record-id="selectedClinicalRecordId"
-                  @select="selectedClinicalRecordId = $event ?? null"
-                  @delete="openClinicalRecordDialog"
-                />
-
-                <div
-                  v-if="totalPages > 1"
-                  class="d-flex justify-center mt-4 clinical-records-page__pagination"
-                >
-                  <v-pagination
-                    v-model="currentPage"
-                    :length="totalPages"
-                    :total-visible="5"
-                    density="compact"
-                    rounded="lg"
-                    @update:model-value="handlePageChange"
+              <AppSkeletonTransition>
+                <AppListSkeleton v-if="loadingRecords" key="clinical-list-skeleton" :items="4" />
+                <div v-else key="clinical-list-content">
+                  <ClinicalRecordList
+                    :records="clinicalRecords"
+                    :selected-record-id="selectedClinicalRecordId"
+                    @select="selectedClinicalRecordId = $event ?? null"
+                    @delete="openClinicalRecordDialog"
                   />
+
+                  <div
+                    v-if="totalPages > 1"
+                    class="d-flex justify-center mt-4 clinical-records-page__pagination"
+                  >
+                    <v-pagination
+                      v-model="currentPage"
+                      :length="totalPages"
+                      :total-visible="5"
+                      density="compact"
+                      rounded="lg"
+                      @update:model-value="handlePageChange"
+                    />
+                  </div>
                 </div>
-              </template>
+              </AppSkeletonTransition>
             </v-card-text>
           </v-card>
         </v-col>
@@ -144,7 +147,10 @@
             <v-divider />
 
             <v-card-text class="pa-5 clinical-records-page__detail-body">
-              <ClinicalRecordDetail :record="selectedClinicalRecord" />
+              <AppSkeletonTransition>
+                <AppDetailSkeleton v-if="loadingRecords" key="clinical-detail-skeleton" />
+                <ClinicalRecordDetail v-else key="clinical-detail-content" :record="selectedClinicalRecord" />
+              </AppSkeletonTransition>
             </v-card-text>
           </v-card>
         </v-col>
@@ -155,7 +161,7 @@
   <AppDrawer
     v-model="openClinicalRecordDrawer"
     title="Gestión de Historiales Clínicos"
-    :loading="loadingClient || loadingRecords"
+    :loading="loadingDrawerSubmit"
     size="large"
     location="end"
     :temporary="true"
@@ -163,6 +169,7 @@
   >
     <ClinicalRecordForm
       :data-modal-form="dataModalForm"
+      :client-id="clientId"
       @create="handleCreateClinicalRecord"
       @update="handleUpdateClinicalRecord"
     />
@@ -193,6 +200,7 @@ const clientId = Number(route.params.id)
 
 const loadingClient = ref(false)
 const loadingRecords = ref(false)
+const loadingDrawerSubmit = ref(false)
 const showDeleteDialog = ref(false)
 const clinicalRecordToRemove = ref<ClinicalRecord>()
 const openClinicalRecordDrawer = ref(false)
@@ -301,7 +309,7 @@ const refreshClinicalRecords = async (page = currentPage.value) => {
 
 const handleCreateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
   try {
-    loadingRecords.value = true
+    loadingDrawerSubmit.value = true
     const { $api } = useNuxtApp()
     await $api("/api/clinical-records", {
       method: "POST",
@@ -312,24 +320,24 @@ const handleCreateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
   } catch (err) {
     notifyError(err, "crear el historial clínico")
   } finally {
-    loadingRecords.value = false
+    loadingDrawerSubmit.value = false
   }
 }
 
 const handleUpdateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
   try {
-    loadingRecords.value = true
+    loadingDrawerSubmit.value = true
     const { $api } = useNuxtApp()
     await $api(`/api/clinical-records/${clinicalRecord.id}`, {
       method: "PUT",
-      body: {},
+      body: clinicalRecord,
     })
     notifyUpdated("historial clínico")
     await closeClinicalRecordDrawer()
   } catch (err) {
     notifyError(err, "actualizar el historial clínico")
   } finally {
-    loadingRecords.value = false
+    loadingDrawerSubmit.value = false
   }
 }
 

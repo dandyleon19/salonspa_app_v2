@@ -30,9 +30,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
       const {$api} = useNuxtApp()
       const res: any = await $api('/api/users/' + payload.sub, {
         method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+        },
       })
-
-      console.log("=====> res", res)
 
       authStore.setAuth({
         token: accessToken.value,

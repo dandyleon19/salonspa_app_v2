@@ -1,11 +1,15 @@
 <template>
-  <v-form
-    ref="salonFormRef"
-    v-model="isValid"
-    class="app-form"
-    lazy-validation
-    @submit.prevent="onSubmit"
-  >
+  <AppSkeletonTransition>
+    <AppFormSkeleton v-if="isFormLoading" key="salon-form-skeleton" />
+    <v-form
+      v-else
+      key="salon-form-content"
+      ref="salonFormRef"
+      v-model="isValid"
+      class="app-form"
+      lazy-validation
+      @submit.prevent="onSubmit"
+    >
     <AppFormSection title="Información del salón" subtitle="Datos generales y fiscales">
       <v-row dense>
         <v-col cols="12" md="6">
@@ -64,7 +68,8 @@
         {{ actionLabel }}
       </v-btn>
     </AppFormActions>
-  </v-form>
+    </v-form>
+  </AppSkeletonTransition>
 </template>
 
 <script setup lang="ts">
@@ -107,6 +112,11 @@ const actionLabel = computed(() => {
 })
 
 const salonsList = computed(() => salonsStore.data?.content ?? [])
+
+const isFormLoading = useFormLoading({
+  action: computed(() => props.dataModalForm.action),
+  stores: [salonsStore],
+})
 
 async function getSalon() {
   try {

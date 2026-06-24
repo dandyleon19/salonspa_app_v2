@@ -10,9 +10,11 @@
       :page="currentPage"
       :items-per-page="itemsPerPage"
       :total-items="totalItems"
+      server-search
       @update:pagination="handlePagination"
       @handle-create-button="handleCreateButton"
       @handle-row-action-button="handleRowActionButton"
+      @handle-update-search="handleApplySearch"
   />
 
   <AppDrawer
@@ -62,6 +64,10 @@ import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tab
 import type { Client, clientDataModalForm } from "~/interfaces/clientInterfaces";
 import { useClientsStore } from "~/store/modules/client";
 import { useRouter } from "#vue-router";
+import {
+  areTableSearchEqual,
+  normalizeTableSearch,
+} from "~/helpers/tableSearchHelpers";
 
 definePageMeta({
   layout: 'app'
@@ -79,6 +85,7 @@ const showDeleteDialog = ref<boolean>(false)
 const clientToRemove = ref<Client>()
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
+const activeSearch = ref("")
 
 const headers = ref<Array<TableHeader>>([
   {title: "ID", key: "id"},
@@ -128,6 +135,26 @@ const loadingClientsList = computed(() => {
   return clientsStore.loading;
 });
 
+const fetchClients = async () => {
+  await clientsStore.fetchClients(
+    currentPage.value - 1,
+    itemsPerPage.value,
+    activeSearch.value
+  )
+}
+
+const handleApplySearch = (value: string) => {
+  const nextSearch = normalizeTableSearch(value)
+
+  if (areTableSearchEqual(activeSearch.value, nextSearch)) {
+    return
+  }
+
+  activeSearch.value = nextSearch
+  currentPage.value = 1
+  fetchClients()
+}
+
 const handleCreateButton = (): void => {
   dataModalForm.value.action = 'create'
   openClientDrawer.value = true;
@@ -159,7 +186,7 @@ const handleRowActionButton = (client: Client, action: string): void => {
 const closeClientDrawer = () => {
   openClientDrawer.value = false;
   openClinicalRecordDrawer.value = false;
-  clientsStore.fetchClients();
+  fetchClients();
 };
 
 const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
@@ -214,7 +241,7 @@ const handleDeleteClient = async () => {
       method: "DELETE",
     });
     notifyDeleted("cliente");
-    await clientsStore.fetchClients();
+    await fetchClients();
   } catch (err) {
     notifyError(err, "eliminar el cliente");
   } finally {
@@ -233,14 +260,11 @@ const handlePagination = async ({
   currentPage.value = page
   itemsPerPage.value = newItemsPerPage
 
-  await clientsStore.fetchClients(
-      page - 1,
-      newItemsPerPage
-  )
+  await fetchClients()
 }
 
 // Mounted
 onMounted(() => {
-  clientsStore.fetchClients(0, itemsPerPage.value)
+  fetchClients()
 });
 </script>

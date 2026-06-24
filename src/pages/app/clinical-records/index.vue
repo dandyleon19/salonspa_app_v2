@@ -151,9 +151,7 @@ const handleUpdateClinicalRecord = async (clinicalRecord: ClinicalRecord) => {
     const { $api } = useNuxtApp();
     await $api(`/api/clinical-records/${clinicalRecord.id}`, {
       method: "PUT",
-      body: {
-
-      },
+      body: clinicalRecord,
     });
     notifyUpdated("historial clínico");
     closeClinicalRecordDrawer();

@@ -1,3 +1,5 @@
+import type { Appointment } from "~/interfaces/appointmentInterfaces"
+
 export interface ClinicalRecord {
     id?: string
     diagnosis?: string
@@ -11,6 +13,7 @@ export interface ClinicalRecord {
     associatedServices?: string[]
     userName?: string
     branchName?: string
+    nextAppointment?: Appointment
     createdAt?: string
     updatedAt?: string
 }

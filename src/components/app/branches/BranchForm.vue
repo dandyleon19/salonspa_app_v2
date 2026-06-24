@@ -1,11 +1,15 @@
 <template>
-  <v-form
-    ref="branchFormRef"
-    v-model="isValid"
-    class="app-form"
-    lazy-validation
-    @submit.prevent="onSubmit"
-  >
+  <AppSkeletonTransition>
+    <AppFormSkeleton v-if="isFormLoading" key="branch-form-skeleton" />
+    <v-form
+      v-else
+      key="branch-form-content"
+      ref="branchFormRef"
+      v-model="isValid"
+      class="app-form"
+      lazy-validation
+      @submit.prevent="onSubmit"
+    >
     <AppFormSection title="Sucursal" subtitle="Ubicación y datos de contacto">
       <v-row dense>
         <v-col cols="12">
@@ -48,7 +52,8 @@
         {{ actionLabel }}
       </v-btn>
     </AppFormActions>
-  </v-form>
+    </v-form>
+  </AppSkeletonTransition>
 </template>
 
 <script setup lang="ts">
@@ -89,6 +94,11 @@ const actionLabel = computed(() => {
 })
 
 const branchesList = computed(() => branchesStore.data?.content ?? [])
+
+const isFormLoading = useFormLoading({
+  action: computed(() => props.dataModalForm.action),
+  stores: [branchesStore],
+})
 
 async function getBranch() {
   try {

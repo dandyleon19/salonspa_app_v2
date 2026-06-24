@@ -148,17 +148,158 @@
             </v-chip>
           </div>
         </v-card>
+
+        <v-card
+          v-if="nextAppointment"
+          class="clinical-record-detail__section clinical-record-detail__section--appointment"
+          :class="{
+            'clinical-record-detail__section--appointment-past': isNextAppointmentPast,
+          }"
+          variant="flat"
+        >
+          <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-4">
+            <div class="d-flex align-center ga-2">
+              <v-avatar size="32" color="primary" variant="tonal">
+                <v-icon size="18">mdi-calendar-clock-outline</v-icon>
+              </v-avatar>
+              <span class="text-subtitle-2 font-weight-bold app-font-heading">
+                Cita registrada
+              </span>
+            </div>
+            <div class="d-flex flex-wrap ga-2">
+              <v-chip
+                v-if="isNextAppointmentPast"
+                size="small"
+                color="warning"
+                variant="tonal"
+                rounded="pill"
+                prepend-icon="mdi-clock-alert-outline"
+              >
+                Fecha pasada
+              </v-chip>
+              <v-chip
+                v-if="nextAppointment.status"
+                size="small"
+                variant="tonal"
+                rounded="pill"
+                :color="getAppointmentStatusColor(nextAppointment.status)"
+              >
+                {{ getAppointmentStatusLabel(nextAppointment.status) }}
+              </v-chip>
+            </div>
+          </div>
+
+          <v-alert
+            v-if="isNextAppointmentPast"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            rounded="lg"
+            class="mb-4"
+            icon="mdi-history"
+          >
+            Esta cita ya ocurrió. La información se conserva en el historial como referencia.
+          </v-alert>
+
+          <v-row dense>
+            <v-col cols="12" sm="6">
+              <p class="text-caption text-medium-emphasis mb-1">Fecha</p>
+              <p class="text-body-2 font-weight-medium mb-0">
+                {{ nextAppointmentDateLabel }}
+              </p>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <p class="text-caption text-medium-emphasis mb-1">Horario</p>
+              <p class="text-body-2 font-weight-medium mb-0">
+                {{ nextAppointmentTimeRangeLabel }}
+              </p>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <p class="text-caption text-medium-emphasis mb-1">Profesional</p>
+              <p class="text-body-2 font-weight-medium mb-0">
+                {{ nextAppointment.userName || "—" }}
+              </p>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <p class="text-caption text-medium-emphasis mb-1">Sucursal</p>
+              <p class="text-body-2 font-weight-medium mb-0">
+                {{ nextAppointment.branchName || "—" }}
+              </p>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <p class="text-caption text-medium-emphasis mb-1">Servicio</p>
+              <p class="text-body-2 font-weight-medium mb-0">
+                {{ nextAppointment.serviceName || "—" }}
+              </p>
+            </v-col>
+            <v-col v-if="nextAppointment.notes" cols="12">
+              <p class="text-caption text-medium-emphasis mb-1">Notas de la cita</p>
+              <p class="text-body-2 clinical-record-detail__text mb-0">
+                {{ nextAppointment.notes }}
+              </p>
+            </v-col>
+          </v-row>
+        </v-card>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ClinicalRecord } from "~/interfaces/clinicalRecordInterfaces";
+import {
+  formatDateDisplay,
+  formatTimeDisplay,
+  isIsoDateTimeBeforeNow,
+  splitIsoDateTime,
+} from "~/helpers/dateTimeHelpers"
+import {
+  getAppointmentStatusColor,
+  getAppointmentStatusLabel,
+} from "~/interfaces/appointmentInterfaces"
+import type { Appointment } from "~/interfaces/appointmentInterfaces"
+import type { ClinicalRecord } from "~/interfaces/clinicalRecordInterfaces"
 
-defineProps<{
+const props = defineProps<{
   record: ClinicalRecord | null
 }>()
+
+const isAppointment = (
+  value: ClinicalRecord["nextAppointment"]
+): value is Appointment =>
+  Boolean(value && typeof value === "object" && "startAt" in value && value.startAt)
+
+const nextAppointment = computed(() => {
+  const appointment = props.record?.nextAppointment
+  return isAppointment(appointment) ? appointment : null
+})
+
+const nextAppointmentDateLabel = computed(() => {
+  if (!nextAppointment.value?.startAt) return "—"
+  const { date } = splitIsoDateTime(nextAppointment.value.startAt)
+  return formatDateDisplay(date) || "—"
+})
+
+const nextAppointmentTimeRangeLabel = computed(() => {
+  if (!nextAppointment.value?.startAt) return "—"
+
+  const { time: startTime } = splitIsoDateTime(nextAppointment.value.startAt)
+  const startLabel = formatTimeDisplay(startTime)
+  if (!startLabel) return "—"
+
+  if (!nextAppointment.value.endAt) return startLabel
+
+  const { time: endTime } = splitIsoDateTime(nextAppointment.value.endAt)
+  const endLabel = formatTimeDisplay(endTime)
+  return endLabel ? `${startLabel} - ${endLabel}` : startLabel
+})
+
+const isNextAppointmentPast = computed(() => {
+  const appointment = nextAppointment.value
+  if (!appointment) return false
+
+  const referenceDateTime = appointment.endAt || appointment.startAt
+  return isIsoDateTimeBeforeNow(referenceDateTime)
+})
 
 const formatDate = (date?: string | number | Date) => {
   if (!date) return "Sin fecha"
@@ -195,6 +336,23 @@ const formatDate = (date?: string | number | Date) => {
   border-radius: 14px;
   padding: 18px;
   background: rgb(var(--v-theme-surface));
+}
+
+.clinical-record-detail__section--appointment {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--v-theme-primary), 0.06) 0%,
+    rgb(var(--v-theme-surface)) 100%
+  );
+}
+
+.clinical-record-detail__section--appointment-past {
+  border-color: rgba(var(--v-theme-warning), 0.35);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--v-theme-warning), 0.1) 0%,
+    rgb(var(--v-theme-surface)) 100%
+  );
 }
 
 .clinical-record-detail__text {

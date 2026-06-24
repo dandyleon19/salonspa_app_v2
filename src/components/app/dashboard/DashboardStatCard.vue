@@ -6,8 +6,10 @@
       </v-avatar>
       <div class="flex-grow-1 min-width-0">
         <p class="text-caption text-medium-emphasis mb-1">{{ label }}</p>
-        <v-skeleton-loader v-if="loading" type="text" width="48" />
-        <p v-else class="text-h5 font-weight-bold mb-0">{{ value }}</p>
+        <AppSkeletonTransition>
+          <v-skeleton-loader v-if="loading" key="dashboard-stat-skeleton" type="text" width="48" />
+          <p v-else key="dashboard-stat-content" class="text-h5 font-weight-bold mb-0">{{ value }}</p>
+        </AppSkeletonTransition>
       </div>
     </v-card-text>
   </v-card>

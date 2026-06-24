@@ -1,7 +1,12 @@
+import { getApiErrorMessage, getApiErrorTitle } from "~/helpers/apiErrorHelpers"
+
 export const useApiNotification = () => {
   const { success, error } = useNotification()
 
   const getErrorMessage = (err: unknown, fallback: string): string => {
+    const apiMessage = getApiErrorMessage(err, "")
+    if (apiMessage) return apiMessage
+
     if (err && typeof err === "object") {
       const fetchError = err as {
         data?: { message?: string; error?: string }
@@ -31,7 +36,7 @@ export const useApiNotification = () => {
   const notifyError = (err: unknown, action: string, fallback?: string) => {
     error(
       getErrorMessage(err, fallback ?? `No se pudo ${action}.`),
-      "Error"
+      getApiErrorTitle(err)
     )
   }
 

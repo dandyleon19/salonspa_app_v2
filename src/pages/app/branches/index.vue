@@ -10,9 +10,11 @@
       :page="currentPage"
       :items-per-page="itemsPerPage"
       :total-items="totalItems"
+      server-search
       @update:pagination="handlePagination"
       @handle-create-button="handleCreateButton"
       @handle-row-action-button="handleRowActionButton"
+      @handle-update-search="handleApplySearch"
   />
 
   <AppDrawer
@@ -45,6 +47,10 @@ import { ref } from "vue";
 import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
 import type { Branch, branchDataModalForm } from "~/interfaces/salonInterfaces";
 import { useBranchesStore } from "~/store/modules/branch";
+import {
+  areTableSearchEqual,
+  normalizeTableSearch,
+} from "~/helpers/tableSearchHelpers";
 
 definePageMeta({
   layout: 'app'
@@ -60,6 +66,7 @@ const showDeleteDialog = ref<boolean>(false)
 const branchToRemove = ref<Branch>()
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
+const activeSearch = ref("")
 
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
@@ -101,6 +108,26 @@ const loadingBranchesList = computed(() => {
   return branchesStore.loading;
 });
 
+const fetchBranches = async () => {
+  await branchesStore.fetchBranches(
+    currentPage.value - 1,
+    itemsPerPage.value,
+    activeSearch.value
+  )
+}
+
+const handleApplySearch = (value: string) => {
+  const nextSearch = normalizeTableSearch(value)
+
+  if (areTableSearchEqual(activeSearch.value, nextSearch)) {
+    return
+  }
+
+  activeSearch.value = nextSearch
+  currentPage.value = 1
+  fetchBranches()
+}
+
 const handleCreateButton = (): void => {
   dataModalForm.value.action = 'create'
   openBranchDrawer.value = true;
@@ -128,7 +155,7 @@ const handleRowActionButton = (branch: Branch, action: string): void => {
 const closeBranchDrawer = () => {
   openBranchDrawer.value = false;
   openBranchDrawer.value = false;
-  branchesStore.fetchBranches();
+  fetchBranches();
 };
 
 const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
@@ -179,7 +206,7 @@ const handleDeleteBranch = async () => {
       method: "DELETE",
     });
     notifyDeleted("sucursal");
-    await branchesStore.fetchBranches();
+    await fetchBranches();
   } catch (err) {
     notifyError(err, "eliminar la sucursal");
   } finally {
@@ -198,14 +225,11 @@ const handlePagination = async ({
   currentPage.value = page
   itemsPerPage.value = newItemsPerPage
 
-  await branchesStore.fetchBranches(
-      page - 1,
-      newItemsPerPage
-  )
+  await fetchBranches()
 }
 
 // Mounted
 onMounted(() => {
-  branchesStore.fetchBranches(0, itemsPerPage.value);
+  fetchBranches();
 });
 </script>

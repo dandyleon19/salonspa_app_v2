@@ -1,11 +1,20 @@
 <template>
-  <v-form
-    ref="userFormRef"
-    v-model="isValid"
-    class="app-form"
-    lazy-validation
-    @submit.prevent="onSubmit"
-  >
+  <AppSkeletonTransition>
+    <AppFormSkeleton
+      v-if="isFormLoading"
+      key="user-form-skeleton"
+      :sections="dataModalForm.action === 'changePassword' ? 1 : 2"
+      :fields-per-section="dataModalForm.action === 'changePassword' ? 2 : 3"
+    />
+    <v-form
+      v-else
+      key="user-form-content"
+      ref="userFormRef"
+      v-model="isValid"
+      class="app-form"
+      lazy-validation
+      @submit.prevent="onSubmit"
+    >
     <template v-if="!['changePassword', 'changeBranches'].includes(dataModalForm.action)">
       <AppFormSection title="Datos del trabajador" subtitle="Información personal y laboral">
         <v-row dense>
@@ -43,6 +52,18 @@
               type="number"
               suffix="%"
               :rules="[rules.required, rules.decimal]"
+            />
+          </v-col>
+          <v-col v-if="dataModalForm.action !== 'changePassword'" cols="12" md="6">
+            <v-select
+              v-model="user.role"
+              v-bind="select"
+              label="Rol"
+              :items="roleOptions"
+              item-title="label"
+              item-value="value"
+              :disabled="user.role === 'SUPER_ADMIN'"
+              :rules="[rules.required]"
             />
           </v-col>
         </v-row>
@@ -92,15 +113,17 @@
         {{ actionLabel }}
       </v-btn>
     </AppFormActions>
-  </v-form>
+    </v-form>
+  </AppSkeletonTransition>
 </template>
 
 <script setup lang="ts">
 import type { User, userDataModalForm } from "~/interfaces/userInterfaces"
+import { USER_ROLE_OPTIONS } from "~/interfaces/userInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 import { useUsersStore } from "~/store"
 
-const { field } = useFormFields()
+const { field, select } = useFormFields()
 const usersStore = useUsersStore()
 
 const props = defineProps<{
@@ -119,9 +142,17 @@ const user = ref<User>({
   lastName: "",
   email: "",
   isActive: true,
+  role: "STAFF_USER",
   commissionPercentage: "",
   password: "",
   passwordConfirmation: "",
+})
+
+const roleOptions = computed(() => {
+  if (user.value.role === "SUPER_ADMIN") {
+    return [{ value: "SUPER_ADMIN", label: "Super administrador" }]
+  }
+  return USER_ROLE_OPTIONS
 })
 
 const actionLabel = computed(() => {
@@ -140,6 +171,11 @@ const actionLabel = computed(() => {
 })
 
 const usersList = computed(() => usersStore.data?.content ?? [])
+
+const isFormLoading = useFormLoading({
+  action: computed(() => props.dataModalForm.action),
+  stores: [usersStore],
+})
 
 async function getUser() {
   try {

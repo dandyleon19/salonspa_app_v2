@@ -5,7 +5,7 @@ import type { PageResponse } from "~/interfaces/PageResponse";
 export const useSalonsStore = defineStore('salons', {
     state: () => ({
         data: null as PageResponse<Salon> | null,
-        loading: false,
+        loading: true,
     }),
 
     actions: {

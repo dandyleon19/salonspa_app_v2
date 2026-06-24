@@ -4,16 +4,17 @@
     :close-on-content-click="false"
     location="bottom start"
     offset="6"
+    :disabled="isFieldDisabled"
   >
     <template #activator="{ props: menuProps }">
       <v-text-field
         :model-value="displayValue"
         :label="label"
         :rules="fieldRules"
-        :disabled="disabled"
-        :clearable="clearable"
+        :disabled="isFieldDisabled"
+        :clearable="clearable && !isFieldDisabled"
         readonly
-        placeholder="Selecciona una hora"
+        :placeholder="fieldPlaceholder"
         prepend-inner-icon="mdi-clock-outline"
         append-inner-icon="mdi-chevron-down"
         variant="outlined"
@@ -28,34 +29,44 @@
     </template>
 
     <v-card class="app-time-field__picker" rounded="xl" elevation="8">
-      <v-time-picker
-        v-model="pickerValue"
-        format="ampm"
-        color="primary"
-        :max="maxTime"
-        ampm-in-title
-        @update:model-value="handleTimeChange"
-      />
-
-      <div class="app-time-field__period px-4 pb-3 d-flex justify-center ga-2">
-        <v-btn
-          class="app-time-field__period-btn flex-grow-1"
-          :variant="selectedPeriod === 'am' ? 'flat' : 'tonal'"
-          :color="selectedPeriod === 'am' ? 'primary' : undefined"
+      <div class="app-time-field__controls pa-4">
+        <v-select
+          v-model="pickerHour"
+          :items="TIME_HOUR_12_OPTIONS"
+          label="Hora"
+          variant="outlined"
+          density="compact"
           rounded="lg"
-          @click="setPeriod('am')"
-        >
-          AM
-        </v-btn>
-        <v-btn
-          class="app-time-field__period-btn flex-grow-1"
-          :variant="selectedPeriod === 'pm' ? 'flat' : 'tonal'"
-          :color="selectedPeriod === 'pm' ? 'primary' : undefined"
+          color="primary"
+          hide-details
+          class="app-time-field__select"
+          @update:model-value="handlePickerChange"
+        />
+        <span class="app-time-field__separator">:</span>
+        <v-select
+          v-model="pickerMinute"
+          :items="TIME_MINUTE_OPTIONS"
+          label="Min"
+          variant="outlined"
+          density="compact"
           rounded="lg"
-          @click="setPeriod('pm')"
-        >
-          PM
-        </v-btn>
+          color="primary"
+          hide-details
+          class="app-time-field__select"
+          @update:model-value="handlePickerChange"
+        />
+        <v-select
+          v-model="pickerPeriod"
+          :items="TIME_PERIOD_OPTIONS"
+          label="Periodo"
+          variant="outlined"
+          density="compact"
+          rounded="lg"
+          color="primary"
+          hide-details
+          class="app-time-field__select app-time-field__select--period"
+          @update:model-value="handlePickerChange"
+        />
       </div>
 
       <v-divider />
@@ -77,8 +88,15 @@
 <script setup lang="ts">
 import {
   formatTimeDisplay,
-  getCurrentTime,
+  formatTimeFrom12h,
   getTodayDate,
+  isTimeAfterCurrentTime,
+  isTimeBeforeOrEqualCurrentTime,
+  parseTimeTo12h,
+  TIME_HOUR_12_OPTIONS,
+  TIME_MINUTE_OPTIONS,
+  TIME_PERIOD_OPTIONS,
+  type Time12h,
 } from "~/helpers/dateTimeHelpers"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 
@@ -92,6 +110,8 @@ const props = withDefaults(
     clearable?: boolean
     required?: boolean
     maxNow?: boolean
+    minNow?: boolean
+    requireDate?: boolean
   }>(),
   {
     modelValue: "",
@@ -100,7 +120,9 @@ const props = withDefaults(
     disabled: false,
     clearable: true,
     required: false,
-    maxNow: true,
+    maxNow: false,
+    minNow: false,
+    requireDate: true,
   }
 )
 
@@ -109,69 +131,107 @@ const emit = defineEmits<{
 }>()
 
 const menuOpen = ref(false)
-const pickerValue = ref(props.modelValue || getCurrentTime())
+const pickerHour = ref<number>(12)
+const pickerMinute = ref("00")
+const pickerPeriod = ref<Time12h["period"]>("AM")
 
-watch(
-  () => props.modelValue,
-  (value) => {
-    if (value) pickerValue.value = value
-  }
+const isFieldDisabled = computed(
+  () => props.disabled || (props.requireDate && !props.relatedDate)
+)
+
+const fieldPlaceholder = computed(() =>
+  props.requireDate && !props.relatedDate
+    ? "Selecciona primero la fecha"
+    : "Selecciona una hora"
 )
 
 const displayValue = computed(() => formatTimeDisplay(props.modelValue))
 
-const selectedPeriod = computed<"am" | "pm">(() => {
-  const hours = Number(props.modelValue?.split(":")[0] ?? 0)
-  return hours >= 12 ? "pm" : "am"
-})
-
-const maxTime = computed(() => {
-  if (!props.maxNow || !props.relatedDate) return undefined
-  if (props.relatedDate !== getTodayDate()) return undefined
-  return getCurrentTime()
-})
+const wrapRule = (rule: (value: string) => boolean | string) => () =>
+  rule(props.modelValue)
 
 const fieldRules = computed(() => {
-  const baseRules = [...props.rules]
+  const baseRules = props.rules.map(wrapRule)
 
   if (props.required) {
-    baseRules.unshift(rules.required as (value: string) => boolean | string)
+    baseRules.unshift(() => rules.required(props.modelValue))
   }
 
   if (props.maxNow && props.relatedDate) {
-    baseRules.push(rules.maxTimeForDate(props.relatedDate))
+    baseRules.push(() => rules.maxTimeForDate(props.relatedDate)(props.modelValue))
+  }
+
+  if (props.minNow && props.relatedDate) {
+    baseRules.push(() => rules.minTimeForDate(props.relatedDate)(props.modelValue))
   }
 
   return baseRules
 })
 
-const handleTimeChange = (value: string | null) => {
-  if (!value) return
-  const normalized = value.slice(0, 5)
-  pickerValue.value = normalized
-  emit("update:modelValue", normalized)
+const syncPickerFromModel = (value?: string) => {
+  const parsed = parseTimeTo12h(value)
+  if (!parsed) return
+
+  pickerHour.value = parsed.hour
+  pickerMinute.value = parsed.minute
+  pickerPeriod.value = parsed.period
 }
 
-const setPeriod = (period: "am" | "pm") => {
-  const current = props.modelValue || pickerValue.value || "12:00"
-  const [hoursStr = "12", minutes = "00"] = String(current).split(":")
-  let hours = Number(hoursStr)
+watch(
+  () => props.modelValue,
+  (value) => syncPickerFromModel(value),
+  { immediate: true }
+)
 
-  if (period === "am" && hours >= 12) {
-    hours -= 12
-  } else if (period === "pm" && hours < 12) {
-    hours += 12
-  }
+const emitPickerValue = () => {
+  emit(
+    "update:modelValue",
+    formatTimeFrom12h({
+      hour: pickerHour.value,
+      minute: pickerMinute.value,
+      period: pickerPeriod.value,
+    })
+  )
+}
 
-  const nextValue = `${String(hours).padStart(2, "0")}:${minutes}`
-  pickerValue.value = nextValue
-  emit("update:modelValue", nextValue)
+const handlePickerChange = () => {
+  emitPickerValue()
 }
 
 const clearTime = () => {
+  pickerHour.value = 12
+  pickerMinute.value = "00"
+  pickerPeriod.value = "AM"
   emit("update:modelValue", "")
-  pickerValue.value = getCurrentTime()
 }
+
+const isTimeAllowed = (time: string) => {
+  if (!time || !props.relatedDate) return false
+
+  if (props.maxNow && props.relatedDate === getTodayDate()) {
+    if (!isTimeBeforeOrEqualCurrentTime(time)) return false
+  }
+
+  if (props.minNow && props.relatedDate === getTodayDate()) {
+    if (!isTimeAfterCurrentTime(time)) return false
+  }
+
+  return true
+}
+
+watch(
+  () => props.relatedDate,
+  (date) => {
+    if (!date) {
+      if (props.modelValue) emit("update:modelValue", "")
+      return
+    }
+
+    if (props.modelValue && !isTimeAllowed(props.modelValue)) {
+      emit("update:modelValue", "")
+    }
+  }
+)
 </script>
 
 <style scoped>
@@ -185,10 +245,26 @@ const clearTime = () => {
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
-.app-time-field__period-btn {
-  text-transform: none;
-  letter-spacing: normal;
+.app-time-field__controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.app-time-field__select {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-time-field__select--period {
+  flex: 0 0 96px;
+}
+
+.app-time-field__separator {
+  margin-bottom: 10px;
+  font-size: 1.25rem;
   font-weight: 600;
+  color: rgb(var(--v-theme-text));
 }
 
 .app-time-field__actions {

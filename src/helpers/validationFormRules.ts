@@ -3,6 +3,8 @@ import {
   getTodayDate,
   isDateAfterToday,
   isDateTimeAfterNow,
+  isTimeAfterCurrentTime,
+  isTimeBeforeOrEqualCurrentTime,
 } from "~/helpers/dateTimeHelpers"
 
 export const validationRules = {
@@ -78,7 +80,13 @@ export const validationRules = {
   maxTimeForDate: (date: string) => (time: string) => {
     if (!time || !date) return true
     if (date !== getTodayDate()) return true
-    return time <= getCurrentTime() || "La hora no puede ser posterior a la actual"
+    return isTimeBeforeOrEqualCurrentTime(time) || "La hora no puede ser posterior a la actual"
+  },
+
+  minTimeForDate: (date: string) => (time: string) => {
+    if (!time || !date) return true
+    if (date !== getTodayDate()) return true
+    return isTimeAfterCurrentTime(time) || "La hora debe ser posterior a la actual"
   },
 
   maxDateTimeNow: (date: string, time: string) => () =>

@@ -1,11 +1,20 @@
 <template>
-  <v-form
-    ref="serviceCategoryFormRef"
-    v-model="isValid"
-    class="app-form"
-    lazy-validation
-    @submit.prevent="onSubmit"
-  >
+  <AppSkeletonTransition>
+    <AppFormSkeleton
+      v-if="isFormLoading"
+      key="service-category-form-skeleton"
+      :sections="1"
+      :fields-per-section="3"
+    />
+    <v-form
+      v-else
+      key="service-category-form-content"
+      ref="serviceCategoryFormRef"
+      v-model="isValid"
+      class="app-form"
+      lazy-validation
+      @submit.prevent="onSubmit"
+    >
     <AppFormSection title="Categoría" subtitle="Organiza los servicios del salón">
       <v-row dense>
         <v-col cols="12">
@@ -46,7 +55,8 @@
         {{ actionLabel }}
       </v-btn>
     </AppFormActions>
-  </v-form>
+    </v-form>
+  </AppSkeletonTransition>
 </template>
 
 <script setup lang="ts">
@@ -87,6 +97,11 @@ const actionLabel = computed(() => {
 })
 
 const serviceCategoriesList = computed(() => serviceCategoriesStore.data?.content ?? [])
+
+const isFormLoading = useFormLoading({
+  action: computed(() => props.dataModalForm.action),
+  stores: [serviceCategoriesStore],
+})
 
 async function getServiceCategory() {
   try {

@@ -14,6 +14,9 @@ const resolveAuthUser = async (token: string, responseUser?: any) => {
 
   return await $api(`/api/users/${payload.sub}`, {
     method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   })
 }
 
@@ -31,14 +34,14 @@ export const useAuth = () => {
       },
     })
 
+    const payload = getTokenPayload(response.token)
+    const user = await resolveAuthUser(response.token, response.user)
+
     const accessToken = useCookie('access_token', {
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
     })
     accessToken.value = response.token
-
-    const payload = getTokenPayload(response.token)
-    const user = await resolveAuthUser(response.token, response.user)
 
     authStore.setAuth({
       token: response.token,

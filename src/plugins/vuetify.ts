@@ -1,11 +1,11 @@
 // plugins/vuetify.js
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
+import '~/assets/styles/typography.css'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createVuetify } from 'vuetify'
 import { VBtn } from 'vuetify/components/VBtn'
-import { VTimePicker } from 'vuetify/labs/VTimePicker'
 
 export default defineNuxtPlugin(nuxtApp => {
   const myCustomLightTheme = {
@@ -30,7 +30,6 @@ export default defineNuxtPlugin(nuxtApp => {
     ssr: false,
     components: {
       ...components,
-      VTimePicker,
     },
     directives,
     aliases: {

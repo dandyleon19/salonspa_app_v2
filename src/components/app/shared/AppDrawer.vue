@@ -6,7 +6,6 @@
     :width="computedWidth"
     class="pa-5"
   >
-    <!-- LOADING OVERLAY -->
     <v-overlay
       v-if="loading"
       contained
@@ -14,11 +13,11 @@
       class="align-center justify-center"
       persistent
       scrim="white"
-      opacity="0.8"
+      opacity="0.72"
     >
-      <v-progress-circular indeterminate size="48" width="4" />
+      <v-progress-circular indeterminate size="40" width="3" color="primary" />
     </v-overlay>
-    <!-- HEADER -->
+
     <div class="d-flex justify-space-between align-center mb-4">
       <h2 class="text-h6 font-weight-bold">{{ title }}</h2>
       <v-btn icon variant="text" @click="close">
@@ -26,12 +25,19 @@
       </v-btn>
     </div>
 
-    <!-- CONTENT -->
-    <div class="drawer-content" v-if="model">
-      <slot />
+    <div v-if="model" class="drawer-content">
+      <AppSkeletonTransition>
+        <AppFormSkeleton
+          v-if="contentLoading"
+          key="drawer-content-skeleton"
+          :sections="skeletonSections"
+          :fields-per-section="skeletonFields"
+          :show-button="skeletonShowButton"
+        />
+        <slot v-else key="drawer-content-slot" />
+      </AppSkeletonTransition>
     </div>
 
-    <!-- FOOTER -->
     <div v-if="$slots.footer" class="mt-4 pt-2 border-t">
       <slot name="footer" />
     </div>
@@ -41,14 +47,25 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps<{
-  modelValue: boolean;
-  title?: string;
-  size?: "small" | "medium" | "large" | "xlarge";
-  location?: "start" | "end" | "left" | "right";
-  temporary?: boolean;
-  loading?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    modelValue: boolean;
+    title?: string;
+    size?: "small" | "medium" | "large" | "xlarge";
+    location?: "start" | "end" | "left" | "right";
+    temporary?: boolean;
+    loading?: boolean;
+    contentLoading?: boolean;
+    skeletonSections?: number;
+    skeletonFields?: number;
+    skeletonShowButton?: boolean;
+  }>(),
+  {
+    skeletonSections: 2,
+    skeletonFields: 4,
+    skeletonShowButton: true,
+  }
+);
 
 const emit = defineEmits(["update:modelValue", "close"]);
 

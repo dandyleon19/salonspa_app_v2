@@ -4,7 +4,7 @@ import type { ClinicalRecord } from '~/interfaces/clinicalRecordInterfaces';
 export const useClinicalRecordsStore = defineStore('clinical-records', {
     state: () => ({
         list: [] as ClinicalRecord[],
-        loading: false,
+        loading: true,
     }),
 
     actions: {

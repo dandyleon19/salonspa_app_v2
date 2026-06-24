@@ -20,13 +20,15 @@
       </v-card-title>
       <v-divider />
       <v-card-text class="pa-4">
-        <v-progress-linear
-          v-if="loading"
-          indeterminate
-          color="primary"
-          class="mb-3"
-        />
-        <slot name="form" />
+        <AppSkeletonTransition>
+          <AppFormSkeleton
+            v-if="loading"
+            key="drawer-item-form-skeleton"
+            :sections="1"
+            :fields-per-section="3"
+          />
+          <slot v-else name="form" key="drawer-item-form-content" />
+        </AppSkeletonTransition>
       </v-card-text>
     </v-card>
 
@@ -66,62 +68,66 @@
       </span>
     </div>
 
-    <div v-if="!filteredCount" class="drawer-item-list__empty">
-      <v-avatar size="52" color="primary" variant="tonal" class="mb-3">
-        <v-icon size="26">{{ emptyIcon }}</v-icon>
-      </v-avatar>
-      <p class="text-body-2 font-weight-medium mb-1">
-        {{ totalCount ? noResultsLabel : emptyLabel }}
-      </p>
-      <p v-if="!totalCount" class="text-caption text-medium-emphasis mb-0">
-        {{ emptyHint }}
-      </p>
-    </div>
+    <AppSkeletonTransition>
+      <AppListSkeleton v-if="loading" key="drawer-item-list-skeleton" :items="4" :show-search="false" />
 
-    <div v-else class="d-flex flex-column ga-2">
-      <v-card
-        v-for="item in items"
-        :key="getItemKey(item)"
-        class="drawer-item-list__item"
-        rounded="lg"
-        elevation="0"
-      >
-        <v-card-text class="pa-3">
-          <div class="d-flex justify-space-between align-start ga-3">
-            <div class="flex-grow-1 min-width-0">
-              <slot name="item" :item="item" />
-            </div>
+      <div v-else-if="!filteredCount" key="drawer-item-list-empty" class="drawer-item-list__empty">
+        <v-avatar size="52" color="primary" variant="tonal" class="mb-3">
+          <v-icon size="26">{{ emptyIcon }}</v-icon>
+        </v-avatar>
+        <p class="text-body-2 font-weight-medium mb-1">
+          {{ totalCount ? noResultsLabel : emptyLabel }}
+        </p>
+        <p v-if="!totalCount" class="text-caption text-medium-emphasis mb-0">
+          {{ emptyHint }}
+        </p>
+      </div>
 
-            <div v-if="!formMode" class="drawer-item-list__actions">
-              <v-tooltip text="Editar" location="top">
-                <template #activator="{ props: tooltipProps }">
-                  <button
-                    v-bind="tooltipProps"
-                    type="button"
-                    class="drawer-item-list__action drawer-item-list__action--edit"
-                    @click="$emit('edit', item)"
-                  >
-                    <v-icon size="18">mdi-pencil-outline</v-icon>
-                  </button>
-                </template>
-              </v-tooltip>
-              <v-tooltip text="Eliminar" location="top">
-                <template #activator="{ props: tooltipProps }">
-                  <button
-                    v-bind="tooltipProps"
-                    type="button"
-                    class="drawer-item-list__action drawer-item-list__action--delete"
-                    @click="$emit('delete', item)"
-                  >
-                    <v-icon size="18">mdi-delete-outline</v-icon>
-                  </button>
-                </template>
-              </v-tooltip>
+      <div v-else key="drawer-item-list-content" class="d-flex flex-column ga-2">
+        <v-card
+          v-for="item in items"
+          :key="getItemKey(item)"
+          class="drawer-item-list__item"
+          rounded="lg"
+          elevation="0"
+        >
+          <v-card-text class="pa-3">
+            <div class="d-flex justify-space-between align-start ga-3">
+              <div class="flex-grow-1 min-width-0">
+                <slot name="item" :item="item" />
+              </div>
+
+              <div v-if="!formMode" class="drawer-item-list__actions">
+                <v-tooltip text="Editar" location="top">
+                  <template #activator="{ props: tooltipProps }">
+                    <button
+                      v-bind="tooltipProps"
+                      type="button"
+                      class="drawer-item-list__action drawer-item-list__action--edit"
+                      @click="$emit('edit', item)"
+                    >
+                      <v-icon size="18">mdi-pencil-outline</v-icon>
+                    </button>
+                  </template>
+                </v-tooltip>
+                <v-tooltip text="Eliminar" location="top">
+                  <template #activator="{ props: tooltipProps }">
+                    <button
+                      v-bind="tooltipProps"
+                      type="button"
+                      class="drawer-item-list__action drawer-item-list__action--delete"
+                      @click="$emit('delete', item)"
+                    >
+                      <v-icon size="18">mdi-delete-outline</v-icon>
+                    </button>
+                  </template>
+                </v-tooltip>
+              </div>
             </div>
-          </div>
-        </v-card-text>
-      </v-card>
-    </div>
+          </v-card-text>
+        </v-card>
+      </div>
+    </AppSkeletonTransition>
   </div>
 </template>
 
