@@ -54,6 +54,18 @@
               :rules="[rules.required, rules.decimal]"
             />
           </v-col>
+          <v-col v-if="showSalonSelect" cols="12" md="6">
+            <v-select
+              v-model="user.salonId"
+              v-bind="select"
+              label="Salón"
+              :items="salonOptions"
+              item-title="title"
+              item-value="value"
+              prepend-inner-icon="mdi-domain"
+              :rules="[rules.required]"
+            />
+          </v-col>
           <v-col v-if="dataModalForm.action !== 'changePassword'" cols="12" md="6">
             <v-select
               v-model="user.role"
@@ -121,10 +133,13 @@
 import type { User, userDataModalForm } from "~/interfaces/userInterfaces"
 import { USER_ROLE_OPTIONS } from "~/interfaces/userInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
-import { useUsersStore } from "~/store"
+import { useAuthStore } from "~/store/modules/auth"
+import { useSalonsStore, useUsersStore } from "~/store"
 
 const { field, select } = useFormFields()
+const authStore = useAuthStore()
 const usersStore = useUsersStore()
+const salonsStore = useSalonsStore()
 
 const props = defineProps<{
   dataModalForm: userDataModalForm
@@ -143,10 +158,26 @@ const user = ref<User>({
   email: "",
   isActive: true,
   role: "STAFF_USER",
+  salonId: undefined,
   commissionPercentage: "",
   password: "",
   passwordConfirmation: "",
 })
+
+const isSuperAdmin = computed(() => authStore.isSuperAdmin)
+
+const showSalonSelect = computed(
+  () => isSuperAdmin.value && props.dataModalForm.action === "create"
+)
+
+const salonOptions = computed(() =>
+  (salonsStore.data?.content ?? []).map((salon) => ({
+    title: salon.name,
+    value: salon.id != null ? Number(salon.id) : salon.id,
+  }))
+)
+
+const salonsLoading = ref(false)
 
 const roleOptions = computed(() => {
   if (user.value.role === "SUPER_ADMIN") {
@@ -175,7 +206,29 @@ const usersList = computed(() => usersStore.data?.content ?? [])
 const isFormLoading = useFormLoading({
   action: computed(() => props.dataModalForm.action),
   stores: [usersStore],
+  recordLoading: computed(
+    () => showSalonSelect.value && salonsLoading.value
+  ),
 })
+
+async function loadSalons() {
+  salonsLoading.value = true
+  try {
+    await salonsStore.fetchSalons(0, 100)
+  } finally {
+    salonsLoading.value = false
+  }
+}
+
+watch(
+  () => [props.dataModalForm.action, isSuperAdmin.value] as const,
+  ([action, superAdmin]) => {
+    if (action === "create" && superAdmin) {
+      loadSalons()
+    }
+  },
+  { immediate: true }
+)
 
 async function getUser() {
   try {

@@ -1,4 +1,9 @@
 import { useAuthStore } from "~/store/modules/auth";
+import {
+  clearAuthTokens,
+  getRefreshToken,
+  setAuthTokens,
+} from "~/composables/useAuthTokens";
 
 const getTokenPayload = (token: string) => {
   return JSON.parse(atob(token.split(".")[1]))
@@ -37,11 +42,7 @@ export const useAuth = () => {
     const payload = getTokenPayload(response.token)
     const user = await resolveAuthUser(response.token, response.user)
 
-    const accessToken = useCookie('access_token', {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    })
-    accessToken.value = response.token
+    setAuthTokens(response.token, response.refreshToken)
 
     authStore.setAuth({
       token: response.token,
@@ -57,12 +58,24 @@ export const useAuth = () => {
 
   const logout = async () => {
     const authStore = useAuthStore()
-    const accessToken = useCookie('access_token')
+    const refreshToken = getRefreshToken()
 
-    accessToken.value = null
+    try {
+      if (refreshToken) {
+        await $fetch(`${config.public.apiBase}/api/auth/logout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: { refreshToken },
+        })
+      }
+    } catch {
+      // Local logout even if the API call fails.
+    }
+
+    clearAuthTokens()
     authStore.logout()
 
-    await navigateTo('/login')
+    await navigateTo("/login")
   }
 
   return { login, logout }

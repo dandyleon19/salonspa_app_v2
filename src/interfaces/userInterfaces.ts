@@ -29,6 +29,16 @@ export interface UpdateUserRequest {
   commissionPercentage: number
 }
 
+export interface CreateUserRequest {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  role: UserRole
+  commissionPercentage: number
+  salonId?: number
+}
+
 export interface UserFilters {
   isActive?: boolean
   role?: UserRole

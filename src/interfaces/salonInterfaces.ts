@@ -14,6 +14,7 @@ export interface Branch {
     address: string
     city: string
     salonId?: string
+    salonName?: string
 }
 
 export interface salonDataModalForm {

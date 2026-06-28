@@ -90,10 +90,12 @@ import {
 } from "~/interfaces/userInterfaces"
 import {
   areUserFiltersEqual,
+  buildCreateUserPayload,
   buildUpdateUserPayload,
   normalizeUserFilters,
 } from "~/helpers/userHelpers"
 import { normalizeTableSearch } from "~/helpers/tableSearchHelpers"
+import { useAuthStore } from "~/store/modules/auth"
 import { useUsersStore } from "~/store"
 
 definePageMeta({
@@ -101,6 +103,7 @@ definePageMeta({
 })
 
 const usersStore = useUsersStore()
+const authStore = useAuthStore()
 
 const loading = ref(false)
 const openUserDrawer = ref(false)
@@ -117,15 +120,24 @@ const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const activeFilters = ref<UserFilters>({})
 
-const headers = ref<TableHeader[]>([
-  { title: "ID", key: "id" },
-  { title: "Nombre", key: "fullName" },
-  { title: "Email", key: "email" },
-  { title: "Rol", key: "roleLabel" },
-  { title: "Estado", key: "statusLabel" },
-  { title: "% Comisión", key: "commissionPercentageLabel" },
-  { title: "Acciones", key: "actions", sortable: false },
-])
+const headers = computed<TableHeader[]>(() => {
+  const base: TableHeader[] = [
+    { title: "ID", key: "id" },
+    { title: "Nombre", key: "fullName" },
+    { title: "Email", key: "email" },
+    { title: "Rol", key: "roleLabel" },
+    { title: "Estado", key: "statusLabel" },
+  ]
+
+  if (authStore.isSuperAdmin) {
+    base.push({ title: "Salón", key: "salonName" })
+  } else {
+    base.push({ title: "% Comisión", key: "commissionPercentageLabel" })
+  }
+
+  base.push({ title: "Acciones", key: "actions", sortable: false })
+  return base
+})
 
 const userChipColumns: TableChipColumn[] = [
   {
@@ -393,14 +405,9 @@ const handleCreateUser = async (user: User) => {
     const { $api } = useNuxtApp()
     await $api("/api/auth/register", {
       method: "POST",
-      body: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        password: user.password,
-        role: user.role ?? "STAFF_USER",
-        commissionPercentage: Number(user.commissionPercentage),
-      },
+      body: buildCreateUserPayload(user, {
+        includeSalonId: authStore.isSuperAdmin,
+      }),
     })
     notifyCreated("usuario")
     closeUserDrawer()

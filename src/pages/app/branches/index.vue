@@ -46,6 +46,7 @@
 import { ref } from "vue";
 import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
 import type { Branch, branchDataModalForm } from "~/interfaces/salonInterfaces";
+import { useAuthStore } from "~/store/modules/auth"
 import { useBranchesStore } from "~/store/modules/branch";
 import {
   areTableSearchEqual,
@@ -57,7 +58,8 @@ definePageMeta({
 })
 
 // Composables
-const branchesStore = useBranchesStore();
+const branchesStore = useBranchesStore()
+const authStore = useAuthStore()
 
 // Variables
 const loading = ref<boolean>(false);
@@ -68,13 +70,21 @@ const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const activeSearch = ref("")
 
-const headers = ref<Array<TableHeader>>([
-  { title: "ID", key: "id" },
-  { title: "Nombre", key: "name" },
-  { title: "Dirección", key: "address" },
-  { title: "Ciudad", key: "city" },
-  { title: "Acciones", key: "actions", sortable: false },
-]);
+const headers = computed<TableHeader[]>(() => {
+  const base: TableHeader[] = [
+    { title: "ID", key: "id" },
+    { title: "Nombre", key: "name" },
+    { title: "Dirección", key: "address" },
+    { title: "Ciudad", key: "city" },
+  ]
+
+  if (authStore.isSuperAdmin) {
+    base.push({ title: "Salón", key: "salonName" })
+  }
+
+  base.push({ title: "Acciones", key: "actions", sortable: false })
+  return base
+})
 
 const rowOptions = ref<Array<TableRowOption>>([
   {

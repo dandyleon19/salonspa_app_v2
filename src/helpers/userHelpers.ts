@@ -1,4 +1,5 @@
 import type {
+  CreateUserRequest,
   UpdateUserRequest,
   User,
   UserFilters,
@@ -16,6 +17,26 @@ function parseCommissionPercentage(
 
   const parsed = Number(String(value).replace("%", "").trim())
   return Number.isFinite(parsed) ? parsed : 0
+}
+
+export function buildCreateUserPayload(
+  user: User,
+  options: { includeSalonId?: boolean } = {}
+): CreateUserRequest {
+  const payload: CreateUserRequest = {
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    password: user.password,
+    role: user.role ?? "STAFF_USER",
+    commissionPercentage: parseCommissionPercentage(user.commissionPercentage),
+  }
+
+  if (options.includeSalonId && user.salonId != null && user.salonId !== "") {
+    payload.salonId = Number(user.salonId)
+  }
+
+  return payload
 }
 
 export function buildUpdateUserPayload(

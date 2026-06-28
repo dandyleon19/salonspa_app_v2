@@ -25,6 +25,7 @@
             :value="item.title"
             link
             :to="item.to"
+            @mouseenter="prefetchSidebarRoute(item.to)"
         />
       </v-list>
     </v-navigation-drawer>
@@ -69,6 +70,10 @@ const filteredItems = computed(() => {
     return item.onlyFor.includes(authStore.role as string)
   })
 })
+
+const prefetchSidebarRoute = (to: string) => {
+  preloadRouteComponents(to)
+}
 </script>
 
 <style scoped>
