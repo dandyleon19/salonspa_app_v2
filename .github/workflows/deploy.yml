@@ -72,8 +72,12 @@ jobs:
             export HOST="0.0.0.0"
 
             if pm2 describe salonspa >/dev/null 2>&1; then
-              pm2 restart salonspa --update-env
-            else
-              pm2 start .output/server/index.mjs --name salonspa
-              pm2 save
+              pm2 delete salonspa
             fi
+
+            pm2 start .output/server/index.mjs \
+              --name salonspa \
+              --cwd "$APP_DIR" \
+              --update-env
+
+            pm2 save
