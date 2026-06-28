@@ -65,18 +65,14 @@ jobs:
             PORT="${PORT:-3002}"
             DEPLOY_USER="$(whoami)"
 
-            if [ ! -w "$APP_DIR" ] 2>/dev/null; then
-              sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$APP_DIR" || {
-                echo "Cannot write to ${APP_DIR}"
-                echo "Run on the server: sudo chown -R ${DEPLOY_USER}:${DEPLOY_USER} ${APP_DIR}"
-                exit 1
-              }
-            fi
+            sudo mkdir -p "$APP_DIR"
+            sudo rm -rf "$APP_DIR/.env"
+            sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$APP_DIR"
 
-            mkdir -p "$APP_DIR"
             cd "$APP_DIR"
             tar -xzf /tmp/nuxt-output.tar.gz
             rm -f /tmp/nuxt-output.tar.gz
+            sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$APP_DIR"
 
             if [ ! -f "$APP_DIR/.output/server/index.mjs" ]; then
               echo "Build artifact missing: .output/server/index.mjs"
@@ -90,16 +86,6 @@ jobs:
             export PORT="${PORT}"
             export NITRO_PORT="${PORT}"
             export NITRO_HOST=0.0.0.0
-
-            printf '%s\n' \
-              "NODE_ENV=production" \
-              "NUXT_API_BASE=${NUXT_API_BASE}" \
-              "HOST=0.0.0.0" \
-              "PORT=${PORT}" \
-              "NITRO_PORT=${PORT}" \
-              "NITRO_HOST=0.0.0.0" \
-              > "$APP_DIR/.env"
-            chmod 600 "$APP_DIR/.env"
 
             pm2 delete salonspa 2>/dev/null || true
             pm2 delete "$PM2_NAME" 2>/dev/null || true
