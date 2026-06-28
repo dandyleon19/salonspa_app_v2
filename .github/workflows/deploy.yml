@@ -71,12 +71,19 @@ jobs:
             export NITRO_PORT="$PORT"
             export HOST="0.0.0.0"
 
+            PM2_NAME="salonspa_app"
+
+            # Remove legacy process name from earlier deploys.
             if pm2 describe salonspa >/dev/null 2>&1; then
               pm2 delete salonspa
             fi
 
+            if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
+              pm2 delete "$PM2_NAME"
+            fi
+
             pm2 start .output/server/index.mjs \
-              --name salonspa \
+              --name "$PM2_NAME" \
               --cwd "$APP_DIR" \
               --update-env
 

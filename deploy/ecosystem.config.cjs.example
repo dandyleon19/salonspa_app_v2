@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "salonspa",
+      name: "salonspa_app",
       script: ".output/server/index.mjs",
       cwd: "/var/www/salonspa_app_v2",
       instances: 1,
