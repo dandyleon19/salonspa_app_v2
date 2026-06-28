@@ -1,0 +1,81 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.9.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Nuxt
+        env:
+          NODE_ENV: production
+          NUXT_API_BASE: ${{ secrets.NUXT_API_BASE }}
+        run: pnpm run build
+
+      - name: Pack build artifact
+        run: tar -czf nuxt-output.tar.gz .output
+
+      - name: Copy artifact to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          source: nuxt-output.tar.gz
+          target: /tmp
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            APP_DIR="/var/www/salonspa_app_v2"
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+            tar -xzf /tmp/nuxt-output.tar.gz
+            rm -f /tmp/nuxt-output.tar.gz
+
+            export NODE_ENV=production
+            export NUXT_API_BASE="${{ secrets.NUXT_API_BASE }}"
+            export PORT="${{ secrets.APP_PORT || 3000 }}"
+            export NITRO_PORT="$PORT"
+            export HOST="0.0.0.0"
+
+            if pm2 describe salonspa >/dev/null 2>&1; then
+              pm2 restart salonspa --update-env
+            else
+              pm2 start .output/server/index.mjs --name salonspa
+              pm2 save
+            fi
