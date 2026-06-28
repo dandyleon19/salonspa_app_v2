@@ -63,38 +63,75 @@ jobs:
             PM2_NAME="salonspa_app"
             PORT="${{ secrets.APP_PORT }}"
             PORT="${PORT:-3002}"
+            DEPLOY_USER="$(whoami)"
+
+            if [ ! -w "$APP_DIR" ] 2>/dev/null; then
+              sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$APP_DIR" || {
+                echo "Cannot write to ${APP_DIR}"
+                echo "Run on the server: sudo chown -R ${DEPLOY_USER}:${DEPLOY_USER} ${APP_DIR}"
+                exit 1
+              }
+            fi
 
             mkdir -p "$APP_DIR"
             cd "$APP_DIR"
             tar -xzf /tmp/nuxt-output.tar.gz
             rm -f /tmp/nuxt-output.tar.gz
 
+            if [ ! -f "$APP_DIR/.output/server/index.mjs" ]; then
+              echo "Build artifact missing: .output/server/index.mjs"
+              ls -la "$APP_DIR" || true
+              exit 1
+            fi
+
+            export NODE_ENV=production
+            export NUXT_API_BASE="${{ secrets.NUXT_API_BASE }}"
+            export HOST=0.0.0.0
+            export PORT="${PORT}"
+            export NITRO_PORT="${PORT}"
+            export NITRO_HOST=0.0.0.0
+
             printf '%s\n' \
               "NODE_ENV=production" \
-              "NUXT_API_BASE=${{ secrets.NUXT_API_BASE }}" \
+              "NUXT_API_BASE=${NUXT_API_BASE}" \
               "HOST=0.0.0.0" \
               "PORT=${PORT}" \
               "NITRO_PORT=${PORT}" \
               "NITRO_HOST=0.0.0.0" \
               > "$APP_DIR/.env"
+            chmod 600 "$APP_DIR/.env"
 
             pm2 delete salonspa 2>/dev/null || true
+            pm2 delete "$PM2_NAME" 2>/dev/null || true
 
-            if pm2 describe "$PM2_NAME" >/dev/null 2>&1; then
-              pm2 restart "$PM2_NAME" --update-env
-            else
-              pm2 start .output/server/index.mjs \
-                --name "$PM2_NAME" \
-                --cwd "$APP_DIR" \
-                --update-env
-            fi
+            pm2 start .output/server/index.mjs \
+              --name "$PM2_NAME" \
+              --cwd "$APP_DIR" \
+              --update-env
 
             pm2 save
 
-            sleep 3
-            if ! curl -fsS "http://127.0.0.1:${PORT}/" >/dev/null; then
-              echo "App did not respond on port ${PORT}"
+            echo "Waiting for app on port ${PORT}..."
+            READY=0
+            for attempt in $(seq 1 20); do
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:${PORT}/" || echo "000")
+              echo "Attempt ${attempt}/20 -> HTTP ${HTTP_CODE}"
+
+              if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "301" ] || [ "$HTTP_CODE" = "302" ] || [ "$HTTP_CODE" = "304" ]; then
+                READY=1
+                break
+              fi
+
+              sleep 2
+            done
+
+            if [ "$READY" -ne 1 ]; then
+              echo "App did not become ready on port ${PORT}"
+              ss -tlnp | grep -E "${PORT}|node" || true
               pm2 status
-              pm2 logs "$PM2_NAME" --lines 50 --nostream
+              pm2 describe "$PM2_NAME" || true
+              pm2 logs "$PM2_NAME" --lines 80 --nostream
               exit 1
             fi
+
+            echo "Deploy successful on port ${PORT}"
