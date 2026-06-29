@@ -14,13 +14,14 @@
     "@nuxt/icon": "1.15.0",
     "@pinia/nuxt": "^0.11.2",
     "axios": "^1.11.0",
-    "nuxt": "^3.17.5",
+    "nuxt": "~3.17.5",
     "pinia": "^3.0.3",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1"
   },
   "packageManager": "pnpm@8.9.2+sha1.5f2fa48d614263457cf5d7fb7be8b878da318d87",
   "devDependencies": {
+    "@oxc-parser/binding-win32-x64-msvc": "^0.137.0",
     "vite-plugin-vuetify": "^2.1.1",
     "vuetify": "^3.8.11"
   }
