@@ -1,56 +1,54 @@
 <template>
-  <Teleport to="body">
-    <v-navigation-drawer
-      v-model="model"
-      :location="location"
-      temporary
-      :width="resolvedWidth"
-      :scrim="true"
-      class="app-form-drawer pa-4 pa-sm-5"
-      disable-resize-watcher
+  <v-navigation-drawer
+    v-model="model"
+    :location="location"
+    :temporary="temporary"
+    :width="resolvedWidth"
+    :scrim="true"
+    class="app-form-drawer pa-4 pa-sm-5"
+    disable-resize-watcher
+  >
+    <v-overlay
+      v-if="loading"
+      contained
+      :model-value="loading"
+      class="align-center justify-center"
+      persistent
+      scrim="white"
+      opacity="0.72"
     >
-      <v-overlay
-        v-if="loading"
-        contained
-        :model-value="loading"
-        class="align-center justify-center"
-        persistent
-        scrim="white"
-        opacity="0.72"
-      >
-        <v-progress-circular indeterminate size="40" width="3" color="primary" />
-      </v-overlay>
+      <v-progress-circular indeterminate size="40" width="3" color="primary" />
+    </v-overlay>
 
-      <div class="app-form-drawer__header d-flex justify-space-between align-center mb-4">
-        <h2 class="text-h6 text-sm-h5 font-weight-bold app-form-drawer__title">
-          {{ title }}
-        </h2>
-        <v-btn
-          icon="mdi-close"
-          variant="text"
-          aria-label="Cerrar panel"
-          @click="close"
+    <div class="app-form-drawer__header d-flex justify-space-between align-center mb-4">
+      <h2 class="text-h6 text-sm-h5 font-weight-bold app-form-drawer__title">
+        {{ title }}
+      </h2>
+      <v-btn
+        icon="mdi-close"
+        variant="text"
+        aria-label="Cerrar panel"
+        @click="close"
+      />
+    </div>
+
+    <div v-if="model" class="app-form-drawer__content">
+      <AppSkeletonTransition>
+        <AppFormSkeleton
+          v-if="contentLoading"
+          key="drawer-content-skeleton"
+          :sections="skeletonSections"
+          :fields-per-section="skeletonFields"
+          :show-button="skeletonShowButton"
         />
-      </div>
+        <slot v-else key="drawer-content-slot" />
+      </AppSkeletonTransition>
+    </div>
 
-      <div class="app-form-drawer__content">
-        <AppSkeletonTransition>
-          <AppFormSkeleton
-            v-if="contentLoading"
-            key="drawer-content-skeleton"
-            :sections="skeletonSections"
-            :fields-per-section="skeletonFields"
-            :show-button="skeletonShowButton"
-          />
-          <slot v-else key="drawer-content-slot" />
-        </AppSkeletonTransition>
-      </div>
-
-      <div v-if="$slots.footer" class="app-form-drawer__footer mt-4 pt-2">
-        <slot name="footer" />
-      </div>
-    </v-navigation-drawer>
-  </Teleport>
+    <div v-if="$slots.footer" class="app-form-drawer__footer mt-4 pt-2">
+      <slot name="footer" />
+    </div>
+  </v-navigation-drawer>
 </template>
 
 <script setup lang="ts">
@@ -125,10 +123,6 @@ const close = () => {
 </script>
 
 <style scoped>
-.app-form-drawer {
-  z-index: 2007 !important;
-}
-
 .app-form-drawer__header {
   gap: 12px;
 }
