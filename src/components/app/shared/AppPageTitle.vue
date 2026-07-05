@@ -15,7 +15,7 @@
               size="small"
               color="primary"
               variant="tonal"
-              prepend-icon="mdi-format-list-bulleted"
+              prepend-icon="tabler:list"
             >
               {{ totalItems }} registro{{ totalItems === 1 ? "" : "s" }}
             </v-chip>

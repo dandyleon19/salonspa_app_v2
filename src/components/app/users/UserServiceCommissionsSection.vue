@@ -31,7 +31,7 @@
                 Servicio {{ index + 1 }}
               </span>
               <v-btn
-                icon="mdi-delete-outline"
+                icon="tabler:trash"
                 variant="text"
                 size="small"
                 color="error"
@@ -76,7 +76,7 @@
           :disabled="!availableServices.length"
           @click="addRow"
         >
-          <v-icon start>mdi-plus</v-icon>
+          <v-icon start>tabler:plus</v-icon>
           Agregar servicio
         </v-btn>
 

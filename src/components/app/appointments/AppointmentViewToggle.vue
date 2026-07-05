@@ -7,7 +7,7 @@
       :to="tableRoute"
       exact
     >
-      <v-icon start>mdi-table</v-icon>
+      <v-icon start>tabler:table</v-icon>
       Tabla
     </v-btn>
     <v-btn
@@ -17,7 +17,7 @@
       :to="calendarRoute"
       exact
     >
-      <v-icon start>mdi-calendar-month-outline</v-icon>
+      <v-icon start>tabler:calendar-month</v-icon>
       Calendario
     </v-btn>
   </div>

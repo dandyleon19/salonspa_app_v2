@@ -8,7 +8,7 @@
       <v-card-text class="pa-6 pa-sm-7">
         <div class="appointment-client-contact-modal__header mb-5">
           <v-avatar size="52" color="primary" variant="tonal">
-            <v-icon size="26">mdi-account-circle-outline</v-icon>
+            <v-icon size="26">tabler:user-circle</v-icon>
           </v-avatar>
           <div>
             <h2 class="text-h6 font-weight-bold app-font-heading mb-1">

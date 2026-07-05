@@ -83,7 +83,7 @@ const confirmColor = computed(() =>
 )
 
 const confirmIcon = computed(() =>
-  props.action ? getUserActionIcon(props.action) : "mdi-help-circle-outline"
+  props.action ? getUserActionIcon(props.action) : "tabler:help-circle"
 )
 
 const modalTitle = computed(() => {

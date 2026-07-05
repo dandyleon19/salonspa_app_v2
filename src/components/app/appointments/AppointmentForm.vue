@@ -97,7 +97,7 @@
               class="appointment-form__client-btn"
               @click="openCreateClientDialog"
             >
-              <v-icon start>mdi-account-plus-outline</v-icon>
+              <v-icon start>tabler:user-plus</v-icon>
               Nuevo
             </v-btn>
           </div>
@@ -172,7 +172,7 @@
       <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
         <span class="text-h6 font-weight-bold">Nuevo cliente</span>
         <v-btn
-          icon="mdi-close"
+          icon="tabler:x"
           variant="text"
           size="small"
           :disabled="createClientLoading"

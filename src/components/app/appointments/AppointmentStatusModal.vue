@@ -78,7 +78,7 @@
             size="large"
             @click="handleConfirmComplete(true)"
           >
-            <v-icon start>mdi-cash-register</v-icon>
+            <v-icon start>tabler:cash-register</v-icon>
             Completar y crear venta
           </v-btn>
         </template>
@@ -153,8 +153,8 @@ const confirmColor = computed(() => {
 })
 
 const confirmIcon = computed(() => {
-  if (!props.targetStatus) return "mdi-help-circle-outline"
-  return APPOINTMENT_STATUS_ACTION_ICONS[props.targetStatus] ?? "mdi-help-circle-outline"
+  if (!props.targetStatus) return "tabler:help-circle"
+  return APPOINTMENT_STATUS_ACTION_ICONS[props.targetStatus] ?? "tabler:help-circle"
 })
 
 const statusConfirmTitles: Partial<Record<AppointmentStatus, string>> = {

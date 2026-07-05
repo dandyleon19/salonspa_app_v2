@@ -12,7 +12,7 @@
     empty-label="Sin sucursales"
     no-results-label="No se encontraron sucursales"
     empty-hint="Agrega la primera sucursal con el botón de arriba"
-    empty-icon="mdi-store-outline"
+    empty-icon="tabler:building-store"
     :loading="loading"
     @create="handleOpenCreate"
     @edit="handleOpenEdit"
@@ -41,7 +41,7 @@
             v-model="branchFormData.address"
             v-bind="field"
             label="Dirección"
-            prepend-inner-icon="mdi-map-marker-outline"
+            prepend-inner-icon="tabler:map-pin"
             :rules="[rules.required]"
           />
 
@@ -49,7 +49,7 @@
             v-model="branchFormData.city"
             v-bind="field"
             label="Ciudad"
-            prepend-inner-icon="mdi-city-variant-outline"
+            prepend-inner-icon="tabler:building-community"
             :rules="[rules.required]"
           />
         </AppFormSection>
@@ -80,10 +80,10 @@
     <template #item="{ item: branch }">
       <p class="text-body-1 font-weight-bold mb-1">{{ branch.name }}</p>
       <div class="d-flex flex-wrap ga-2">
-        <v-chip size="x-small" variant="tonal" prepend-icon="mdi-map-marker-outline">
+        <v-chip size="x-small" variant="tonal" prepend-icon="tabler:map-pin">
           {{ branch.address }}
         </v-chip>
-        <v-chip size="x-small" variant="tonal" prepend-icon="mdi-city-variant-outline">
+        <v-chip size="x-small" variant="tonal" prepend-icon="tabler:building-community">
           {{ branch.city }}
         </v-chip>
       </div>

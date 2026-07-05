@@ -17,7 +17,7 @@
         @click="toggleExpanded"
       >
         <v-icon size="20">
-          {{ expanded ? "mdi-chevron-up" : "mdi-chevron-down" }}
+          {{ expanded ? "tabler:chevron-up" : "tabler:chevron-down" }}
         </v-icon>
         <span class="app-collapsible-toolbar-card__toggle-label">{{ label }}</span>
         <span v-if="!expanded" class="app-collapsible-toolbar-card__toggle-hint text-medium-emphasis">

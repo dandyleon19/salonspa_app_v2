@@ -40,7 +40,7 @@
               v-bind="field"
               label="Correo"
               type="email"
-              prepend-inner-icon="mdi-email-outline"
+              prepend-inner-icon="tabler:mail"
               :rules="[rules.required, rules.email]"
             />
           </v-col>
@@ -62,7 +62,7 @@
               :items="salonOptions"
               item-title="title"
               item-value="value"
-              prepend-inner-icon="mdi-domain"
+              prepend-inner-icon="tabler:building"
               :rules="[rules.required]"
             />
           </v-col>
@@ -103,7 +103,7 @@
               label="Contraseña"
               type="password"
               autocomplete="off"
-              prepend-inner-icon="mdi-lock-outline"
+              prepend-inner-icon="tabler:lock"
               :rules="[rules.required, rules.minLength(6)]"
             />
           </v-col>
@@ -114,7 +114,7 @@
               label="Confirmar contraseña"
               type="password"
               autocomplete="off"
-              prepend-inner-icon="mdi-lock-check-outline"
+              prepend-inner-icon="tabler:lock-check"
               :rules="[rules.required, rules.matchPassword(user.password)]"
             />
           </v-col>

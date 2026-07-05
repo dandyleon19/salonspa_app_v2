@@ -133,7 +133,7 @@ const getStatusActionLabel = (status: AppointmentStatus) =>
   APPOINTMENT_STATUS_ACTION_LABELS[status] ?? getAppointmentStatusLabel(status)
 
 const getStatusActionIcon = (status: AppointmentStatus) =>
-  APPOINTMENT_STATUS_ACTION_ICONS[status] ?? "mdi-circle-outline"
+  APPOINTMENT_STATUS_ACTION_ICONS[status] ?? "tabler:circle"
 
 const getStatusActionColor = (status: AppointmentStatus) =>
   APPOINTMENT_STATUS_ACTION_COLORS[status] ?? "primary"
@@ -155,13 +155,13 @@ const getAppointmentRowOptions = (
     {
       action: "update",
       color: "primary",
-      icon: "mdi-pencil",
+      icon: "tabler:pencil",
       title: "Editar",
     },
     {
       action: "delete",
       color: "error",
-      icon: "mdi-delete",
+      icon: "tabler:trash",
       title: "Eliminar",
     },
   ]
@@ -173,12 +173,12 @@ const getAppointmentRowClass = (item: Appointment & { statusActions?: Appointmen
 const appointmentChipColumns: TableChipColumn[] = [
   {
     key: "branchLabel",
-    icon: "mdi-store-outline",
+    icon: "tabler:building-store",
     class: "app-table__chip--branch",
   },
   {
     key: "serviceLabel",
-    icon: "mdi-spa-outline",
+    icon: "tabler:flower",
     class: "app-table__chip--service",
   },
   {

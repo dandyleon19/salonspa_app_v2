@@ -70,8 +70,8 @@
           class="sales-report__tabs"
           rounded="0"
         >
-          <v-tab value="sales" prepend-icon="mdi-cash-register">Ventas</v-tab>
-          <v-tab value="commissions" prepend-icon="mdi-hand-coin-outline">Comisiones</v-tab>
+          <v-tab value="sales" prepend-icon="tabler:cash-register">Ventas</v-tab>
+          <v-tab value="commissions" prepend-icon="tabler:coins">Comisiones</v-tab>
         </v-tabs>
 
         <div class="sales-report__body pa-4 pa-md-5">
@@ -447,28 +447,28 @@ const summaryStats = computed(() => [
     key: "totalSales",
     label: "Total ventas",
     value: reportData.value?.totalSales ?? 0,
-    icon: "mdi-receipt-text-outline",
+    icon: "tabler:receipt-2",
     color: "primary",
   },
   {
     key: "totalRevenue",
     label: "Ingresos",
     value: formatCurrency(reportData.value?.totalRevenue),
-    icon: "mdi-cash-multiple",
+    icon: "tabler:cash",
     color: "success",
   },
   {
     key: "totalPaid",
     label: "Cobrado",
     value: formatCurrency(reportData.value?.totalPaid),
-    icon: "mdi-check-circle-outline",
+    icon: "tabler:circle-check",
     color: "info",
   },
   {
     key: "totalOutstanding",
     label: "Pendiente",
     value: formatCurrency(reportData.value?.totalOutstanding),
-    icon: "mdi-clock-outline",
+    icon: "tabler:clock",
     color: "warning",
   },
 ])

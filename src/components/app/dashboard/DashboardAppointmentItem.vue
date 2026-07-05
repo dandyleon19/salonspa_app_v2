@@ -49,7 +49,7 @@
         v-if="appointment.userName"
         size="x-small"
         variant="tonal"
-        prepend-icon="mdi-account-outline"
+        prepend-icon="tabler:user"
       >
         {{ appointment.userName }}
       </v-chip>
@@ -57,7 +57,7 @@
         v-if="appointment.branchName"
         size="x-small"
         variant="tonal"
-        prepend-icon="mdi-store-outline"
+        prepend-icon="tabler:building-store"
       >
         {{ appointment.branchName }}
       </v-chip>

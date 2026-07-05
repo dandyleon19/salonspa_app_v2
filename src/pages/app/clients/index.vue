@@ -102,17 +102,17 @@ const rowOptions = ref<Array<TableRowOption>>([
   {
     action: 'update',
     color: 'primary',
-    icon: 'mdi-pencil',
+    icon: 'tabler:pencil',
   },
   {
     action: 'clinicalRecords',
     color: 'primary',
-    icon: 'mdi-folder-heart-outline',
+    icon: 'tabler:folder-heart',
   },
   {
     action: 'delete',
     color: 'error',
-    icon: 'mdi-delete',
+    icon: 'tabler:trash',
   },
 ]);
 

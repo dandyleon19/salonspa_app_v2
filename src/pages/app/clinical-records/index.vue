@@ -72,12 +72,12 @@ const rowOptions = ref<Array<TableRowOption>>([
   {
     action: 'update',
     color: 'primary',
-    icon: 'mdi-pencil',
+    icon: 'tabler:pencil',
   },
   {
     action: 'delete',
     color: 'error',
-    icon: 'mdi-delete',
+    icon: 'tabler:trash',
   },
 ]);
 

@@ -88,9 +88,9 @@ export const USER_ACTION_COLORS: Record<UserTableAction, string> = {
 }
 
 export const USER_ACTION_ICONS: Record<UserTableAction, string> = {
-  "status:activate": "mdi-account-check-outline",
-  "status:deactivate": "mdi-account-off-outline",
-  "role:change": "mdi-shield-account-outline",
+  "status:activate": "tabler:user-check",
+  "status:deactivate": "tabler:user-off",
+  "role:change": "tabler:shield-user",
 }
 
 export const USER_ACTION_LABELS: Record<UserTableAction, string> = {
@@ -135,7 +135,7 @@ export const getUserActionLabel = (action: UserTableAction) =>
   USER_ACTION_LABELS[action] ?? action
 
 export const getUserActionIcon = (action: UserTableAction) =>
-  USER_ACTION_ICONS[action] ?? "mdi-help-circle-outline"
+  USER_ACTION_ICONS[action] ?? "tabler:help-circle"
 
 export const getUserActionColor = (action: UserTableAction) =>
   USER_ACTION_COLORS[action] ?? "primary"

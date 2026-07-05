@@ -33,7 +33,7 @@
             v-model="salon.fiscalAddress"
             v-bind="field"
             label="Dirección fiscal"
-            prepend-inner-icon="mdi-map-marker-outline"
+            prepend-inner-icon="tabler:map-pin"
             :rules="[rules.required]"
           />
         </v-col>
@@ -50,7 +50,7 @@
             v-model="salon.phone"
             v-bind="field"
             label="Teléfono"
-            prepend-inner-icon="mdi-phone-outline"
+            prepend-inner-icon="tabler:phone"
             :rules="[rules.required]"
           />
         </v-col>

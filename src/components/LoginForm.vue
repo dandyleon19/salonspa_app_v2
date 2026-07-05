@@ -28,7 +28,7 @@
         label="Correo electrónico"
         placeholder="tu@correo.com"
         autocomplete="email"
-        prepend-inner-icon="mdi-email-outline"
+        prepend-inner-icon="tabler:mail"
         :disabled="isSubmitting"
       />
 
@@ -39,8 +39,8 @@
         label="Contraseña"
         :type="showPassword ? 'text' : 'password'"
         autocomplete="current-password"
-        prepend-inner-icon="mdi-lock-outline"
-        :append-inner-icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+        prepend-inner-icon="tabler:lock"
+        :append-inner-icon="showPassword ? 'tabler:eye-off' : 'tabler:eye'"
         :disabled="isSubmitting"
         @click:append-inner="showPassword = !showPassword"
       />

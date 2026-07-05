@@ -6,7 +6,7 @@
     >
       <div class="text-center px-6">
         <v-avatar size="72" color="primary" variant="tonal" class="mb-4">
-          <v-icon size="36">mdi-clipboard-pulse-outline</v-icon>
+          <v-icon size="36">tabler:clipboard-heart</v-icon>
         </v-avatar>
         <p class="text-h6 font-weight-medium mb-2">Selecciona un historial</p>
         <p class="text-body-2 text-medium-emphasis">
@@ -23,7 +23,7 @@
               size="small"
               color="primary"
               variant="tonal"
-              prepend-icon="mdi-calendar-month-outline"
+              prepend-icon="tabler:calendar-month"
               class="mb-3"
             >
               {{ formatDate(record.sessionDate) }}
@@ -37,7 +37,7 @@
           </div>
 
           <v-avatar size="48" color="primary" variant="tonal">
-            <v-icon>mdi-file-document-outline</v-icon>
+            <v-icon>tabler:file-text</v-icon>
           </v-avatar>
         </div>
       </div>
@@ -47,7 +47,7 @@
           <v-card class="clinical-record-detail__meta-card pa-4" variant="flat">
             <div class="d-flex align-center ga-3">
               <v-avatar size="40" color="primary" variant="tonal">
-                <v-icon size="20">mdi-stethoscope</v-icon>
+                <v-icon size="20">tabler:stethoscope</v-icon>
               </v-avatar>
               <div>
                 <p class="text-caption text-medium-emphasis mb-1">Especialista</p>
@@ -63,7 +63,7 @@
           <v-card class="clinical-record-detail__meta-card pa-4" variant="flat">
             <div class="d-flex align-center ga-3">
               <v-avatar size="40" color="secondary" variant="tonal">
-                <v-icon size="20">mdi-store-outline</v-icon>
+                <v-icon size="20">tabler:building-store</v-icon>
               </v-avatar>
               <div>
                 <p class="text-caption text-medium-emphasis mb-1">Sucursal</p>
@@ -84,7 +84,7 @@
         >
           <div class="d-flex align-center ga-2 mb-3">
             <v-avatar size="32" color="info" variant="tonal">
-              <v-icon size="18">mdi-clipboard-pulse</v-icon>
+              <v-icon size="18">tabler:activity-heartbeat</v-icon>
             </v-avatar>
             <span class="text-subtitle-2 font-weight-bold">Diagnóstico</span>
           </div>
@@ -100,7 +100,7 @@
         >
           <div class="d-flex align-center ga-2 mb-3">
             <v-avatar size="32" color="success" variant="tonal">
-              <v-icon size="18">mdi-medical-bag</v-icon>
+              <v-icon size="18">tabler:medical-cross</v-icon>
             </v-avatar>
             <span class="text-subtitle-2 font-weight-bold">Tratamiento</span>
           </div>
@@ -116,7 +116,7 @@
         >
           <div class="d-flex align-center ga-2 mb-3">
             <v-avatar size="32" color="warning" variant="tonal">
-              <v-icon size="18">mdi-note-text-outline</v-icon>
+              <v-icon size="18">tabler:notes</v-icon>
             </v-avatar>
             <span class="text-subtitle-2 font-weight-bold">Observaciones</span>
           </div>
@@ -132,7 +132,7 @@
         >
           <div class="d-flex align-center ga-2 mb-3">
             <v-avatar size="32" color="orange" variant="tonal">
-              <v-icon size="18">mdi-spa-outline</v-icon>
+              <v-icon size="18">tabler:flower</v-icon>
             </v-avatar>
             <span class="text-subtitle-2 font-weight-bold">Servicios asociados</span>
           </div>
@@ -160,7 +160,7 @@
           <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-4">
             <div class="d-flex align-center ga-2">
               <v-avatar size="32" color="primary" variant="tonal">
-                <v-icon size="18">mdi-calendar-clock-outline</v-icon>
+                <v-icon size="18">tabler:calendar-time</v-icon>
               </v-avatar>
               <span class="text-subtitle-2 font-weight-bold app-font-heading">
                 Cita registrada
@@ -173,7 +173,7 @@
                 color="warning"
                 variant="tonal"
                 rounded="pill"
-                prepend-icon="mdi-clock-alert-outline"
+                prepend-icon="tabler:clock-exclamation"
               >
                 Fecha pasada
               </v-chip>
@@ -196,7 +196,7 @@
             density="compact"
             rounded="lg"
             class="mb-4"
-            icon="mdi-history"
+            icon="tabler:history"
           >
             Esta cita ya ocurrió. La información se conserva en el historial como referencia.
           </v-alert>

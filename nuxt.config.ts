@@ -27,6 +27,7 @@ export default defineNuxtConfig({
   },
   css: [
     '@/assets/styles/variables.css',
+    '@/assets/styles/icons.css',
   ],
   components: [
     {
@@ -53,6 +54,12 @@ export default defineNuxtConfig({
   ],
   build: {
     transpile: ['vuetify'],
+  },
+  icon: {
+    mode: 'svg',
+    serverBundle: {
+      collections: ['tabler'],
+    },
   },
   runtimeConfig: {
     public: {

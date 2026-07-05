@@ -51,7 +51,7 @@
         block
         @click="openPaymentDialog = true"
       >
-        <v-icon start>mdi-cash-plus</v-icon>
+        <v-icon start>tabler:cash-banknote</v-icon>
         Agregar pago
       </v-btn>
     </template>
@@ -299,7 +299,7 @@ const getSaleRowOptions = (item: Sale): TableRowOption[] => {
     {
       action: "view",
       color: "primary",
-      icon: "mdi-eye-outline",
+      icon: "tabler:eye",
       title: "Ver detalle",
     },
   ]
@@ -312,7 +312,7 @@ const getSaleRowOptions = (item: Sale): TableRowOption[] => {
     options.push({
       action: "payment",
       color: "success",
-      icon: "mdi-cash-plus",
+      icon: "tabler:cash-banknote",
       title: "Agregar pago",
     })
   }
@@ -321,7 +321,7 @@ const getSaleRowOptions = (item: Sale): TableRowOption[] => {
     options.push({
       action: "cancel",
       color: "error",
-      icon: "mdi-cancel",
+      icon: "tabler:ban",
       title: "Cancelar",
     })
   }

@@ -2,7 +2,7 @@
   <div class="appointment-client-contact">
     <div class="appointment-client-contact__item">
       <v-icon size="18" class="appointment-client-contact__icon">
-        mdi-phone-outline
+        tabler:phone
       </v-icon>
       <div class="appointment-client-contact__content">
         <span class="appointment-client-contact__label">Teléfono</span>
@@ -21,7 +21,7 @@
 
     <div class="appointment-client-contact__item">
       <v-icon size="18" class="appointment-client-contact__icon">
-        mdi-email-outline
+        tabler:mail
       </v-icon>
       <div class="appointment-client-contact__content">
         <span class="appointment-client-contact__label">Correo</span>
@@ -40,7 +40,7 @@
 
     <div class="appointment-client-contact__item">
       <v-icon size="18" class="appointment-client-contact__icon">
-        mdi-cake-variant-outline
+        tabler:cake
       </v-icon>
       <div class="appointment-client-contact__content">
         <span class="appointment-client-contact__label">Cumpleaños</span>
@@ -52,7 +52,7 @@
 
     <div class="appointment-client-contact__item">
       <v-icon size="18" class="appointment-client-contact__icon">
-        mdi-human-male-female
+        tabler:gender-bigender
       </v-icon>
       <div class="appointment-client-contact__content">
         <span class="appointment-client-contact__label">Género</span>

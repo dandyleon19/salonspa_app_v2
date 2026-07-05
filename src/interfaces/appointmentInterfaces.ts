@@ -140,11 +140,11 @@ export const APPOINTMENT_STATUS_ACTION_LABELS: Partial<
 export const APPOINTMENT_STATUS_ACTION_ICONS: Partial<
   Record<AppointmentStatus, string>
 > = {
-  CONFIRMED: "mdi-check-circle-outline",
-  IN_PROGRESS: "mdi-play-circle-outline",
-  COMPLETED: "mdi-check-all",
-  CANCELLED: "mdi-close-circle-outline",
-  NO_SHOW: "mdi-account-off-outline",
+  CONFIRMED: "tabler:circle-check",
+  IN_PROGRESS: "tabler:player-play",
+  COMPLETED: "tabler:checks",
+  CANCELLED: "tabler:circle-x",
+  NO_SHOW: "tabler:user-off",
 }
 
 export const APPOINTMENT_STATUS_ACTION_COLORS: Partial<

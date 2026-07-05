@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@mdi/font':
-    specifier: ^7.4.47
-    version: 7.4.47
   '@nuxt/icon':
     specifier: 1.15.0
     version: 1.15.0(vite@7.3.5)(vue@3.5.38)
@@ -31,6 +28,9 @@ dependencies:
     version: 4.6.4(vue@3.5.38)
 
 devDependencies:
+  '@iconify-json/tabler':
+    specifier: ^1.2.35
+    version: 1.2.35
   '@oxc-parser/binding-win32-x64-msvc':
     specifier: ^0.137.0
     version: 0.137.0
@@ -1054,6 +1054,12 @@ packages:
     dev: false
     optional: true
 
+  /@iconify-json/tabler@1.2.35:
+    resolution: {integrity: sha512-/sJMqHvh5ZWrEERVfDCT5NjVDeKJdhosFtKjJofAVl+P/3AzLiryOQw7WvrfDF25Xa5N/eoOQ15Y1jnhYXxBoQ==}
+    dependencies:
+      '@iconify/types': 2.0.0
+    dev: true
+
   /@iconify/collections@1.0.695:
     resolution: {integrity: sha512-JfmXXl1rgZCSq8TdqWNb0t614P5sR9B7HSLFnaPYRZhw4b7rpZUArd0J/kuT/8MhRuQzDTAXKzOQReCdTrA42A==}
     dependencies:
@@ -1062,7 +1068,6 @@ packages:
 
   /@iconify/types@2.0.0:
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
-    dev: false
 
   /@iconify/utils@2.3.0:
     resolution: {integrity: sha512-GmQ78prtwYW6EtzXRU1rY+KwOKfz32PD7iJh6Iyqw68GiKuoZ2A6pRtzWONz5VQJbp50mEjXh/7NkumtrAgRKA==}
@@ -1176,10 +1181,6 @@ packages:
       - supports-color
     dev: false
 
-  /@mdi/font@7.4.47:
-    resolution: {integrity: sha512-43MtGpd585SNzHZPcYowu/84Vz2a2g31TvPMTm9uTiCSWzaheQySUcSyUH/46fPnuPQWof2yd0pGBtzee/IQWw==}
-    dev: false
-
   /@napi-rs/wasm-runtime@0.2.12:
     resolution: {integrity: sha512-ZVWUcfwY4E/yPitQJl481FjFo3K22D6qF0DuFH6Y/nbnE11GY5uguDxZMGXPQ8WQ0128MXQD7TnfHyK4oWoIJQ==}
     requiresBuild: true
@@ -1224,7 +1225,7 @@ packages:
       '@bomb.sh/tab': 0.0.15(citty@0.2.2)
       '@clack/prompts': 1.5.1
       '@nuxt/schema': 3.17.7
-      c12: 3.3.4(magicast@0.3.5)
+      c12: 3.3.4(magicast@0.5.3)
       citty: 0.2.2
       confbox: 0.2.4
       consola: 3.4.2
@@ -1267,6 +1268,18 @@ packages:
       vite: '>=6.0'
     dependencies:
       '@nuxt/kit': 3.21.8(magicast@0.3.5)
+      execa: 8.0.1
+      vite: 7.3.5(jiti@2.7.0)
+    transitivePeerDependencies:
+      - magicast
+    dev: false
+
+  /@nuxt/devtools-kit@2.7.0(vite@7.3.5):
+    resolution: {integrity: sha512-MIJdah6CF6YOW2GhfKnb8Sivu6HpcQheqdjOlZqShBr+1DyjtKQbAKSCAyKPaoIzZP4QOo2SmTFV6aN8jBeEIQ==}
+    peerDependencies:
+      vite: '>=6.0'
+    dependencies:
+      '@nuxt/kit': 3.21.8
       execa: 8.0.1
       vite: 7.3.5(jiti@2.7.0)
     transitivePeerDependencies:
@@ -1340,8 +1353,8 @@ packages:
       '@iconify/types': 2.0.0
       '@iconify/utils': 2.3.0
       '@iconify/vue': 5.0.1(vue@3.5.38)
-      '@nuxt/devtools-kit': 2.7.0(magicast@0.3.5)(vite@7.3.5)
-      '@nuxt/kit': 3.21.8(magicast@0.3.5)
+      '@nuxt/devtools-kit': 2.7.0(vite@7.3.5)
+      '@nuxt/kit': 3.21.8
       consola: 3.4.2
       local-pkg: 1.2.1
       mlly: 1.8.2
@@ -1361,7 +1374,7 @@ packages:
     resolution: {integrity: sha512-JLno3ur7Pix2o/StxIMlEHRkMawA6h7uzjZBDgxdeKXRWTYY8ID9YekSkN4PBlEFGXBfCBOcPd5+YqcyBUAMkw==}
     engines: {node: '>=18.12.0'}
     dependencies:
-      c12: 3.3.4(magicast@0.3.5)
+      c12: 3.3.4(magicast@0.5.3)
       consola: 3.4.2
       defu: 6.1.7
       destr: 2.0.5
@@ -1382,6 +1395,35 @@ packages:
       ufo: 1.6.4
       unctx: 2.5.0
       unimport: 5.7.0
+      untyped: 2.0.0
+    transitivePeerDependencies:
+      - magicast
+    dev: false
+
+  /@nuxt/kit@3.21.8:
+    resolution: {integrity: sha512-kg63DUPY5AHPn+9XM7u8rYcdWHXjzwfUscgRDuiC5YUciQ+xdLRhdwXelYFxEAx2nxJHossliiQXbMm/Fleivw==}
+    engines: {node: '>=18.12.0'}
+    dependencies:
+      c12: 3.3.4(magicast@0.5.3)
+      consola: 3.4.2
+      defu: 6.1.7
+      destr: 2.0.5
+      errx: 0.1.0
+      exsolve: 1.0.8
+      ignore: 7.0.5
+      jiti: 2.7.0
+      klona: 2.0.6
+      knitwork: 1.3.0
+      mlly: 1.8.2
+      ohash: 2.0.11
+      pathe: 2.0.3
+      pkg-types: 2.3.1
+      rc9: 3.0.1
+      scule: 1.3.0
+      semver: 7.8.4
+      tinyglobby: 0.2.17
+      ufo: 1.6.4
+      unctx: 2.5.0
       untyped: 2.0.0
     transitivePeerDependencies:
       - magicast
@@ -1420,7 +1462,7 @@ packages:
     resolution: {integrity: sha512-ZUlZ5iYfyfJFDPluhn6ZxFWcsuxWbLnZBc8w3MAROcQ4lYfZ+qFpALBLSNlpc0zhOa++33EE+5PEbOAdVIY+dw==}
     engines: {node: '>=18.12.0'}
     dependencies:
-      c12: 3.3.4(magicast@0.3.5)
+      c12: 3.3.4(magicast@0.5.3)
       consola: 3.4.2
       defu: 6.1.7
       destr: 2.0.5
@@ -4598,7 +4640,7 @@ packages:
       '@nuxt/vite-builder': 3.17.7(vue@3.5.38)
       '@unhead/vue': 2.1.15(vue@3.5.38)
       '@vue/shared': 3.5.38
-      c12: 3.3.4(magicast@0.3.5)
+      c12: 3.3.4(magicast@0.5.3)
       chokidar: 4.0.3
       compatx: 0.2.0
       consola: 3.4.2

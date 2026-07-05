@@ -1,11 +1,12 @@
 // plugins/vuetify.js
-import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 import '~/assets/styles/typography.css'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createVuetify } from 'vuetify'
 import { VBtn } from 'vuetify/components/VBtn'
+import { createHybridIconSet } from '~/helpers/iconHelpers'
+import { VUETIFY_ICON_ALIASES } from '~/constants/vuetifyIconAliases'
 
 export default defineNuxtPlugin(nuxtApp => {
   const myCustomLightTheme = {
@@ -69,7 +70,14 @@ export default defineNuxtPlugin(nuxtApp => {
       themes: {
         myCustomLightTheme,
       }
-    }
+    },
+    icons: {
+      defaultSet: 'hybrid',
+      aliases: VUETIFY_ICON_ALIASES,
+      sets: {
+        hybrid: createHybridIconSet(),
+      },
+    },
   })
   nuxtApp.vueApp.use(vuetify)
 })

@@ -8,13 +8,11 @@
       />
       <v-btn
         v-else
-        icon
         variant="text"
         :aria-label="sidebarRail ? 'Expandir menú' : 'Contraer menú'"
+        :icon="sidebarRail ? APP_ICONS.menu : APP_ICONS.menuCollapse"
         @click="toggleRail"
-      >
-        <v-icon>{{ sidebarRail ? "mdi-menu" : "mdi-backburger" }}</v-icon>
-      </v-btn>
+      />
     </template>
 
     <v-app-bar-title class="app-navbar__title">
@@ -35,7 +33,7 @@
               </span>
             </v-avatar>
             <span v-if="userName" class="d-none d-sm-inline">{{ userName }}</span>
-            <v-icon end>mdi-chevron-down</v-icon>
+            <v-icon end :icon="APP_ICONS.chevronDown" />
           </v-btn>
         </template>
 
@@ -50,7 +48,7 @@
           <v-divider class="my-1" />
 
           <v-list-item
-            prepend-icon="mdi-logout"
+            :prepend-icon="APP_ICONS.logout"
             title="Cerrar sesión"
             @click="handleLogout"
           />
@@ -61,6 +59,7 @@
 </template>
 
 <script setup lang="ts">
+import { APP_ICONS } from "~/constants/appIcons"
 import { useAuthStore } from "~/store/modules/auth"
 import { useAppLayout } from "~/composables/useAppLayout"
 

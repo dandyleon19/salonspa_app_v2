@@ -12,8 +12,8 @@
         label="Periodo"
         :disabled="disabled"
         readonly
-        prepend-inner-icon="mdi-calendar-month-outline"
-        :append-inner-icon="menuOpen ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+        prepend-inner-icon="tabler:calendar-month"
+        :append-inner-icon="menuOpen ? 'tabler:chevron-up' : 'tabler:chevron-down'"
         variant="outlined"
         density="comfortable"
         rounded="lg"

@@ -57,7 +57,7 @@
                 class="sale-form__client-btn"
                 @click="openCreateClientDialog"
               >
-                <v-icon start>mdi-account-plus-outline</v-icon>
+                <v-icon start>tabler:user-plus</v-icon>
                 Nuevo
               </v-btn>
             </div>
@@ -132,7 +132,7 @@
                 <span class="text-subtitle-2 font-weight-bold">Servicio {{ index + 1 }}</span>
                 <v-btn
                   v-if="sale.items.length > 1"
-                  icon="mdi-delete-outline"
+                  icon="tabler:trash"
                   variant="text"
                   size="small"
                   color="error"
@@ -211,7 +211,7 @@
             :disabled="!sale.clientId"
             @click="addItem"
           >
-            <v-icon start>mdi-plus</v-icon>
+            <v-icon start>tabler:plus</v-icon>
             Agregar servicio
           </v-btn>
         </div>
@@ -233,7 +233,7 @@
               <div class="d-flex justify-space-between align-center mb-3">
                 <span class="text-subtitle-2 font-weight-bold">Pago {{ index + 1 }}</span>
                 <v-btn
-                  icon="mdi-delete-outline"
+                  icon="tabler:trash"
                   variant="text"
                   size="small"
                   color="error"
@@ -277,7 +277,7 @@
           </v-card>
 
           <v-btn variant="tonal" color="primary" rounded="lg" @click="addPayment">
-            <v-icon start>mdi-plus</v-icon>
+            <v-icon start>tabler:plus</v-icon>
             Agregar pago
           </v-btn>
         </div>
@@ -332,7 +332,7 @@
       <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
         <span class="text-h6 font-weight-bold">Nuevo cliente</span>
         <v-btn
-          icon="mdi-close"
+          icon="tabler:x"
           variant="text"
           size="small"
           :disabled="createClientLoading"

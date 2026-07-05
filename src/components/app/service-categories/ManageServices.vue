@@ -12,7 +12,7 @@
     empty-label="Sin servicios"
     no-results-label="No se encontraron servicios"
     empty-hint="Agrega el primer servicio con el botón de arriba"
-    empty-icon="mdi-spa-outline"
+    empty-icon="tabler:flower"
     :loading="loading"
     @create="handleOpenCreate"
     @edit="handleOpenEdit"
@@ -114,7 +114,7 @@
         {{ service.description }}
       </p>
       <div class="d-flex flex-wrap ga-2">
-        <v-chip size="x-small" variant="tonal" color="primary" prepend-icon="mdi-currency-usd">
+        <v-chip size="x-small" variant="tonal" color="primary" prepend-icon="tabler:currency-dollar">
           S/ {{ formatPrice(service.price) }}
         </v-chip>
       </div>

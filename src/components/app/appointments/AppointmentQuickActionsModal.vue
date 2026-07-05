@@ -8,7 +8,7 @@
       <v-card-text class="pa-6 pa-sm-7">
         <div class="appointment-quick-actions__header mb-4">
           <v-avatar size="52" color="primary" variant="tonal">
-            <v-icon size="26">mdi-calendar-clock</v-icon>
+            <v-icon size="26">tabler:calendar-time</v-icon>
           </v-avatar>
           <div class="appointment-quick-actions__summary">
             <h2 class="text-h6 font-weight-bold app-font-heading mb-1">
@@ -33,15 +33,15 @@
 
         <div class="appointment-quick-actions__details">
           <div v-if="appointment?.serviceName" class="appointment-quick-actions__detail">
-            <v-icon size="18" class="mr-2">mdi-spa-outline</v-icon>
+            <v-icon size="18" class="mr-2">tabler:flower</v-icon>
             <span>{{ appointment.serviceName }}</span>
           </div>
           <div v-if="appointment?.userName" class="appointment-quick-actions__detail">
-            <v-icon size="18" class="mr-2">mdi-account-outline</v-icon>
+            <v-icon size="18" class="mr-2">tabler:user</v-icon>
             <span>{{ appointment.userName }}</span>
           </div>
           <div v-if="appointment?.branchName" class="appointment-quick-actions__detail">
-            <v-icon size="18" class="mr-2">mdi-store-outline</v-icon>
+            <v-icon size="18" class="mr-2">tabler:building-store</v-icon>
             <span>{{ appointment.branchName }}</span>
           </div>
         </div>
@@ -69,7 +69,7 @@
               block
               @click="handleEdit"
             >
-              <v-icon start>mdi-pencil</v-icon>
+              <v-icon start>tabler:pencil</v-icon>
               Editar cita
             </v-btn>
 
@@ -93,7 +93,7 @@
               block
               @click="handleDelete"
             >
-              <v-icon start>mdi-delete</v-icon>
+              <v-icon start>tabler:trash</v-icon>
               Eliminar cita
             </v-btn>
           </div>
@@ -171,7 +171,7 @@ const statusActions = computed(() => {
     status,
     label:
       APPOINTMENT_STATUS_ACTION_LABELS[status] ?? getAppointmentStatusLabel(status),
-    icon: APPOINTMENT_STATUS_ACTION_ICONS[status] ?? "mdi-circle-outline",
+    icon: APPOINTMENT_STATUS_ACTION_ICONS[status] ?? "tabler:circle",
     color: APPOINTMENT_STATUS_ACTION_COLORS[status] ?? "primary",
   }))
 })

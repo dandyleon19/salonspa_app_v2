@@ -20,7 +20,7 @@
             :items="salonOptions"
             item-title="title"
             item-value="value"
-            prepend-inner-icon="mdi-domain"
+            prepend-inner-icon="tabler:building"
             :rules="[rules.required]"
           />
         </v-col>
@@ -37,7 +37,7 @@
             v-model="branch.address"
             v-bind="field"
             label="Dirección"
-            prepend-inner-icon="mdi-map-marker-outline"
+            prepend-inner-icon="tabler:map-pin"
             :rules="[rules.required]"
           />
         </v-col>
@@ -46,7 +46,7 @@
             v-model="branch.city"
             v-bind="field"
             label="Ciudad"
-            prepend-inner-icon="mdi-city-variant-outline"
+            prepend-inner-icon="tabler:building-community"
             :rules="[rules.required]"
           />
         </v-col>

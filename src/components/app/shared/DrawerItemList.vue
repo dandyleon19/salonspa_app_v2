@@ -15,7 +15,7 @@
           :disabled="loading"
           @click="$emit('cancel-form')"
         >
-          <v-icon>mdi-close</v-icon>
+          <v-icon>tabler:x</v-icon>
         </v-btn>
       </v-card-title>
       <v-divider />
@@ -41,7 +41,7 @@
         block
         @click="$emit('create')"
       >
-        <v-icon start>mdi-plus</v-icon>
+        <v-icon start>tabler:plus</v-icon>
         {{ createLabel }}
       </v-btn>
     </template>
@@ -54,7 +54,7 @@
       rounded="lg"
       hide-details
       clearable
-      prepend-inner-icon="mdi-magnify"
+      prepend-inner-icon="tabler:search"
       class="mb-3"
       @update:model-value="$emit('update:searchTerm', $event)"
     />
@@ -106,7 +106,7 @@
                       class="drawer-item-list__action drawer-item-list__action--edit"
                       @click="$emit('edit', item)"
                     >
-                      <v-icon size="18">mdi-pencil-outline</v-icon>
+                      <v-icon size="18">tabler:pencil</v-icon>
                     </button>
                   </template>
                 </v-tooltip>
@@ -118,7 +118,7 @@
                       class="drawer-item-list__action drawer-item-list__action--delete"
                       @click="$emit('delete', item)"
                     >
-                      <v-icon size="18">mdi-delete-outline</v-icon>
+                      <v-icon size="18">tabler:trash</v-icon>
                     </button>
                   </template>
                 </v-tooltip>

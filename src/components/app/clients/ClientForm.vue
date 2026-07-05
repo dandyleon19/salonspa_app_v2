@@ -68,7 +68,7 @@
             v-model="client.phone"
             v-bind="field"
             label="Teléfono / Celular"
-            prepend-inner-icon="mdi-phone-outline"
+            prepend-inner-icon="tabler:phone"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -77,7 +77,7 @@
             v-bind="field"
             label="Correo electrónico"
             type="email"
-            prepend-inner-icon="mdi-email-outline"
+            prepend-inner-icon="tabler:mail"
           />
         </v-col>
       </v-row>

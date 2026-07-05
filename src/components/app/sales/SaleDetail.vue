@@ -8,7 +8,7 @@
       >
         {{ getSaleStatusLabel(sale.status) }}
       </v-chip>
-      <v-chip v-if="saleSoldAt" size="small" variant="outlined" prepend-icon="mdi-calendar">
+      <v-chip v-if="saleSoldAt" size="small" variant="outlined" prepend-icon="tabler:calendar">
         {{ formatDateDisplay(saleSoldAt) }}
       </v-chip>
     </div>

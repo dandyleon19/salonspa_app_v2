@@ -15,8 +15,8 @@
         :clearable="clearable && !isFieldDisabled"
         readonly
         :placeholder="fieldPlaceholder"
-        prepend-inner-icon="mdi-clock-outline"
-        append-inner-icon="mdi-chevron-down"
+        prepend-inner-icon="tabler:clock"
+        append-inner-icon="tabler:chevron-down"
         variant="outlined"
         density="comfortable"
         rounded="lg"

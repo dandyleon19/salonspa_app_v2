@@ -25,7 +25,7 @@
         {{ title }}
       </h2>
       <v-btn
-        icon="mdi-close"
+        icon="tabler:x"
         variant="text"
         aria-label="Cerrar panel"
         @click="close"

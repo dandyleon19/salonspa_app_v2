@@ -31,7 +31,7 @@
 
       <template v-if="isMobile" #append>
         <v-btn
-          icon="mdi-close"
+          :icon="APP_ICONS.close"
           variant="text"
           aria-label="Cerrar menú"
           @click="toggleDrawer"
@@ -60,7 +60,7 @@
       <v-divider />
       <v-list density="compact" nav class="app-sidebar__footer">
         <v-list-item
-          :prepend-icon="sidebarRail ? 'mdi-chevron-double-right' : 'mdi-chevron-double-left'"
+          :prepend-icon="sidebarRail ? APP_ICONS.menuExpand : APP_ICONS.menuCollapse"
           :title="sidebarRail ? 'Expandir menú' : 'Contraer menú'"
           rounded="lg"
           @click.stop="toggleRail"
@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import logoMarite from "~/assets/img/logo-marite.png"
+import { APP_ICONS } from "~/constants/appIcons"
 import { useAuthStore } from "~/store/modules/auth"
 import { useAppLayout } from "~/composables/useAppLayout"
 
@@ -82,27 +83,27 @@ const { drawerOpen, sidebarRail, isMobile, toggleDrawer, toggleRail, handleNavCl
 const isRail = computed(() => !isMobile.value && sidebarRail.value)
 
 const items = [
-  { title: "Dashboard", icon: "mdi-view-dashboard-outline", to: "/app" },
-  { title: "Salones", icon: "mdi-spa-outline", to: "/app/salons", onlyFor: ["SUPER_ADMIN"] },
+  { title: "Dashboard", icon: APP_ICONS.dashboard, to: "/app" },
+  { title: "Salones", icon: APP_ICONS.salons, to: "/app/salons", onlyFor: ["SUPER_ADMIN"] },
   {
     title: "Sucursales",
-    icon: "mdi-source-branch",
+    icon: APP_ICONS.branches,
     to: "/app/branches",
     onlyFor: ["SUPER_ADMIN", "ADMIN_USER"],
   },
   {
     title: "Usuarios",
-    icon: "mdi-account-cog-outline",
+    icon: APP_ICONS.users,
     to: "/app/users",
     onlyFor: ["SUPER_ADMIN", "ADMIN_USER"],
   },
-  { title: "Clientes", icon: "mdi-account-heart-outline", to: "/app/clients", onlyFor: ["ADMIN_USER"] },
-  { title: "Citas", icon: "mdi-calendar-clock-outline", to: "/app/appointments" },
-  { title: "Ventas", icon: "mdi-cash-register", to: "/app/sales" },
-  { title: "Reportes", icon: "mdi-chart-bar", to: "/app/reports" },
+  { title: "Clientes", icon: APP_ICONS.clients, to: "/app/clients", onlyFor: ["ADMIN_USER"] },
+  { title: "Citas", icon: APP_ICONS.appointments, to: "/app/appointments" },
+  { title: "Ventas", icon: APP_ICONS.sales, to: "/app/sales" },
+  { title: "Reportes", icon: APP_ICONS.reports, to: "/app/reports" },
   {
     title: "Categorías de Servicio",
-    icon: "mdi-tag-multiple-outline",
+    icon: APP_ICONS.serviceCategories,
     to: "/app/service-categories",
     onlyFor: ["ADMIN_USER"],
   },
@@ -149,5 +150,11 @@ const prefetchSidebarRoute = (to: string) => {
 .app-sidebar :deep(.v-navigation-drawer__content) {
   display: flex;
   flex-direction: column;
+}
+
+.app-sidebar :deep(.v-list-item__prepend > .v-icon) {
+  color: rgba(255, 255, 255, 0.82);
+  opacity: 1;
+  margin-inline-end: 8px;
 }
 </style>

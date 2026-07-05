@@ -14,8 +14,8 @@
         :clearable="clearable"
         readonly
         placeholder="Selecciona una fecha"
-        prepend-inner-icon="mdi-calendar-outline"
-        append-inner-icon="mdi-chevron-down"
+        prepend-inner-icon="tabler:calendar"
+        append-inner-icon="tabler:chevron-down"
         variant="outlined"
         density="comfortable"
         rounded="lg"

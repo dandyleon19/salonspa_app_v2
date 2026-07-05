@@ -31,7 +31,7 @@
             variant="tonal"
             color="primary"
             rounded="lg"
-            prepend-icon="mdi-calendar-month-outline"
+            prepend-icon="tabler:calendar-month"
           >
             Ver citas
           </v-btn>
@@ -389,28 +389,28 @@ const visibleStats = computed(() => {
       key: "totalClients",
       label: "Clientes",
       value: data?.totalClients ?? 0,
-      icon: "mdi-account-outline",
+      icon: "tabler:user",
       color: "primary",
     },
     {
       key: "activeUsers",
       label: "Usuarios activos",
       value: data?.activeUsers ?? 0,
-      icon: "mdi-account-group-outline",
+      icon: "tabler:users-group",
       color: "success",
     },
     {
       key: "todayAppointments",
       label: "Citas hoy",
       value: data?.todayAppointments ?? 0,
-      icon: "mdi-calendar-today",
+      icon: "tabler:calendar-event",
       color: "info",
     },
     {
       key: "monthAppointments",
       label: "Citas del mes",
       value: data?.monthAppointments ?? 0,
-      icon: "mdi-calendar-month-outline",
+      icon: "tabler:calendar-month",
       color: "warning",
     },
   ]
@@ -425,28 +425,28 @@ const todayBreakdownStats = computed(() => {
       key: "todayScheduled",
       label: "Agendadas",
       value: data.todayScheduled,
-      icon: "mdi-clock-outline",
+      icon: "tabler:clock",
       color: "grey",
     },
     {
       key: "todayConfirmed",
       label: "Confirmadas",
       value: data.todayConfirmed,
-      icon: "mdi-check-circle-outline",
+      icon: "tabler:circle-check",
       color: "primary",
     },
     {
       key: "todayInProgress",
       label: "En curso",
       value: data.todayInProgress,
-      icon: "mdi-play-circle-outline",
+      icon: "tabler:player-play",
       color: "warning",
     },
     {
       key: "todayCompleted",
       label: "Completadas",
       value: data.todayCompleted,
-      icon: "mdi-check-all",
+      icon: "tabler:checks",
       color: "success",
     },
   ]

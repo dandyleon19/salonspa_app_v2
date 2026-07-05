@@ -8,14 +8,14 @@
       flat
       hide-details
       placeholder="Buscar historial..."
-      prepend-inner-icon="mdi-magnify"
+      prepend-inner-icon="tabler:search"
       class="mb-3 clinical-record-list__search"
       clearable
     />
 
     <div v-if="!records.length" class="clinical-record-list__empty">
       <v-avatar size="56" color="primary" variant="tonal" class="mb-3">
-        <v-icon size="28">mdi-clipboard-text-outline</v-icon>
+        <v-icon size="28">tabler:clipboard-text</v-icon>
       </v-avatar>
       <p class="text-body-2 font-weight-medium mb-1">Sin historiales</p>
       <p class="text-caption text-medium-emphasis">
@@ -24,7 +24,7 @@
     </div>
 
     <div v-else-if="!filteredRecords.length" class="clinical-record-list__empty">
-      <v-icon size="40" color="grey-lighten-1" class="mb-2">mdi-file-search-outline</v-icon>
+      <v-icon size="40" color="grey-lighten-1" class="mb-2">tabler:file-search</v-icon>
       <p class="text-caption text-medium-emphasis">No hay resultados para tu búsqueda</p>
     </div>
 
@@ -63,15 +63,15 @@
                 class="clinical-record-list__delete"
                 @click.stop="emitDelete(record)"
               >
-                <v-icon size="18">mdi-delete-outline</v-icon>
+                <v-icon size="18">tabler:trash</v-icon>
               </v-btn>
             </div>
 
             <div class="d-flex flex-wrap ga-2">
-              <v-chip size="x-small" variant="tonal" color="primary" prepend-icon="mdi-account-outline">
+              <v-chip size="x-small" variant="tonal" color="primary" prepend-icon="tabler:user">
                 {{ record.userName || "Sin especialista" }}
               </v-chip>
-              <v-chip size="x-small" variant="tonal" color="secondary" prepend-icon="mdi-store-outline">
+              <v-chip size="x-small" variant="tonal" color="secondary" prepend-icon="tabler:building-store">
                 {{ record.branchName || "Sin sucursal" }}
               </v-chip>
             </div>

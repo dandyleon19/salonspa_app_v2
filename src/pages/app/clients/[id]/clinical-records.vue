@@ -4,7 +4,7 @@
       to="/app/clients"
       variant="text"
       color="primary"
-      prepend-icon="mdi-arrow-left"
+      prepend-icon="tabler:arrow-left"
       class="mb-4 px-0"
     >
       Volver a Clientes
@@ -51,7 +51,7 @@
                     v-if="clienteSelected.email"
                     size="small"
                     variant="tonal"
-                    prepend-icon="mdi-email-outline"
+                    prepend-icon="tabler:mail"
                   >
                     {{ clienteSelected.email }}
                   </v-chip>
@@ -59,7 +59,7 @@
                     v-if="clienteSelected.phone"
                     size="small"
                     variant="tonal"
-                    prepend-icon="mdi-phone-outline"
+                    prepend-icon="tabler:phone"
                   >
                     {{ clienteSelected.phone }}
                   </v-chip>
@@ -67,7 +67,7 @@
                     size="small"
                     color="primary"
                     variant="tonal"
-                    prepend-icon="mdi-clipboard-text-outline"
+                    prepend-icon="tabler:clipboard-text"
                   >
                     {{ totalClinicalRecords }} historial{{ totalClinicalRecords === 1 ? "" : "es" }}
                   </v-chip>
@@ -79,7 +79,7 @@
               color="primary"
               size="large"
               rounded="lg"
-              prepend-icon="mdi-plus"
+              prepend-icon="tabler:plus"
               @click="handleCreateButton"
             >
               Nuevo Historial

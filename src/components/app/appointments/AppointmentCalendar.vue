@@ -8,7 +8,7 @@
         <div class="appointment-calendar__toolbar-row">
           <div class="appointment-calendar__nav">
             <v-btn
-              icon="mdi-chevron-left"
+              icon="tabler:chevron-left"
               variant="tonal"
               color="primary"
               rounded="lg"
@@ -22,7 +22,7 @@
               @change="fetchCalendar"
             />
             <v-btn
-              icon="mdi-chevron-right"
+              icon="tabler:chevron-right"
               variant="tonal"
               color="primary"
               rounded="lg"
@@ -45,7 +45,7 @@
             v-if="totalAppointments !== null"
             color="primary"
             variant="tonal"
-            prepend-icon="mdi-calendar-check"
+            prepend-icon="tabler:calendar-check"
           >
             {{ totalAppointments }} cita{{ totalAppointments === 1 ? "" : "s" }}
           </v-chip>

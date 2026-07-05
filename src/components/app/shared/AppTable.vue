@@ -16,7 +16,7 @@
                     rounded="lg"
                     @click="$emit('handleExportButton')"
                 >
-                    <v-icon start>mdi-download</v-icon>
+                    <v-icon start>tabler:download</v-icon>
                     Exportar
                 </v-btn>
                 <v-btn
@@ -28,7 +28,7 @@
                     rounded="lg"
                     @click="$emit('handleCreateButton')"
                 >
-                    <v-icon start>mdi-plus</v-icon>
+                    <v-icon start>tabler:plus</v-icon>
                     Nuevo
                 </v-btn>
             </template>
@@ -41,7 +41,7 @@
                         v-if="showSearch"
                         v-model="search"
                         placeholder="Buscar en la tabla..."
-                        prepend-inner-icon="mdi-magnify"
+                        prepend-inner-icon="tabler:search"
                         hide-details
                         density="comfortable"
                         variant="solo-filled"
@@ -222,7 +222,7 @@
                         class="app-table__state app-table__state--empty"
                     >
                         <div class="app-table__state-icon app-table__state-icon--muted">
-                            <v-icon size="26">mdi-table-search</v-icon>
+                            <v-icon size="26">tabler:search</v-icon>
                         </div>
                         <p class="text-subtitle-2 font-weight-medium mb-1">Sin resultados</p>
                         <p class="text-body-2 text-medium-emphasis mb-0">

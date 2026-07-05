@@ -8,7 +8,7 @@
       <v-card-text class="confirm-modal__body text-center pa-6 pa-sm-7">
         <div class="confirm-modal__icon-wrap mb-4">
           <v-avatar size="52" color="error" variant="tonal">
-            <v-icon size="26">mdi-trash-can-outline</v-icon>
+            <v-icon size="26">tabler:trash</v-icon>
           </v-avatar>
         </div>
 

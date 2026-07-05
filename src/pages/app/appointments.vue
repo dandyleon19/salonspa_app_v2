@@ -16,7 +16,7 @@
             rounded="lg"
             @click="openCreate"
           >
-            <v-icon start>mdi-plus</v-icon>
+            <v-icon start>tabler:plus</v-icon>
             Nuevo
           </v-btn>
         </div>

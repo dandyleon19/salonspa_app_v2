@@ -169,19 +169,19 @@ const getUserRowOptions = (item: User & { tableActions?: UserTableAction[] }) =>
     {
       action: "update",
       color: "primary",
-      icon: "mdi-pencil",
+      icon: "tabler:pencil",
       title: "Editar",
     },
     {
       action: "changePassword",
       color: "warning",
-      icon: "mdi-lock-reset",
+      icon: "tabler:lock-reset",
       title: "Cambiar contraseña",
     },
     {
       action: "delete",
       color: "error",
-      icon: "mdi-delete",
+      icon: "tabler:trash",
       title: "Eliminar",
     },
   ]

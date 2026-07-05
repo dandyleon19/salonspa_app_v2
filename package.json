@@ -10,7 +10,6 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@mdi/font": "^7.4.47",
     "@nuxt/icon": "1.15.0",
     "@pinia/nuxt": "^0.11.2",
     "axios": "^1.11.0",
@@ -21,6 +20,7 @@
   },
   "packageManager": "pnpm@8.9.2+sha1.5f2fa48d614263457cf5d7fb7be8b878da318d87",
   "devDependencies": {
+    "@iconify-json/tabler": "^1.2.35",
     "@oxc-parser/binding-win32-x64-msvc": "^0.137.0",
     "vite-plugin-vuetify": "^2.1.1",
     "vuetify": "^3.8.11"

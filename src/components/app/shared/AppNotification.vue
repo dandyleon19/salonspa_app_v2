@@ -24,7 +24,7 @@
     <template #actions>
       <v-btn
         variant="text"
-        icon="mdi-close"
+        icon="tabler:x"
         color="white"
         size="small"
         @click="hide"
@@ -44,22 +44,22 @@ const config: Record<
 > = {
   success: {
     color: "success",
-    icon: "mdi-check-circle-outline",
+    icon: "tabler:circle-check",
     iconColor: "rgba(255, 255, 255, 0.2)",
   },
   error: {
     color: "error",
-    icon: "mdi-alert-circle-outline",
+    icon: "tabler:alert-circle",
     iconColor: "rgba(255, 255, 255, 0.2)",
   },
   info: {
     color: "info",
-    icon: "mdi-information-outline",
+    icon: "tabler:info-circle",
     iconColor: "rgba(255, 255, 255, 0.2)",
   },
   warning: {
     color: "warning",
-    icon: "mdi-alert-outline",
+    icon: "tabler:alert-triangle",
     iconColor: "rgba(255, 255, 255, 0.2)",
   },
 }
