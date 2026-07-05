@@ -98,6 +98,8 @@ const items = [
   },
   { title: "Clientes", icon: "mdi-account-heart-outline", to: "/app/clients", onlyFor: ["ADMIN_USER"] },
   { title: "Citas", icon: "mdi-calendar-clock-outline", to: "/app/appointments" },
+  { title: "Ventas", icon: "mdi-cash-register", to: "/app/sales" },
+  { title: "Reportes", icon: "mdi-chart-bar", to: "/app/reports" },
   {
     title: "Categorías de Servicio",
     icon: "mdi-tag-multiple-outline",

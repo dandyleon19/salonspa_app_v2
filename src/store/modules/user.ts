@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia'
 import type { UpdateUserRequest, User, UserFilters } from "~/interfaces/userInterfaces";
+import type {
+  ReplaceUserServiceCommissionsRequest,
+  UserServiceCommission,
+} from "~/interfaces/userInterfaces";
 import type { PageResponse } from '~/interfaces/PageResponse';
 import { normalizeTableSearch } from "~/helpers/tableSearchHelpers"
 
@@ -45,6 +49,25 @@ export const useUsersStore = defineStore('users', {
         async updateUser(id: number | string, payload: UpdateUserRequest) {
             const { $api } = useNuxtApp()
             await $api(`/api/users/${id}`, {
+                method: "PUT",
+                body: payload,
+            })
+        },
+
+        async fetchUserServiceCommissions(userId: number | string) {
+            const { $api } = useNuxtApp()
+            return await $api<UserServiceCommission[]>(
+                `/api/users/${userId}/service-commissions`,
+                { method: "GET" }
+            )
+        },
+
+        async replaceUserServiceCommissions(
+            userId: number | string,
+            payload: ReplaceUserServiceCommissionsRequest
+        ) {
+            const { $api } = useNuxtApp()
+            await $api(`/api/users/${userId}/service-commissions`, {
                 method: "PUT",
                 body: payload,
             })

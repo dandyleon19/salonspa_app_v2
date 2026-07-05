@@ -94,4 +94,15 @@ export const validationRules = {
       !time ||
       !isDateTimeAfterNow(date, time) ||
       "La fecha y hora no pueden ser posteriores al momento actual",
+
+  commissionPercentage: (value: string | number) => {
+    if (value === null || value === undefined || value === "") {
+      return "Este campo es requerido"
+    }
+
+    const amount = Number(value)
+    if (!Number.isFinite(amount)) return "Debe ser un número válido"
+    if (amount < 0 || amount > 100) return "Debe estar entre 0 y 100"
+    return true
+  },
 }

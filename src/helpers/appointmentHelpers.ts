@@ -1,5 +1,6 @@
 import {
   combineDateAndTime,
+  formatDateDisplay,
   formatDateInput,
   formatTimeDisplay,
   formatTimeInput,
@@ -13,7 +14,10 @@ import type {
   AppointmentStatus,
   UpdateAppointmentRequest,
 } from "~/interfaces/appointmentInterfaces"
-import { APPOINTMENT_STATUS_LABELS } from "~/interfaces/appointmentInterfaces"
+import {
+  APPOINTMENT_STATUS_LABELS,
+  getAppointmentStatusLabel,
+} from "~/interfaces/appointmentInterfaces"
 
 export interface CalendarCell {
   date: string
@@ -255,4 +259,28 @@ export function buildAppointmentStatusUpdateBody(
   }
 
   return body
+}
+
+export function formatAppointmentSelectLabel(appointment: Appointment): string {
+  const { date, time } = splitIsoDateTime(appointment.startAt)
+  const dateLabel = formatDateDisplay(date)
+  const timeLabel = formatTimeDisplay(time)
+  const service =
+    appointment.serviceName ??
+    (appointment.serviceId != null ? `Servicio #${appointment.serviceId}` : "Sin servicio")
+  const status = getAppointmentStatusLabel(appointment.status)
+  const id = appointment.id != null ? `#${appointment.id}` : ""
+
+  return [id, dateLabel, timeLabel, service, status].filter(Boolean).join(" · ")
+}
+
+const LINKABLE_APPOINTMENT_STATUSES = new Set<AppointmentStatus>([
+  "SCHEDULED",
+  "CONFIRMED",
+  "IN_PROGRESS",
+  "COMPLETED",
+])
+
+export function isLinkableAppointment(appointment: Appointment): boolean {
+  return !appointment.status || LINKABLE_APPOINTMENT_STATUSES.has(appointment.status)
 }

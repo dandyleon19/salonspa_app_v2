@@ -1,5 +1,5 @@
 <template>
-  <div class="appointments-layout">
+  <AppTableWrapper class="appointments-layout">
     <AppPageTitle
       title="Citas"
       :subtitle="pageSubtitle"
@@ -45,8 +45,9 @@
     <AppointmentStatusModal
       v-if="canManageAppointments"
       v-model="showStatusDialog"
-      :target-status="pendingStatusChange?.status"
+      :target-status="pendingTargetStatus"
       :appointment-summary="pendingStatusSummary"
+      :can-create-sale="canManageSales"
       @confirm="handleConfirmStatusChange"
     />
 
@@ -58,7 +59,7 @@
       :require-text="false"
       @confirm="handleDeleteAppointment"
     />
-  </div>
+  </AppTableWrapper>
 </template>
 
 <script setup lang="ts">
@@ -74,13 +75,14 @@ const appointmentsStore = useAppointmentsStore()
 
 const {
   canManageAppointments,
+  canManageSales,
   loading,
   openCreate,
   openAppointmentDrawer,
   showDeleteDialog,
   showStatusDialog,
   dataModalForm,
-  pendingStatusChange,
+  pendingTargetStatus,
   pendingStatusSummary,
   closeAppointmentDrawer,
   handleConfirmStatusChange,

@@ -89,14 +89,15 @@
           />
         </v-col>
         <v-col cols="12">
-          <v-select
+          <v-autocomplete
             v-model="clinicalRecord.serviceId"
-            v-bind="select"
+            v-bind="autocomplete"
             label="Servicio asociado"
-            :items="servicesList"
+            :items="servicesAutocompleteList"
             item-title="label"
             item-value="value"
             clearable
+            no-data-text="Sin coincidencias"
           />
         </v-col>
       </v-row>
@@ -160,14 +161,15 @@
             />
           </v-col>
           <v-col cols="12">
-            <v-select
+            <v-autocomplete
               v-model="nextAppointment.serviceId"
-              v-bind="select"
+              v-bind="autocomplete"
               label="Servicio"
-              :items="filteredServicesList"
+              :items="servicesAutocompleteList"
               item-title="label"
               item-value="value"
               clearable
+              no-data-text="Sin coincidencias"
               hint="Si se omite, se usará el servicio del expediente"
               persistent-hint
             />
@@ -218,7 +220,7 @@ import type { NextAppointmentRequest } from "~/interfaces/appointmentInterfaces"
 import { useBranchesStore, useClientsStore, useUsersStore } from "~/store"
 import { useServicesStore } from "~/store/modules/service"
 
-const { textarea, select } = useFormFields()
+const { textarea, select, autocomplete } = useFormFields()
 
 const clinicalRecordsStore = useClinicalRecordsStore()
 const branchesStore = useBranchesStore()
@@ -345,6 +347,10 @@ const filteredServicesList = computed(() => {
 })
 
 const servicesList = computed(() => filteredServicesList.value)
+
+const servicesAutocompleteList = computed(() =>
+  servicesList.value.filter((option) => option.value != null)
+)
 
 const usersList = computed(() => {
   const options: { value: string | null; label: string }[] = [

@@ -13,7 +13,7 @@ export interface Branch {
     name: string
     address: string
     city: string
-    salonId?: string
+    salonId?: string | number
     salonName?: string
 }
 

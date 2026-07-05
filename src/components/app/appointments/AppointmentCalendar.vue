@@ -1,7 +1,10 @@
 <template>
-  <div class="appointment-calendar">
-    <v-card class="appointment-calendar__toolbar" rounded="xl" elevation="0">
-      <v-card-text class="pa-4 pa-md-5">
+  <AppCollapsibleToolbarCard
+      v-model:expanded="filtersExpanded"
+      label="Filtros"
+      collapsed-hint="Mostrar filtros"
+    >
+      <template #header>
         <div class="appointment-calendar__toolbar-row">
           <div class="appointment-calendar__nav">
             <v-btn
@@ -47,143 +50,143 @@
             {{ totalAppointments }} cita{{ totalAppointments === 1 ? "" : "s" }}
           </v-chip>
         </div>
+      </template>
 
-        <div class="appointment-calendar__filters">
-          <v-select
-            v-model="selectedFilters.userId"
-            label="Profesional"
-            :items="userFilterItems"
-            item-title="title"
-            item-value="value"
-            hide-details
-            density="comfortable"
-            variant="solo-filled"
-            flat
-            rounded="lg"
-            clearable
-            class="appointment-calendar__filter"
-          />
-          <v-select
-            v-model="selectedFilters.branchId"
-            label="Sucursal"
-            :items="branchFilterItems"
-            item-title="title"
-            item-value="value"
-            hide-details
-            density="comfortable"
-            variant="solo-filled"
-            flat
-            rounded="lg"
-            clearable
-            class="appointment-calendar__filter"
-          />
-          <v-select
-            v-model="selectedFilters.status"
-            label="Estado"
-            :items="statusFilterItems"
-            item-title="title"
-            item-value="value"
-            hide-details
-            density="comfortable"
-            variant="solo-filled"
-            flat
-            rounded="lg"
-            clearable
-            class="appointment-calendar__filter"
-          />
-        </div>
-      </v-card-text>
-    </v-card>
+      <v-select
+        v-model="selectedFilters.userId"
+        label="Profesional"
+        :items="userFilterItems"
+        item-title="title"
+        item-value="value"
+        hide-details
+        density="comfortable"
+        variant="solo-filled"
+        flat
+        rounded="lg"
+        clearable
+        class="app-table__filter"
+      />
+      <v-select
+        v-model="selectedFilters.branchId"
+        label="Sucursal"
+        :items="branchFilterItems"
+        item-title="title"
+        item-value="value"
+        hide-details
+        density="comfortable"
+        variant="solo-filled"
+        flat
+        rounded="lg"
+        clearable
+        class="app-table__filter"
+      />
+      <v-select
+        v-model="selectedFilters.status"
+        label="Estado"
+        :items="statusFilterItems"
+        item-title="title"
+        item-value="value"
+        hide-details
+        density="comfortable"
+        variant="solo-filled"
+        flat
+        rounded="lg"
+        clearable
+        class="app-table__filter"
+      />
 
-    <v-alert
-      v-if="loadError"
-      type="warning"
-      variant="tonal"
-      rounded="lg"
-      class="mt-4"
-    >
-      {{ loadError }}
-    </v-alert>
-
-    <v-card class="appointment-calendar__grid-card mt-4" rounded="xl" elevation="0">
-      <div class="appointment-calendar__weekdays">
-        <div
-          v-for="weekday in CALENDAR_WEEKDAY_LABELS"
-          :key="weekday"
-          class="appointment-calendar__weekday"
+      <template #body>
+        <v-alert
+          v-if="loadError"
+          type="warning"
+          variant="tonal"
+          rounded="lg"
+          class="ma-4 mb-0"
         >
-          {{ weekday }}
-        </div>
-      </div>
+          {{ loadError }}
+        </v-alert>
 
-      <div v-if="loading" class="appointment-calendar__loading pa-6">
-        <v-skeleton-loader type="image" class="rounded-xl" />
-      </div>
-
-      <div v-else class="appointment-calendar__grid">
-        <div
-          v-for="cell in calendarCells"
-          :key="cell.date"
-          class="appointment-calendar__day"
-          :class="{
-            'appointment-calendar__day--muted': !cell.isCurrentMonth,
-            'appointment-calendar__day--today': cell.isToday,
-          }"
-        >
-          <div class="appointment-calendar__day-header">
-            <span class="appointment-calendar__day-number">{{ cell.day }}</span>
-            <v-chip
-              v-if="getDayAppointments(cell.date).length"
-              size="x-small"
-              variant="tonal"
-              color="primary"
+        <div class="appointment-calendar__grid-wrap">
+          <div class="appointment-calendar__weekdays">
+            <div
+              v-for="weekday in CALENDAR_WEEKDAY_LABELS"
+              :key="weekday"
+              class="appointment-calendar__weekday"
             >
-              {{ getDayAppointments(cell.date).length }}
-            </v-chip>
+              {{ weekday }}
+            </div>
           </div>
 
-          <div class="appointment-calendar__day-events">
-            <button
-              v-for="appointment in getVisibleAppointments(cell.date)"
-              :key="appointment.id"
-              type="button"
-              class="appointment-calendar__event"
+          <div v-if="loading" class="appointment-calendar__loading pa-6">
+            <v-skeleton-loader type="image" class="rounded-xl" />
+          </div>
+
+          <div v-else class="appointment-calendar__grid">
+            <div
+              v-for="cell in calendarCells"
+              :key="cell.date"
+              class="appointment-calendar__day"
               :class="{
-                'appointment-calendar__event--inactive': isInactiveAppointmentStatus(
-                  appointment.status
-                ),
+                'appointment-calendar__day--muted': !cell.isCurrentMonth,
+                'appointment-calendar__day--today': cell.isToday,
               }"
-              @click="emit('select', appointment)"
             >
-              <span class="appointment-calendar__event-time">
-                {{ formatAppointmentTime(appointment.startAt) }}
-              </span>
-              <span class="appointment-calendar__event-title">
-                {{ appointment.clientName || "Cliente" }}
-              </span>
-              <v-chip
-                size="x-small"
-                variant="tonal"
-                rounded="pill"
-                :color="getAppointmentStatusColor(appointment.status)"
-                class="appointment-calendar__event-status"
-              >
-                {{ getAppointmentStatusLabel(appointment.status) }}
-              </v-chip>
-            </button>
+              <div class="appointment-calendar__day-header">
+                <span class="appointment-calendar__day-number">{{ cell.day }}</span>
+                <v-chip
+                  v-if="getDayAppointments(cell.date).length"
+                  size="x-small"
+                  variant="tonal"
+                  color="primary"
+                >
+                  {{ getDayAppointments(cell.date).length }}
+                </v-chip>
+              </div>
 
-            <button
-              v-if="getHiddenCount(cell.date) > 0"
-              type="button"
-              class="appointment-calendar__more"
-              @click="openDayDialog(cell.date)"
-            >
-              +{{ getHiddenCount(cell.date) }} más
-            </button>
+              <div class="appointment-calendar__day-events">
+                <button
+                  v-for="appointment in getVisibleAppointments(cell.date)"
+                  :key="appointment.id"
+                  type="button"
+                  class="appointment-calendar__event"
+                  :class="{
+                    'appointment-calendar__event--inactive': isInactiveAppointmentStatus(
+                      appointment.status
+                    ),
+                  }"
+                  @click="emit('select', appointment)"
+                >
+                  <span class="appointment-calendar__event-time">
+                    {{ formatAppointmentTime(appointment.startAt) }}
+                  </span>
+                  <span class="appointment-calendar__event-title">
+                    {{ appointment.clientName || "Cliente" }}
+                  </span>
+                  <v-chip
+                    size="x-small"
+                    variant="tonal"
+                    rounded="pill"
+                    :color="getAppointmentStatusColor(appointment.status)"
+                    class="appointment-calendar__event-status"
+                  >
+                    {{ getAppointmentStatusLabel(appointment.status) }}
+                  </v-chip>
+                </button>
+
+                <button
+                  v-if="getHiddenCount(cell.date) > 0"
+                  type="button"
+                  class="appointment-calendar__more"
+                  @click="openDayDialog(cell.date)"
+                >
+                  +{{ getHiddenCount(cell.date) }} más
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </v-card>
+      </template>
+    </AppCollapsibleToolbarCard>
 
     <v-dialog v-model="dayDialogOpen" max-width="480">
       <v-card rounded="xl">
@@ -235,7 +238,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -257,6 +259,8 @@ import {
 import { useAppointmentsStore, useBranchesStore, useUsersStore } from "~/store"
 
 const MAX_VISIBLE_EVENTS = 3
+
+const filtersExpanded = ref(true)
 
 const emit = defineEmits<{
   (e: "select", appointment: Appointment): void
@@ -406,18 +410,12 @@ defineExpose({
 </script>
 
 <style scoped>
-.appointment-calendar__toolbar,
-.appointment-calendar__grid-card {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-
 .appointment-calendar__toolbar-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 16px;
 }
 
 .appointment-calendar__nav {
@@ -427,16 +425,8 @@ defineExpose({
   flex-wrap: wrap;
 }
 
-.appointment-calendar__filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.appointment-calendar__filter {
-  min-width: 180px;
-  max-width: 240px;
-  flex: 1 1 180px;
+.appointment-calendar__grid-wrap {
+  min-width: 0;
 }
 
 .appointment-calendar__weekdays,

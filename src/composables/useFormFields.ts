@@ -17,5 +17,9 @@ export const useFormFields = () => {
     ...field,
   }
 
-  return { field, textarea, select }
+  const autocomplete = {
+    ...select,
+  }
+
+  return { field, textarea, select, autocomplete }
 }

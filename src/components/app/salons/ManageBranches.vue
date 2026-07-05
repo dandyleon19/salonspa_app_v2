@@ -180,6 +180,7 @@ const handleCreateBranch = async (branch: Branch) => {
         name: branch.name,
         address: branch.address,
         city: branch.city,
+        salonId: Number(props.dataModalForm.rowId),
       },
     })
     notifyCreated("sucursal")

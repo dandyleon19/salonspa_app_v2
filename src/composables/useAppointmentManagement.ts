@@ -46,6 +46,11 @@ export function provideAppointmentManagement() {
   const refreshHandler = ref<RefreshHandler | null>(null)
 
   const canManageAppointments = computed(() => authStore.canManageAppointments)
+  const canManageSales = computed(() => authStore.canManageSales)
+
+  const pendingTargetStatus = computed(
+    () => pendingStatusChange.value?.status ?? null
+  )
 
   const pendingStatusSummary = computed(() => {
     const pending = pendingStatusChange.value
@@ -108,20 +113,35 @@ export function provideAppointmentManagement() {
 
   const handleConfirmStatusChange = async ({
     cancellationReason,
+    createSale,
   }: {
     cancellationReason?: string
+    createSale?: boolean
   }) => {
     const pending = pendingStatusChange.value
     if (!pending?.appointment.id) return
 
+    const appointmentId = pending.appointment.id
+
     try {
       await appointmentsStore.updateAppointmentStatus(
-        pending.appointment.id,
+        appointmentId,
         pending.status,
         cancellationReason
       )
       notifyUpdated("estado de la cita")
       await refreshView()
+
+      if (
+        createSale &&
+        pending.status === "COMPLETED" &&
+        authStore.canManageSales
+      ) {
+        await navigateTo({
+          path: "/app/sales",
+          query: { appointmentId: String(appointmentId) },
+        })
+      }
     } catch (err) {
       notifyError(err, "actualizar el estado de la cita")
     } finally {
@@ -202,11 +222,13 @@ export function provideAppointmentManagement() {
 
   return {
     ...context,
+    canManageSales,
     openAppointmentDrawer,
     showDeleteDialog,
     showStatusDialog,
     appointmentToRemove,
     dataModalForm,
+    pendingTargetStatus,
     pendingStatusSummary,
     closeAppointmentDrawer,
     handleConfirmStatusChange,

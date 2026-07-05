@@ -176,7 +176,14 @@ const handleCreateBranch = async (branch: Branch) => {
     const { $api } = useNuxtApp();
     await $api("/api/branches", {
       method: "POST",
-      body: { ...branch },
+      body: {
+        name: branch.name,
+        address: branch.address,
+        city: branch.city,
+        ...(authStore.isSuperAdmin && branch.salonId != null
+          ? { salonId: Number(branch.salonId) }
+          : {}),
+      },
     });
     notifyCreated("sucursal");
     closeBranchDrawer();

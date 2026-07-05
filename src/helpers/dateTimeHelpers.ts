@@ -49,6 +49,13 @@ export function combineDateAndTime(date: string, time: string): string {
   return `${date}T${time}`
 }
 
+export function formatSoldAt(date: string, time: string): string {
+  const combined = combineDateAndTime(date, time)
+  const [datePart, timePart = ""] = combined.split("T")
+  const normalizedTime = timePart.length === 5 ? `${timePart}:00` : timePart
+  return `${datePart}T${normalizedTime}`
+}
+
 export function isDateAfterToday(date: string): boolean {
   if (!date) return false
 

@@ -48,10 +48,10 @@
             <v-text-field
               v-model="user.commissionPercentage"
               v-bind="field"
-              label="Porcentaje de comisión"
+              label="Comisión general (%)"
               type="number"
               suffix="%"
-              :rules="[rules.required, rules.decimal]"
+              :rules="[rules.required, rules.commissionPercentage]"
             />
           </v-col>
           <v-col v-if="showSalonSelect" cols="12" md="6">
@@ -80,6 +80,14 @@
           </v-col>
         </v-row>
       </AppFormSection>
+
+      <UserServiceCommissionsSection
+        v-if="showServiceCommissions"
+        ref="serviceCommissionsRef"
+        :user-id="user.id"
+        :salon-id="resolvedSalonId"
+        :general-commission="user.commissionPercentage"
+      />
     </template>
 
     <template v-if="['create', 'changePassword'].includes(dataModalForm.action)">
@@ -130,13 +138,14 @@
 </template>
 
 <script setup lang="ts">
-import type { User, userDataModalForm } from "~/interfaces/userInterfaces"
+import type { User, userDataModalForm, UserServiceCommissionInput } from "~/interfaces/userInterfaces"
 import { USER_ROLE_OPTIONS } from "~/interfaces/userInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 import { useAuthStore } from "~/store/modules/auth"
 import { useSalonsStore, useUsersStore } from "~/store"
 
 const { field, select } = useFormFields()
+const { error: notifyError } = useNotification()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const salonsStore = useSalonsStore()
@@ -146,11 +155,19 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: "create" | "update" | "changePassword", user: User): void
+  (
+    e: "create" | "update" | "changePassword",
+    user: User,
+    serviceCommissions?: UserServiceCommissionInput[]
+  ): void
 }>()
 
 const isValid = ref(false)
 const userFormRef = ref<any>(null)
+const serviceCommissionsRef = ref<{
+  getPayload: () => UserServiceCommissionInput[]
+  validate: () => true | string
+} | null>(null)
 
 const user = ref<User>({
   firstName: "",
@@ -165,6 +182,21 @@ const user = ref<User>({
 })
 
 const isSuperAdmin = computed(() => authStore.isSuperAdmin)
+
+const canManageServiceCommissions = computed(
+  () => authStore.isAdmin || authStore.isSuperAdmin
+)
+
+const showServiceCommissions = computed(
+  () =>
+    props.dataModalForm.action === "update" &&
+    canManageServiceCommissions.value &&
+    user.value.id != null
+)
+
+const resolvedSalonId = computed(
+  () => user.value.salonId ?? authStore.user?.salonId ?? null
+)
 
 const showSalonSelect = computed(
   () => isSuperAdmin.value && props.dataModalForm.action === "create"
@@ -242,6 +274,22 @@ async function getUser() {
 const onSubmit = async () => {
   const valid = await userFormRef.value?.validate()
   if (!valid.valid) return
-  emit(props.dataModalForm.action, user.value)
+
+  let serviceCommissions: UserServiceCommissionInput[] | undefined
+
+  if (showServiceCommissions.value && serviceCommissionsRef.value) {
+    const commissionsValidation = serviceCommissionsRef.value.validate()
+    if (commissionsValidation !== true) {
+      notifyError(String(commissionsValidation), "Comisiones inválidas")
+      return
+    }
+    serviceCommissions = serviceCommissionsRef.value.getPayload()
+  }
+
+  emit(
+    props.dataModalForm.action,
+    user.value,
+    props.dataModalForm.action === "update" ? serviceCommissions : undefined
+  )
 }
 </script>

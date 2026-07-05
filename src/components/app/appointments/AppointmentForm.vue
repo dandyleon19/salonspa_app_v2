@@ -73,16 +73,34 @@
     <AppFormSection title="Asignación" subtitle="Cliente, profesional, sucursal y servicio del mismo salón">
       <v-row dense>
         <v-col cols="12" md="6">
-          <v-select
-            v-model="appointment.clientId"
-            v-bind="select"
-            label="Cliente"
-            :items="clientsList"
-            item-title="label"
-            item-value="value"
-            :disabled="isUpdateMode"
-            :rules="[rules.required]"
-          />
+          <div class="appointment-form__client-field">
+            <v-autocomplete
+              v-model="appointment.clientId"
+              v-bind="autocomplete"
+              label="Cliente"
+              :items="clientsAutocompleteList"
+              item-title="label"
+              item-value="value"
+              :disabled="isUpdateMode"
+              clearable
+              no-data-text="Sin coincidencias"
+              hint="¿Cliente nuevo? Créalo aquí sin salir de esta pantalla"
+              persistent-hint
+              :rules="[rules.required]"
+              class="appointment-form__client-input"
+            />
+            <v-btn
+              v-if="!isUpdateMode"
+              variant="tonal"
+              color="primary"
+              rounded="lg"
+              class="appointment-form__client-btn"
+              @click="openCreateClientDialog"
+            >
+              <v-icon start>mdi-account-plus-outline</v-icon>
+              Nuevo
+            </v-btn>
+          </div>
         </v-col>
         <v-col cols="12" md="6">
           <v-select
@@ -109,15 +127,16 @@
           />
         </v-col>
         <v-col cols="12" md="6">
-          <v-select
+          <v-autocomplete
             v-model="appointment.serviceId"
-            v-bind="select"
+            v-bind="autocomplete"
             label="Servicio"
-            :items="servicesList"
+            :items="servicesAutocompleteList"
             item-title="label"
             item-value="value"
             :disabled="!appointment.clientId"
             clearable
+            no-data-text="Sin coincidencias"
           />
         </v-col>
         <v-col v-if="appointment.clientId && clientSalonId" cols="12">
@@ -142,6 +161,33 @@
     </AppFormActions>
     </v-form>
   </AppSkeletonTransition>
+
+  <v-dialog
+    v-model="createClientDialogOpen"
+    max-width="560"
+    persistent
+    scrollable
+  >
+    <v-card rounded="xl" :loading="createClientLoading">
+      <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
+        <span class="text-h6 font-weight-bold">Nuevo cliente</span>
+        <v-btn
+          icon="mdi-close"
+          variant="text"
+          size="small"
+          :disabled="createClientLoading"
+          @click="createClientDialogOpen = false"
+        />
+      </v-card-title>
+      <v-card-text class="pa-5 pt-2">
+        <ClientForm
+          :key="clientFormKey"
+          :data-modal-form="clientDataModalForm"
+          @create="handleCreateClient"
+        />
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -164,6 +210,7 @@ import type {
   UpdateAppointmentRequest,
   appointmentDataModalForm,
 } from "~/interfaces/appointmentInterfaces"
+import type { Client, clientDataModalForm } from "~/interfaces/clientInterfaces"
 import {
   getAppointmentStatusColor,
   getAppointmentStatusLabel,
@@ -175,7 +222,9 @@ import {
 } from "~/store"
 import { useServicesStore } from "~/store/modules/service"
 
-const { textarea, select } = useFormFields()
+const { notifyCreated, notifyError: notifyApiError } = useApiNotification()
+
+const { textarea, select, autocomplete } = useFormFields()
 
 const branchesStore = useBranchesStore()
 const clientsStore = useClientsStore()
@@ -194,6 +243,10 @@ const emit = defineEmits<{
 const isValid = ref(false)
 const appointmentFormRef = ref<any>(null)
 const loadingAppointment = ref(false)
+const createClientDialogOpen = ref(false)
+const createClientLoading = ref(false)
+const clientFormKey = ref(0)
+const clientDataModalForm = ref<clientDataModalForm>({ action: "create" })
 const appointmentDate = ref("")
 const appointmentTime = ref("")
 const currentStatus = ref<AppointmentStatus | undefined>()
@@ -309,6 +362,14 @@ const servicesList = computed(() => {
     )
   return options
 })
+
+const clientsAutocompleteList = computed(() =>
+  clientsList.value.filter((option) => option.value != null)
+)
+
+const servicesAutocompleteList = computed(() =>
+  servicesList.value.filter((option) => option.value != null)
+)
 
 const isOptionAvailable = (
   value: string | number | null,
@@ -438,6 +499,56 @@ watch(clientSalonId, () => {
   }
 })
 
+const resolveCreatedClientId = (
+  created: Client | void,
+  submitted: Client
+): string | number | null => {
+  if (created?.id != null) return created.id
+
+  const normalizedFirstName = submitted.firstName.trim().toLowerCase()
+  const normalizedLastName = submitted.lastName.trim().toLowerCase()
+
+  const match = (clientsStore.data?.content ?? []).find(
+    (client) =>
+      client.firstName.trim().toLowerCase() === normalizedFirstName &&
+      client.lastName.trim().toLowerCase() === normalizedLastName
+  )
+
+  return match?.id ?? null
+}
+
+const openCreateClientDialog = () => {
+  clientDataModalForm.value = { action: "create" }
+  clientFormKey.value += 1
+  createClientDialogOpen.value = true
+}
+
+const handleCreateClient = async (client: Client) => {
+  createClientLoading.value = true
+
+  try {
+    const { $api } = useNuxtApp()
+    const created = await $api<Client>("/api/clients", {
+      method: "POST",
+      body: { ...client },
+    })
+
+    await clientsStore.fetchClients(0, 100)
+
+    const newClientId = resolveCreatedClientId(created, client)
+    if (newClientId != null) {
+      appointment.value.clientId = newClientId
+    }
+
+    notifyCreated("cliente")
+    createClientDialogOpen.value = false
+  } catch (err) {
+    notifyApiError(err, "crear el cliente")
+  } finally {
+    createClientLoading.value = false
+  }
+}
+
 onMounted(() => {
   branchesStore.fetchBranches(0, 100)
   clientsStore.fetchClients(0, 100)
@@ -445,3 +556,21 @@ onMounted(() => {
   servicesStore.fetchServices()
 })
 </script>
+
+<style scoped>
+.appointment-form__client-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.appointment-form__client-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.appointment-form__client-btn {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+</style>

@@ -144,3 +144,22 @@ export interface userDataModalForm {
   action: "create" | "update" | "changePassword"
   rowId?: number | string
 }
+
+export interface UserServiceCommission {
+  id?: number
+  userId: number
+  serviceId: number
+  serviceName?: string
+  commissionPercentage: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface UserServiceCommissionInput {
+  serviceId: number
+  commissionPercentage: number
+}
+
+export interface ReplaceUserServiceCommissionsRequest {
+  commissions: UserServiceCommissionInput[]
+}

@@ -1,9 +1,12 @@
 import type {
   CreateUserRequest,
+  ReplaceUserServiceCommissionsRequest,
   UpdateUserRequest,
   User,
   UserFilters,
   UserRole,
+  UserServiceCommission,
+  UserServiceCommissionInput,
 } from "~/interfaces/userInterfaces"
 import { ASSIGNABLE_USER_ROLES, USER_ROLE_LABELS } from "~/interfaces/userInterfaces"
 
@@ -95,4 +98,24 @@ export function areUserFiltersEqual(
     current.role === next.role &&
     current.search === next.search
   )
+}
+
+export function buildReplaceUserServiceCommissionsPayload(
+  rows: UserServiceCommissionInput[]
+): ReplaceUserServiceCommissionsRequest {
+  return {
+    commissions: rows.map((row) => ({
+      serviceId: Number(row.serviceId),
+      commissionPercentage: parseCommissionPercentage(row.commissionPercentage),
+    })),
+  }
+}
+
+export function mapUserServiceCommissionsToInputs(
+  commissions: UserServiceCommission[] = []
+): UserServiceCommissionInput[] {
+  return commissions.map((item) => ({
+    serviceId: Number(item.serviceId),
+    commissionPercentage: Number(item.commissionPercentage),
+  }))
 }

@@ -1,5 +1,5 @@
 <template>
-    <div :class="hidePageTitle ? 'app-table-wrapper app-table-wrapper--embedded' : 'app-table-wrapper'">
+    <component :is="hidePageTitle ? 'div' : AppTableWrapper">
         <AppPageTitle
             v-if="!hidePageTitle"
             :title="title"
@@ -233,11 +233,12 @@
                 </v-data-table-server>
             </div>
         </v-card>
-    </div>
+    </component>
 </template>
 
 <script setup lang="ts">
 import { ref, useSlots, computed, watch, onBeforeUnmount } from "vue";
+import AppTableWrapper from "~/components/app/shared/AppTableWrapper.vue";
 import type { TableHeader, FilterOption, TableRowOption, TableChipColumn } from "~/interfaces/tableInterfaces";
 import { normalizeTableSearch } from "~/helpers/tableSearchHelpers";
 
@@ -315,6 +316,7 @@ const props = withDefaults(
     }>(),
     {
         subtitle: "",
+        rowOptions: () => [],
         filters: () => [],
         loading: false,
         showCreateButton: true,
@@ -479,13 +481,6 @@ watch(selectedFilters, (val) => {
 </script>
 
 <style scoped>
-.app-table-wrapper {
-    width: 100%;
-    max-width: 1280px;
-    margin-inline: auto;
-    min-width: 0;
-}
-
 .app-table__btn-primary {
     color: #fff !important;
     text-transform: none;

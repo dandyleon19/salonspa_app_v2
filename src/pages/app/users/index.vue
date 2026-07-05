@@ -74,6 +74,7 @@ import type {
   User,
   UserFilters,
   UserRole,
+  UserServiceCommissionInput,
   UserTableAction,
   userDataModalForm,
 } from "~/interfaces/userInterfaces"
@@ -91,6 +92,7 @@ import {
 import {
   areUserFiltersEqual,
   buildCreateUserPayload,
+  buildReplaceUserServiceCommissionsPayload,
   buildUpdateUserPayload,
   normalizeUserFilters,
 } from "~/helpers/userHelpers"
@@ -418,10 +420,25 @@ const handleCreateUser = async (user: User) => {
   }
 }
 
-const handleUpdateUser = async (user: User) => {
+const handleUpdateUser = async (
+  user: User,
+  serviceCommissions?: UserServiceCommissionInput[]
+) => {
   try {
     loading.value = true
     await usersStore.updateUser(user.id!, buildUpdateUserPayload(user))
+
+    if (
+      serviceCommissions &&
+      user.id != null &&
+      (authStore.isAdmin || authStore.isSuperAdmin)
+    ) {
+      await usersStore.replaceUserServiceCommissions(
+        user.id,
+        buildReplaceUserServiceCommissionsPayload(serviceCommissions)
+      )
+    }
+
     notifyUpdated("usuario")
     closeUserDrawer()
   } catch (err) {
