@@ -42,6 +42,7 @@ import { ref } from "vue";
 import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
 import type { ClinicalRecord, clinicalRecordDataModalForm } from "~/interfaces/clinicalRecordInterfaces";
 import { useClinicalRecordsStore } from "~/store/modules/clinicalRecord";
+import { useAuthStore } from "~/store/modules/auth";
 
 definePageMeta({
   layout: 'app'
@@ -49,6 +50,7 @@ definePageMeta({
 
 // Composables
 const clinicalRecordsStore = useClinicalRecordsStore();
+const authStore = useAuthStore();
 
 // Variables
 const loading = ref<boolean>(false);
@@ -68,17 +70,21 @@ const headers = ref<Array<TableHeader>>([
   { title: "Acciones", key: "actions", sortable: false },
 ]);
 
-const rowOptions = ref<Array<TableRowOption>>([
+const rowOptions = computed<Array<TableRowOption>>(() => [
   {
     action: 'update',
     color: 'primary',
     icon: 'tabler:pencil',
   },
-  {
-    action: 'delete',
-    color: 'error',
-    icon: 'tabler:trash',
-  },
+  ...(authStore.isStaff
+    ? []
+    : [
+        {
+          action: 'delete',
+          color: 'error',
+          icon: 'tabler:trash',
+        },
+      ]),
 ]);
 
 const tableFilters = ref<FilterOption[]>([]);

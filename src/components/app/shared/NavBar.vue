@@ -1,16 +1,18 @@
 <template>
-  <v-app-bar color="navbar" :elevation="2" :rounded="isMobile ? 0 : 'lg'">
+  <v-app-bar color="navbar" :elevation="2" rounded="0">
     <template #prepend>
       <v-app-bar-nav-icon
         v-if="isMobile"
+        class="app-navbar__toggle"
         aria-label="Abrir menú"
         @click="toggleDrawer"
       />
       <v-btn
         v-else
         variant="text"
+        class="app-navbar__toggle"
         :aria-label="sidebarRail ? 'Expandir menú' : 'Contraer menú'"
-        :icon="sidebarRail ? APP_ICONS.menu : APP_ICONS.menuCollapse"
+        :icon="sidebarRail ? APP_ICONS.menuExpand : APP_ICONS.menuCollapse"
         @click="toggleRail"
       />
     </template>
@@ -102,5 +104,10 @@ const handleLogout = async () => {
 <style scoped>
 .app-navbar__title {
   font-size: clamp(0.95rem, 2.5vw, 1.25rem);
+}
+
+.app-navbar__toggle.v-btn--variant-text,
+.app-navbar__toggle.v-btn--variant-text .v-icon {
+  color: #fff !important;
 }
 </style>

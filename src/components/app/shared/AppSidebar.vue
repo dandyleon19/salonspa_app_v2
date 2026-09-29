@@ -55,18 +55,6 @@
         @mouseenter="prefetchSidebarRoute(item.to)"
       />
     </v-list>
-
-    <template v-if="!isMobile" #append>
-      <v-divider />
-      <v-list density="compact" nav class="app-sidebar__footer">
-        <v-list-item
-          :prepend-icon="sidebarRail ? APP_ICONS.menuExpand : APP_ICONS.menuCollapse"
-          :title="sidebarRail ? 'Expandir menú' : 'Contraer menú'"
-          rounded="lg"
-          @click.stop="toggleRail"
-        />
-      </v-list>
-    </template>
   </v-navigation-drawer>
 </template>
 
@@ -77,8 +65,7 @@ import { useAuthStore } from "~/store/modules/auth"
 import { useAppLayout } from "~/composables/useAppLayout"
 
 const authStore = useAuthStore()
-const { drawerOpen, sidebarRail, isMobile, toggleDrawer, toggleRail, handleNavClick } =
-  useAppLayout()
+const { drawerOpen, sidebarRail, isMobile, toggleDrawer, handleNavClick } = useAppLayout()
 
 const isRail = computed(() => !isMobile.value && sidebarRail.value)
 
@@ -137,10 +124,6 @@ const prefetchSidebarRoute = (to: string) => {
 
 .app-sidebar__nav {
   flex: 1;
-}
-
-.app-sidebar__footer {
-  padding-bottom: 8px;
 }
 
 .app-sidebar :deep(.v-list-item--active) {

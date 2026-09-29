@@ -39,23 +39,28 @@
       </v-card-text>
     </v-card>
 
-    <v-card class="dashboard__filters mb-4" rounded="xl" elevation="0">
+    <v-row class="mb-4">
+      <v-col
+        v-for="stat in generalStats"
+        :key="stat.key"
+        cols="12"
+        sm="6"
+      >
+        <DashboardStatCard
+          :label="stat.label"
+          :value="stat.value"
+          :icon="stat.icon"
+          :color="stat.color"
+          :to="stat.to"
+          :loading="loading"
+        />
+      </v-col>
+    </v-row>
+
+    <v-card v-if="showAdvancedFilters" class="dashboard__filters mb-4" rounded="xl" elevation="0">
       <v-card-text class="pa-4">
         <div class="dashboard__filters-inner">
-          <v-text-field
-            v-model="filterDate"
-            label="Fecha"
-            type="date"
-            hide-details
-            density="comfortable"
-            variant="solo-filled"
-            flat
-            rounded="lg"
-            class="dashboard__filter"
-          />
-
           <v-select
-            v-if="showAdvancedFilters"
             v-model="filterBranchId"
             label="Sucursal"
             :items="branchFilterItems"
@@ -71,7 +76,6 @@
           />
 
           <v-select
-            v-if="showAdvancedFilters"
             v-model="filterUserId"
             label="Profesional"
             :items="userFilterItems"
@@ -91,6 +95,204 @@
 
     <v-row class="mb-4">
       <v-col
+        v-for="stat in salesStats"
+        :key="stat.key"
+        cols="12"
+        sm="6"
+        lg="4"
+      >
+        <DashboardStatCard
+          :label="stat.label"
+          :value="stat.value"
+          :icon="stat.icon"
+          :color="stat.color"
+          :hint="stat.hint"
+          :to="stat.to"
+          :loading="salesReportLoading"
+        />
+      </v-col>
+    </v-row>
+
+    <v-card class="dashboard__panel mb-4" rounded="xl" elevation="0">
+      <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
+        <p class="text-subtitle-1 font-weight-bold mb-0">Ventas del mes por día</p>
+        <v-btn to="/app/sales" variant="text" color="primary" size="small">
+          Ver todas
+        </v-btn>
+      </v-card-title>
+      <v-divider />
+      <v-card-text class="pa-4">
+        <AppSkeletonTransition>
+          <v-skeleton-loader
+            v-if="salesReportLoading"
+            key="dashboard-sales-trend-skeleton"
+            type="image"
+            height="120"
+          />
+          <div v-else key="dashboard-sales-trend-content">
+            <div v-if="salesTrendPoints.length > 1" class="dashboard-sales-trend">
+              <svg
+                class="dashboard-sales-trend__svg"
+                viewBox="0 0 100 40"
+                preserveAspectRatio="none"
+              >
+                <line
+                  v-for="tick in 3"
+                  :key="tick"
+                  x1="0"
+                  :y1="(tick * 40) / 4"
+                  x2="100"
+                  :y2="(tick * 40) / 4"
+                  class="dashboard-sales-trend__grid"
+                  vector-effect="non-scaling-stroke"
+                />
+                <path :d="salesTrendAreaPath" class="dashboard-sales-trend__area" />
+                <path
+                  :d="salesTrendLinePath"
+                  class="dashboard-sales-trend__line"
+                  vector-effect="non-scaling-stroke"
+                />
+              </svg>
+
+              <div class="dashboard-sales-trend__points">
+                <v-tooltip
+                  v-for="point in salesTrendPoints"
+                  :key="point.date"
+                  location="top"
+                >
+                  <template #activator="{ props }">
+                    <div
+                      v-bind="props"
+                      class="dashboard-sales-trend__hit"
+                      :style="{ left: `${point.x}%` }"
+                    />
+                  </template>
+                  {{ formatDateDisplay(point.date) }}: {{ formatCurrency(point.revenue) }}
+                </v-tooltip>
+              </div>
+            </div>
+            <p v-else class="text-caption text-medium-emphasis mb-0">
+              Aún no hay suficientes días con ventas para mostrar la tendencia
+            </p>
+          </div>
+        </AppSkeletonTransition>
+      </v-card-text>
+    </v-card>
+
+    <v-row class="mb-4">
+      <v-col cols="12" :lg="showTopProfessionals ? 6 : 12">
+        <v-card class="dashboard__panel" rounded="xl" elevation="0" style="height: 100%">
+          <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
+            <p class="text-subtitle-1 font-weight-bold mb-0">
+              {{ authStore.isStaff ? "Mis servicios top" : "Top servicios" }}
+            </p>
+            <v-btn to="/app/reports" variant="text" color="primary" size="small">
+              Ver reporte
+            </v-btn>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-4">
+            <AppSkeletonTransition>
+              <v-skeleton-loader
+                v-if="salesReportLoading"
+                key="dashboard-top-services-skeleton"
+                type="list-item@3"
+              />
+              <div v-else-if="!topServices.length" key="dashboard-top-services-empty" class="dashboard__empty">
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  Sin ventas registradas este mes
+                </p>
+              </div>
+              <div v-else key="dashboard-top-services-content" class="d-flex flex-column ga-3">
+                <div
+                  v-for="(item, index) in topServices"
+                  :key="item.serviceId"
+                  class="dashboard-top-list__item"
+                >
+                  <div class="d-flex align-center justify-space-between ga-2">
+                    <div class="d-flex align-center ga-2 min-width-0">
+                      <span class="dashboard-top-list__rank">{{ index + 1 }}</span>
+                      <span class="text-body-2 font-weight-medium text-truncate">
+                        {{ item.serviceName }}
+                      </span>
+                    </div>
+                    <span class="text-body-2 font-weight-bold flex-shrink-0">
+                      {{ formatCurrency(item.revenue) }}
+                    </span>
+                  </div>
+                  <div class="dashboard-top-list__bar-track">
+                    <div
+                      class="dashboard-top-list__bar-fill"
+                      :style="{ width: `${(item.revenue / maxTopServiceRevenue) * 100}%` }"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AppSkeletonTransition>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col v-if="showTopProfessionals" cols="12" lg="6">
+        <v-card class="dashboard__panel" rounded="xl" elevation="0" style="height: 100%">
+          <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
+            <p class="text-subtitle-1 font-weight-bold mb-0">Top profesionales</p>
+            <v-btn to="/app/reports" variant="text" color="primary" size="small">
+              Ver reporte
+            </v-btn>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-4">
+            <AppSkeletonTransition>
+              <v-skeleton-loader
+                v-if="salesReportLoading"
+                key="dashboard-top-professionals-skeleton"
+                type="list-item@3"
+              />
+              <div
+                v-else-if="!topProfessionals.length"
+                key="dashboard-top-professionals-empty"
+                class="dashboard__empty"
+              >
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  Sin ventas registradas este mes
+                </p>
+              </div>
+              <div v-else key="dashboard-top-professionals-content" class="d-flex flex-column ga-3">
+                <div
+                  v-for="(item, index) in topProfessionals"
+                  :key="item.userId"
+                  class="dashboard-top-list__item"
+                >
+                  <div class="d-flex align-center justify-space-between ga-2">
+                    <div class="d-flex align-center ga-2 min-width-0">
+                      <span class="dashboard-top-list__rank">{{ index + 1 }}</span>
+                      <span class="text-body-2 font-weight-medium text-truncate">
+                        {{ item.userName }}
+                      </span>
+                    </div>
+                    <span class="text-body-2 font-weight-bold flex-shrink-0">
+                      {{ formatCurrency(item.revenue) }}
+                    </span>
+                  </div>
+                  <div class="dashboard-top-list__bar-track">
+                    <div
+                      class="dashboard-top-list__bar-fill"
+                      :style="{
+                        width: `${(item.revenue / maxTopProfessionalRevenue) * 100}%`,
+                      }"
+                    />
+                  </div>
+                </div>
+              </div>
+            </AppSkeletonTransition>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-row class="mb-4">
+      <v-col
         v-for="stat in visibleStats"
         :key="stat.key"
         cols="12"
@@ -102,29 +304,76 @@
           :value="stat.value"
           :icon="stat.icon"
           :color="stat.color"
+          :to="stat.to"
           :loading="loading"
         />
       </v-col>
     </v-row>
 
-    <v-row v-if="todayBreakdownStats.length" class="mb-4">
-      <v-col
-        v-for="stat in todayBreakdownStats"
-        :key="stat.key"
-        cols="6"
-        sm="4"
-        md="3"
-        lg="2"
-      >
-        <DashboardStatCard
-          :label="stat.label"
-          :value="stat.value"
-          :icon="stat.icon"
-          :color="stat.color"
-          :loading="loading"
-        />
-      </v-col>
-    </v-row>
+    <v-card
+      v-if="todayBreakdownStats.length"
+      class="dashboard__panel mb-4"
+      rounded="xl"
+      elevation="0"
+    >
+      <v-card-text class="pa-4">
+        <p class="text-caption text-medium-emphasis mb-3">Estado de citas de hoy</p>
+
+        <AppSkeletonTransition>
+          <v-skeleton-loader
+            v-if="loading"
+            key="dashboard-status-bar-skeleton"
+            type="image"
+            height="22"
+          />
+          <div v-else key="dashboard-status-bar-content">
+            <div v-if="todayBreakdownTotal > 0" class="dashboard-status-bar">
+              <v-tooltip
+                v-for="(segment, index) in nonZeroBreakdownStats"
+                :key="segment.key"
+                location="top"
+              >
+                <template #activator="{ props }">
+                  <div
+                    v-bind="props"
+                    class="dashboard-status-bar__segment"
+                    :class="`bg-${segment.color}`"
+                    :style="{
+                      flexGrow: segment.value,
+                      borderTopLeftRadius: index === 0 ? '4px' : 0,
+                      borderBottomLeftRadius: index === 0 ? '4px' : 0,
+                      borderTopRightRadius:
+                        index === nonZeroBreakdownStats.length - 1 ? '4px' : 0,
+                      borderBottomRightRadius:
+                        index === nonZeroBreakdownStats.length - 1 ? '4px' : 0,
+                    }"
+                  />
+                </template>
+                {{ segment.label }}: {{ segment.value }}
+              </v-tooltip>
+            </div>
+            <p v-else class="text-caption text-medium-emphasis mb-0 text-center">
+              Sin citas registradas hoy
+            </p>
+
+            <div
+              class="dashboard-status-bar__legend mt-3"
+              :class="{ 'dashboard-status-bar__legend--center': !todayBreakdownTotal }"
+            >
+              <div
+                v-for="stat in todayBreakdownStats"
+                :key="stat.key"
+                class="dashboard-status-bar__legend-item"
+              >
+                <span class="dashboard-status-bar__dot" :class="`bg-${stat.color}`" />
+                <span class="text-caption text-medium-emphasis">{{ stat.label }}</span>
+                <span class="text-caption font-weight-bold">{{ stat.value }}</span>
+              </div>
+            </div>
+          </div>
+        </AppSkeletonTransition>
+      </v-card-text>
+    </v-card>
 
     <v-row>
       <v-col cols="12" lg="7">
@@ -182,9 +431,14 @@
 
       <v-col cols="12" lg="5">
         <v-card class="dashboard__panel mb-4" rounded="xl" elevation="0">
-          <v-card-title class="py-4 px-5">
-            <p class="text-subtitle-1 font-weight-bold mb-0">Próximas citas</p>
-            <p class="text-caption text-medium-emphasis mb-0">Siguientes citas activas</p>
+          <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
+            <div>
+              <p class="text-subtitle-1 font-weight-bold mb-0">Próximas citas</p>
+              <p class="text-caption text-medium-emphasis mb-0">Siguientes citas activas</p>
+            </div>
+            <v-btn :to="upcomingAppointmentsLink" variant="text" color="primary" size="small">
+              Ver todas
+            </v-btn>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
@@ -221,11 +475,16 @@
         </v-card>
 
         <v-card class="dashboard__panel" rounded="xl" elevation="0">
-          <v-card-title class="py-4 px-5">
-            <p class="text-subtitle-1 font-weight-bold mb-0">Resumen del mes</p>
-            <p class="text-caption text-medium-emphasis mb-0">
-              {{ monthLabel }}
-            </p>
+          <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
+            <div>
+              <p class="text-subtitle-1 font-weight-bold mb-0">Resumen del mes</p>
+              <p class="text-caption text-medium-emphasis mb-0">
+                {{ monthLabel }}
+              </p>
+            </div>
+            <v-btn to="/app/reports" variant="text" color="primary" size="small">
+              Ver reporte
+            </v-btn>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
@@ -233,33 +492,52 @@
               <v-skeleton-loader
                 v-if="loading"
                 key="dashboard-month-skeleton"
-                type="chip@6"
+                type="image"
+                height="22"
               />
-              <div
-                v-else
-                key="dashboard-month-content"
-                class="d-flex flex-column ga-3"
-              >
-                <div class="d-flex flex-wrap ga-2">
-                  <v-chip
+              <div v-else key="dashboard-month-content">
+                <div v-if="monthStatusBreakdown.length" class="dashboard-status-bar">
+                  <v-tooltip
+                    v-for="(item, index) in monthStatusBreakdown"
+                    :key="item.status"
+                    location="top"
+                  >
+                    <template #activator="{ props }">
+                      <div
+                        v-bind="props"
+                        class="dashboard-status-bar__segment"
+                        :class="`bg-${item.color}`"
+                        :style="{
+                          flexGrow: item.value,
+                          borderTopLeftRadius: index === 0 ? '4px' : 0,
+                          borderBottomLeftRadius: index === 0 ? '4px' : 0,
+                          borderTopRightRadius:
+                            index === monthStatusBreakdown.length - 1 ? '4px' : 0,
+                          borderBottomRightRadius:
+                            index === monthStatusBreakdown.length - 1 ? '4px' : 0,
+                        }"
+                      />
+                    </template>
+                    {{ item.label }}: {{ item.value }}
+                  </v-tooltip>
+                </div>
+                <p v-else class="text-caption text-medium-emphasis mb-0 text-center">
+                  Sin citas registradas este mes
+                </p>
+
+                <div
+                  class="dashboard-status-bar__legend mt-3"
+                  :class="{ 'dashboard-status-bar__legend--center': !monthStatusBreakdown.length }"
+                >
+                  <div
                     v-for="item in monthStatusBreakdown"
                     :key="item.status"
-                    size="small"
-                    variant="tonal"
-                    rounded="pill"
-                    :color="item.color"
+                    class="dashboard-status-bar__legend-item"
                   >
-                    {{ item.label }}: {{ item.value }}
-                  </v-chip>
-                </div>
-
-                <div class="d-flex flex-wrap ga-2">
-                  <v-chip size="small" variant="outlined" color="error">
-                    Canceladas: {{ dashboardData?.monthCancelled ?? 0 }}
-                  </v-chip>
-                  <v-chip size="small" variant="outlined" color="error">
-                    No asistió: {{ dashboardData?.monthNoShow ?? 0 }}
-                  </v-chip>
+                    <span class="dashboard-status-bar__dot" :class="`bg-${item.color}`" />
+                    <span class="text-caption text-medium-emphasis">{{ item.label }}</span>
+                    <span class="text-caption font-weight-bold">{{ item.value }}</span>
+                  </div>
                 </div>
               </div>
             </AppSkeletonTransition>
@@ -287,6 +565,7 @@ import { useAuthStore } from "~/store/modules/auth"
 import {
   useBranchesStore,
   useDashboardStore,
+  useSalesStore,
   useUsersStore,
 } from "~/store"
 import {
@@ -299,6 +578,7 @@ import {
   getTodayDate,
   splitIsoDateTime,
 } from "~/helpers/dateTimeHelpers"
+import { formatCurrency, getMonthDateRange } from "~/helpers/salesHelpers"
 import { CALENDAR_MONTH_LABELS } from "~/helpers/appointmentHelpers"
 
 definePageMeta({
@@ -309,8 +589,8 @@ const authStore = useAuthStore()
 const dashboardStore = useDashboardStore()
 const branchesStore = useBranchesStore()
 const usersStore = useUsersStore()
+const salesStore = useSalesStore()
 
-const filterDate = ref(getTodayDate())
 const filterBranchId = ref<number | null>(null)
 const filterUserId = ref<number | null>(null)
 const activeFilters = ref<DashboardFilters>({ date: getTodayDate() })
@@ -356,7 +636,7 @@ const showAdvancedFilters = computed(
 )
 
 const selectedDateLabel = computed(() => {
-  const date = dashboardData.value?.date ?? filterDate.value
+  const date = dashboardData.value?.date ?? getTodayDate()
   if (!date) return ""
 
   return new Date(`${date}T12:00:00`).toLocaleDateString("es-PE", {
@@ -375,13 +655,124 @@ const monthLabel = computed(() => {
   return `${monthName} ${data.year}`
 })
 
+const salesReport = computed(() => salesStore.report)
+const salesReportLoading = computed(() => salesStore.reportLoading)
+
+const todayRevenue = computed(() => {
+  const today = getTodayDate()
+  const match = salesReport.value?.dailyBreakdown.find((item) => item.date === today)
+  return match?.revenue ?? 0
+})
+
+const averageTicket = computed(() => {
+  const report = salesReport.value
+  if (!report || !report.totalSales) return 0
+  return report.totalRevenue / report.totalSales
+})
+
+const toIsoDate = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate()
+  ).padStart(2, "0")}`
+
+const salesTrendPoints = computed(() => {
+  const report = salesReport.value
+  if (!report) return []
+
+  const dailyMap = new Map(report.dailyBreakdown.map((item) => [item.date, item.revenue]))
+  const { from } = getMonthDateRange()
+  const today = getTodayDate()
+
+  const days: { date: string; revenue: number }[] = []
+  const cursor = new Date(`${from}T00:00:00`)
+
+  while (toIsoDate(cursor) <= today) {
+    const iso = toIsoDate(cursor)
+    days.push({ date: iso, revenue: dailyMap.get(iso) ?? 0 })
+    cursor.setDate(cursor.getDate() + 1)
+  }
+
+  const maxRevenue = Math.max(...days.map((day) => day.revenue), 1)
+
+  return days.map((day, index) => ({
+    ...day,
+    x: days.length > 1 ? (index / (days.length - 1)) * 100 : 50,
+    y: 40 - (day.revenue / maxRevenue) * 34,
+  }))
+})
+
+const salesTrendLinePath = computed(() =>
+  salesTrendPoints.value
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
+    .join(" ")
+)
+
+const salesTrendAreaPath = computed(() => {
+  const points = salesTrendPoints.value
+  if (!points.length) return ""
+
+  const first = points[0]
+  const last = points[points.length - 1]
+  return `${salesTrendLinePath.value} L ${last.x} 40 L ${first.x} 40 Z`
+})
+
+const topServices = computed(() => (salesReport.value?.topServices ?? []).slice(0, 3))
+
+const maxTopServiceRevenue = computed(() =>
+  Math.max(...topServices.value.map((item) => item.revenue), 1)
+)
+
+const showTopProfessionals = computed(
+  () => authStore.isAdmin || authStore.isSuperAdmin
+)
+
+const topProfessionals = computed(() => (salesReport.value?.byProfessional ?? []).slice(0, 3))
+
+const maxTopProfessionalRevenue = computed(() =>
+  Math.max(...topProfessionals.value.map((item) => item.revenue), 1)
+)
+
+const salesStats = computed(() => {
+  const isStaff = authStore.isStaff
+
+  return [
+    {
+      key: "todayRevenue",
+      label: isStaff ? "Mis ventas de hoy" : "Ventas de hoy",
+      value: formatCurrency(todayRevenue.value),
+      icon: "tabler:cash",
+      color: "success",
+      to: "/app/sales",
+    },
+    {
+      key: "monthRevenue",
+      label: isStaff ? "Mis ventas del mes" : "Ventas del mes",
+      value: formatCurrency(salesReport.value?.totalRevenue ?? 0),
+      icon: "tabler:report-money",
+      color: "primary",
+      to: "/app/sales",
+    },
+    {
+      key: "averageTicket",
+      label: isStaff ? "Mi ticket promedio" : "Ticket promedio",
+      value: formatCurrency(averageTicket.value),
+      icon: "tabler:receipt",
+      color: "info",
+      hint: "Monto promedio por venta: ventas del mes ÷ número de ventas del mes",
+      to: "/app/sales",
+    },
+  ]
+})
+
 const statCols = computed(() => {
   const count = visibleStats.value.length
-  if (count <= 3) return 4
+  if (count <= 1) return 12
+  if (count === 2) return 6
+  if (count === 3) return 4
   return 3
 })
 
-const visibleStats = computed(() => {
+const generalStats = computed(() => {
   const data = dashboardData.value
 
   return [
@@ -391,6 +782,7 @@ const visibleStats = computed(() => {
       value: data?.totalClients ?? 0,
       icon: "tabler:user",
       color: "primary",
+      to: authStore.isAdmin ? "/app/clients" : undefined,
     },
     {
       key: "activeUsers",
@@ -398,13 +790,22 @@ const visibleStats = computed(() => {
       value: data?.activeUsers ?? 0,
       icon: "tabler:users-group",
       color: "success",
+      to: authStore.isAdmin || authStore.isSuperAdmin ? "/app/users" : undefined,
     },
+  ]
+})
+
+const visibleStats = computed(() => {
+  const data = dashboardData.value
+
+  return [
     {
       key: "todayAppointments",
       label: "Citas hoy",
       value: data?.todayAppointments ?? 0,
       icon: "tabler:calendar-event",
       color: "info",
+      to: appointmentsLink.value,
     },
     {
       key: "monthAppointments",
@@ -412,6 +813,7 @@ const visibleStats = computed(() => {
       value: data?.monthAppointments ?? 0,
       icon: "tabler:calendar-month",
       color: "warning",
+      to: appointmentsLink.value,
     },
   ]
 })
@@ -452,6 +854,14 @@ const todayBreakdownStats = computed(() => {
   ]
 })
 
+const todayBreakdownTotal = computed(() =>
+  todayBreakdownStats.value.reduce((sum, stat) => sum + (stat.value || 0), 0)
+)
+
+const nonZeroBreakdownStats = computed(() =>
+  todayBreakdownStats.value.filter((stat) => stat.value > 0)
+)
+
 const monthStatusBreakdown = computed(() => {
   const byStatus = dashboardData.value?.appointmentsByStatus ?? {}
 
@@ -483,9 +893,8 @@ const userFilterItems = computed(() =>
     }))
 )
 
-const appointmentsLink = computed(() => {
+const buildAppointmentsLink = (date?: string) => {
   const query = new URLSearchParams()
-  const date = activeFilters.value.date ?? filterDate.value
   if (date) query.set("date", date)
   if (activeFilters.value.branchId != null) {
     query.set("branchId", String(activeFilters.value.branchId))
@@ -496,7 +905,13 @@ const appointmentsLink = computed(() => {
 
   const suffix = query.toString()
   return suffix ? `/app/appointments?${suffix}` : "/app/appointments"
-})
+}
+
+const appointmentsLink = computed(() =>
+  buildAppointmentsLink(activeFilters.value.date ?? getTodayDate())
+)
+
+const upcomingAppointmentsLink = computed(() => buildAppointmentsLink())
 
 const formatAppointmentTimeRange = (appointment: Appointment) => {
   const { time: startTime } = splitIsoDateTime(appointment.startAt)
@@ -525,7 +940,7 @@ const openClientContact = (appointment: Appointment) => {
 
 const buildFiltersFromInputs = (): DashboardFilters =>
   normalizeDashboardFilters({
-    date: filterDate.value,
+    date: getTodayDate(),
     branchId: filterBranchId.value ?? undefined,
     userId: filterUserId.value ?? undefined,
   })
@@ -543,7 +958,17 @@ const loadFilterOptions = async () => {
   ])
 }
 
-watch([filterDate, filterBranchId, filterUserId], () => {
+const fetchSalesSummary = async () => {
+  const { from, to } = getMonthDateRange()
+  await salesStore.fetchSalesReport({
+    from,
+    to,
+    branchId: filterBranchId.value ?? undefined,
+    userId: filterUserId.value ?? undefined,
+  })
+}
+
+watch([filterBranchId, filterUserId], () => {
   const nextFilters = buildFiltersFromInputs()
 
   if (areDashboardFiltersEqual(activeFilters.value, nextFilters)) {
@@ -554,8 +979,12 @@ watch([filterDate, filterBranchId, filterUserId], () => {
   fetchDashboard()
 })
 
+watch([filterBranchId, filterUserId], () => {
+  fetchSalesSummary()
+})
+
 onMounted(async () => {
-  await Promise.allSettled([fetchDashboard(), loadFilterOptions()])
+  await Promise.allSettled([fetchDashboard(), loadFilterOptions(), fetchSalesSummary()])
 })
 </script>
 
@@ -598,5 +1027,111 @@ onMounted(async () => {
 
 .dashboard__empty {
   text-align: center;
+}
+
+.dashboard-status-bar {
+  display: flex;
+  align-items: stretch;
+  height: 22px;
+  gap: 2px;
+}
+
+.dashboard-status-bar__segment {
+  min-width: 6px;
+  cursor: default;
+}
+
+.dashboard-status-bar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1rem;
+}
+
+.dashboard-status-bar__legend--center {
+  justify-content: center;
+}
+
+.dashboard-status-bar__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.dashboard-status-bar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dashboard-sales-trend {
+  position: relative;
+  height: 120px;
+}
+
+.dashboard-sales-trend__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dashboard-sales-trend__grid {
+  stroke: rgba(var(--v-border-color), var(--v-border-opacity));
+  stroke-width: 1;
+}
+
+.dashboard-sales-trend__area {
+  fill: rgba(var(--v-theme-primary), 0.1);
+  stroke: none;
+}
+
+.dashboard-sales-trend__line {
+  fill: none;
+  stroke: rgb(var(--v-theme-primary));
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-sales-trend__points {
+  position: absolute;
+  inset: 0;
+}
+
+.dashboard-sales-trend__hit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  transform: translateX(-50%);
+  cursor: default;
+}
+
+.dashboard-top-list__rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(var(--v-theme-primary), 0.1);
+  color: rgb(var(--v-theme-primary));
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.dashboard-top-list__bar-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(var(--v-border-color), var(--v-border-opacity));
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.dashboard-top-list__bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: rgb(var(--v-theme-primary));
 }
 </style>

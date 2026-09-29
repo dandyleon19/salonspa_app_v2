@@ -70,7 +70,9 @@ import {
 } from "~/helpers/tableSearchHelpers";
 
 definePageMeta({
-  layout: 'app'
+  layout: 'app',
+  middleware: 'role',
+  allowedRoles: ['ADMIN_USER'],
 })
 
 // Composables

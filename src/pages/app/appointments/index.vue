@@ -203,15 +203,19 @@ const tableFilters = computed<FilterOption[]>(() => [
       value: Number(client.id),
     })),
   },
-  {
-    type: "searchable-select",
-    label: "Profesional",
-    key: "userId",
-    items: (usersStore.data?.content ?? []).map((user) => ({
-      title: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
-      value: Number(user.id),
-    })),
-  },
+  ...(canManageAppointments.value
+    ? [
+        {
+          type: "searchable-select" as const,
+          label: "Profesional",
+          key: "userId",
+          items: (usersStore.data?.content ?? []).map((user) => ({
+            title: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
+            value: Number(user.id),
+          })),
+        },
+      ]
+    : []),
   {
     type: "select",
     label: "Sucursal",
@@ -338,12 +342,17 @@ const handlePagination = async ({
 
 onMounted(async () => {
   management.registerRefresh(fetchAppointments)
-  await Promise.all([
+  const requests = [
     branchesStore.fetchBranches(0, 100),
     clientsStore.fetchClients(0, 100),
-    usersStore.fetchUsers(0, 100),
     fetchAppointments(),
-  ])
+  ]
+
+  if (canManageAppointments.value) {
+    requests.push(usersStore.fetchUsers(0, 100))
+  }
+
+  await Promise.all(requests)
 })
 </script>
 

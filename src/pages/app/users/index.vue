@@ -102,6 +102,8 @@ import { useUsersStore } from "~/store"
 
 definePageMeta({
   layout: "app",
+  middleware: 'role',
+  allowedRoles: ['SUPER_ADMIN', 'ADMIN_USER'],
 })
 
 const usersStore = useUsersStore()

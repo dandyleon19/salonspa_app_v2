@@ -112,6 +112,7 @@
                   <ClinicalRecordList
                     :records="clinicalRecords"
                     :selected-record-id="selectedClinicalRecordId"
+                    :can-delete="!authStore.isStaff"
                     @select="selectedClinicalRecordId = $event ?? null"
                     @delete="openClinicalRecordDialog"
                   />
@@ -190,6 +191,7 @@ import { useRoute } from "vue-router"
 import type { ClinicalRecord, clinicalRecordDataModalForm } from "~/interfaces/clinicalRecordInterfaces"
 import type { Client } from "~/interfaces/clientInterfaces"
 import type { PageResponse } from "~/interfaces/PageResponse"
+import { useAuthStore } from "~/store/modules/auth"
 
 definePageMeta({
   layout: "app",
@@ -197,6 +199,7 @@ definePageMeta({
 
 const route = useRoute()
 const clientId = Number(route.params.id)
+const authStore = useAuthStore()
 
 const loadingClient = ref(false)
 const loadingRecords = ref(false)

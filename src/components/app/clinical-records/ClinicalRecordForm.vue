@@ -85,6 +85,7 @@
             :items="usersList"
             item-title="label"
             item-value="value"
+            :disabled="isStaffUser"
             :rules="[rules.required]"
           />
         </v-col>
@@ -103,7 +104,11 @@
       </v-row>
     </AppFormSection>
 
-    <AppFormSection title="Próxima cita" subtitle="Agendar seguimiento al guardar el expediente">
+    <AppFormSection
+      v-if="!isStaffUser"
+      title="Próxima cita"
+      subtitle="Agendar seguimiento al guardar el expediente"
+    >
       <v-row dense>
         <v-col cols="12">
           <v-switch
@@ -146,6 +151,7 @@
               :items="usersList"
               item-title="label"
               item-value="value"
+              :disabled="isStaffUser"
               :rules="scheduleNextAppointment ? [rules.required] : []"
             />
           </v-col>
@@ -219,6 +225,7 @@ import type { ClinicalRecord, clinicalRecordDataModalForm } from "~/interfaces/c
 import type { NextAppointmentRequest } from "~/interfaces/appointmentInterfaces"
 import { useBranchesStore, useClientsStore, useUsersStore } from "~/store"
 import { useServicesStore } from "~/store/modules/service"
+import { useAuthStore } from "~/store/modules/auth"
 
 const { textarea, select, autocomplete } = useFormFields()
 
@@ -227,6 +234,9 @@ const branchesStore = useBranchesStore()
 const clientsStore = useClientsStore()
 const usersStore = useUsersStore()
 const servicesStore = useServicesStore()
+const authStore = useAuthStore()
+
+const isStaffUser = computed(() => authStore.isStaff)
 
 const props = defineProps<{
   dataModalForm: clinicalRecordDataModalForm
@@ -353,6 +363,17 @@ const servicesAutocompleteList = computed(() =>
 )
 
 const usersList = computed(() => {
+  if (isStaffUser.value) {
+    const user = authStore.user
+    if (!user) return [{ value: null, label: "Seleccione un trabajador..." }]
+    return [
+      {
+        value: user.id ?? null,
+        label: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
+      },
+    ]
+  }
+
   const options: { value: string | null; label: string }[] = [
     { value: null, label: "Seleccione un trabajador..." },
   ]
@@ -484,7 +505,15 @@ watch(
 onMounted(() => {
   branchesStore.fetchBranches(0, 100)
   clientsStore.fetchClients(0, 100)
-  usersStore.fetchUsers(0, 100)
   servicesStore.fetchServices()
+
+  if (isStaffUser.value) {
+    if (!clinicalRecord.value.userId) {
+      clinicalRecord.value.userId = authStore.user?.id ?? null
+    }
+    return
+  }
+
+  usersStore.fetchUsers(0, 100)
 })
 </script>

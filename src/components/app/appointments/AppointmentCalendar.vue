@@ -53,6 +53,7 @@
       </template>
 
       <v-select
+        v-if="canFilterByProfessional"
         v-model="selectedFilters.userId"
         label="Profesional"
         :items="userFilterItems"
@@ -257,6 +258,7 @@ import {
   isInactiveAppointmentStatus,
 } from "~/interfaces/appointmentInterfaces"
 import { useAppointmentsStore, useBranchesStore, useUsersStore } from "~/store"
+import { useAuthStore } from "~/store/modules/auth"
 
 const MAX_VISIBLE_EVENTS = 3
 
@@ -269,7 +271,12 @@ const emit = defineEmits<{
 const appointmentsStore = useAppointmentsStore()
 const branchesStore = useBranchesStore()
 const usersStore = useUsersStore()
+const authStore = useAuthStore()
 const { notifyError } = useApiNotification()
+
+const canFilterByProfessional = computed(
+  () => authStore.isAdmin || authStore.isSuperAdmin
+)
 
 const now = new Date()
 const currentYear = ref(now.getFullYear())
@@ -397,11 +404,13 @@ const handleDialogSelect = (appointment: Appointment) => {
 watch(selectedFilters, applyFilters, { deep: true })
 
 onMounted(async () => {
-  await Promise.all([
-    branchesStore.fetchBranches(0, 100),
-    usersStore.fetchUsers(0, 100),
-    fetchCalendar(),
-  ])
+  const requests = [branchesStore.fetchBranches(0, 100), fetchCalendar()]
+
+  if (canFilterByProfessional.value) {
+    requests.push(usersStore.fetchUsers(0, 100))
+  }
+
+  await Promise.all(requests)
 })
 
 defineExpose({

@@ -62,7 +62,9 @@ import type { Salon, salonDataModalForm } from "~/interfaces/salonInterfaces";
 import { useSalonsStore } from "~/store";
 
 definePageMeta({
-  layout: 'app'
+  layout: 'app',
+  middleware: 'role',
+  allowedRoles: ['SUPER_ADMIN'],
 })
 
 // Composables

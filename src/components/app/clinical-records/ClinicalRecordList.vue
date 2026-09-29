@@ -56,6 +56,7 @@
               </div>
 
               <v-btn
+                v-if="canDelete"
                 icon
                 size="x-small"
                 variant="text"
@@ -85,10 +86,14 @@
 <script setup lang="ts">
 import type { ClinicalRecord } from "~/interfaces/clinicalRecordInterfaces";
 
-const props = defineProps<{
-  records: ClinicalRecord[]
-  selectedRecordId?: string | number | null
-}>()
+const props = withDefaults(
+  defineProps<{
+    records: ClinicalRecord[]
+    selectedRecordId?: string | number | null
+    canDelete?: boolean
+  }>(),
+  { canDelete: true }
+)
 
 const emit = defineEmits<{
   (e: "select", id: string | number | undefined): void
