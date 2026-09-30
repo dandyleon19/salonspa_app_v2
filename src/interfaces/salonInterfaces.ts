@@ -5,6 +5,7 @@ export interface Salon {
     rucNumber: string
     fiscalAddress: string
     phone?: string
+    logoUrl?: string | null
     branches?: Branch[]
 }
 

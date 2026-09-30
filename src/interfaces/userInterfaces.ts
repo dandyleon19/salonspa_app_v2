@@ -16,6 +16,7 @@ export interface User {
   commissionPercentage: number | string
   salonId?: number
   salonName?: string
+  salonLogoUrl?: string | null
   password: string
   passwordConfirmation?: string
 }

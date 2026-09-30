@@ -18,7 +18,7 @@
     </template>
 
     <v-app-bar-title class="app-navbar__title">
-      Marite Salon & Spa
+      {{ salonName }}
     </v-app-bar-title>
 
     <template #append>
@@ -82,6 +82,8 @@ const userName = computed(() => {
 })
 
 const userEmail = computed(() => authStore.user?.email ?? "")
+
+const salonName = computed(() => authStore.user?.salonName || "Mi spa")
 
 const userInitials = computed(() => {
   const user = authStore.user

@@ -82,6 +82,8 @@ export const APP_ICONS = {
   cake: "tabler:cake",
   gender: "tabler:gender-bigender",
   currency: "tabler:currency-dollar",
+  settings: "tabler:settings",
+  imageUpload: "tabler:photo-plus",
   success: "tabler:circle-check",
   error: "tabler:alert-circle",
   info: "tabler:info-circle",
