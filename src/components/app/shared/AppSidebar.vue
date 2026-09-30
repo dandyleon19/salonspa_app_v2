@@ -122,8 +122,8 @@ const prefetchSidebarRoute = (to: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px;
-  min-height: 72px;
+  padding: 10px 12px;
+  min-height: 96px;
 }
 
 .app-sidebar__brand--spread {
@@ -139,7 +139,7 @@ const prefetchSidebarRoute = (to: string) => {
 }
 
 .app-sidebar__logo {
-  height: 48px;
+  height: 76px;
   max-height: 100%;
   width: auto;
   max-width: 100%;
@@ -150,9 +150,9 @@ const prefetchSidebarRoute = (to: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.75);
 }

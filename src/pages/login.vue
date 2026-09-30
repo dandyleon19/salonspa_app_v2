@@ -33,8 +33,8 @@ import logoMarite from "../assets/img/logo-marite.png"
 useHead({
   title: "Iniciar sesión",
   link: [
-    { rel: "icon", href: "/favicon.ico", sizes: "any" },
-    { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+    { rel: "icon", href: "/favicon.ico?v=2", sizes: "any" },
+    { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png?v=2" },
   ],
 })
 </script>
