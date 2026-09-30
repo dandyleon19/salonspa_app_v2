@@ -60,25 +60,48 @@ jobs:
           script: |
             set -e
             APP_DIR="/var/www/salonspa_app_v2"
+            NEW_DIR="${APP_DIR}.new"
+            OLD_DIR="${APP_DIR}.old"
             PM2_NAME="salonspa_app"
             PORT="${{ secrets.APP_PORT }}"
             PORT="${PORT:-3002}"
             DEPLOY_USER="$(whoami)"
 
-            sudo mkdir -p "$APP_DIR"
-            sudo rm -rf "$APP_DIR/.env"
+            # Extract into a fresh, separate directory first — never write
+            # directly into the live path while PM2 is still serving from it,
+            # or requests in flight can read a half-overwritten file
+            # (ERR_CONTENT_LENGTH_MISMATCH / "failed to load module").
+            sudo rm -rf "$NEW_DIR"
+            sudo mkdir -p "$NEW_DIR"
+            sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$NEW_DIR"
+
+            cd "$NEW_DIR"
+            tar -xzf /tmp/nuxt-output.tar.gz
+            rm -f /tmp/nuxt-output.tar.gz
+
+            if [ ! -f "$NEW_DIR/.output/server/index.mjs" ]; then
+              echo "Build artifact missing: .output/server/index.mjs"
+              ls -la "$NEW_DIR" || true
+              exit 1
+            fi
+
+            if [ -f "$APP_DIR/.env" ]; then
+              cp "$APP_DIR/.env" "$NEW_DIR/.env"
+            fi
+
+            # Atomic swap: `mv` on the same filesystem is a single rename()
+            # syscall, so the live path always points to either the fully
+            # old or fully new build, never a mix. The old release is kept
+            # until the health check below passes, so a bad deploy can roll
+            # back instead of leaving the site down.
+            sudo rm -rf "$OLD_DIR"
+            if [ -d "$APP_DIR" ]; then
+              sudo mv "$APP_DIR" "$OLD_DIR"
+            fi
+            sudo mv "$NEW_DIR" "$APP_DIR"
             sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$APP_DIR"
 
             cd "$APP_DIR"
-            tar -xzf /tmp/nuxt-output.tar.gz
-            rm -f /tmp/nuxt-output.tar.gz
-            sudo chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "$APP_DIR"
-
-            if [ ! -f "$APP_DIR/.output/server/index.mjs" ]; then
-              echo "Build artifact missing: .output/server/index.mjs"
-              ls -la "$APP_DIR" || true
-              exit 1
-            fi
 
             export NODE_ENV=production
             export NUXT_API_BASE="${{ secrets.NUXT_API_BASE }}"
@@ -117,7 +140,21 @@ jobs:
               pm2 status
               pm2 describe "$PM2_NAME" || true
               pm2 logs "$PM2_NAME" --lines 80 --nostream
+
+              if [ -d "$OLD_DIR" ]; then
+                echo "Rolling back to previous release"
+                sudo rm -rf "$APP_DIR"
+                sudo mv "$OLD_DIR" "$APP_DIR"
+                pm2 delete "$PM2_NAME" 2>/dev/null || true
+                pm2 start "$APP_DIR/.output/server/index.mjs" \
+                  --name "$PM2_NAME" \
+                  --cwd "$APP_DIR" \
+                  --update-env
+                pm2 save
+              fi
+
               exit 1
             fi
 
             echo "Deploy successful on port ${PORT}"
+            sudo rm -rf "$OLD_DIR"
