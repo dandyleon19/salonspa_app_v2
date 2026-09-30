@@ -170,7 +170,7 @@ const handleLogin = async () => {
   font-weight: 600;
   min-height: 48px;
   margin-top: 0.75rem !important;
-  box-shadow: 0 10px 24px rgba(235, 88, 137, 0.24);
+  box-shadow: 0 10px 24px rgba(188, 82, 103, 0.24);
 }
 
 .login-form__overlay {

@@ -403,7 +403,7 @@ onMounted(async () => {
 }
 
 .clinical-records-page__avatar {
-  box-shadow: 0 8px 20px rgba(235, 88, 137, 0.25);
+  box-shadow: 0 8px 20px rgba(188, 82, 103, 0.25);
 }
 
 .clinical-records-page__panel {

@@ -13,8 +13,8 @@ export default defineNuxtPlugin(nuxtApp => {
   const myCustomLightTheme = {
     dark: false,
     colors: {
-      primary: '#eb5889',
-      'primary-light': '#F48FB1',
+      primary: '#bc5267',
+      'primary-light': '#d697a3',
       background: '#FFFFFF',
       surface: '#F5F5F5',
       text: '#212121',
@@ -23,7 +23,7 @@ export default defineNuxtPlugin(nuxtApp => {
       warning: '#FFD54F',
       info: '#4FC3F7',
       error: '#E57373',
-      navbar: '#eb5889',
+      navbar: '#bc5267',
       sidebar: '#212121',
     },
   }

@@ -4,11 +4,13 @@
       <v-card-text class="login-page__body">
         <div class="login-page__brand">
           <div class="login-page__logo-wrap">
-            <img
-              :src="logoDafacha"
-              alt="Dafacha Salón & Spa"
-              class="login-page__logo"
-            />
+            <div class="login-page__logo-badge">
+              <img
+                :src="logoDafacha"
+                alt="Dafacha Salón & Spa"
+                class="login-page__logo"
+              />
+            </div>
           </div>
 
           <h1 class="login-page__title">Ingresa a tu cuenta</h1>
@@ -55,7 +57,7 @@ useHead({
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
-  box-shadow: 0 18px 48px rgba(235, 88, 137, 0.1);
+  box-shadow: 0 18px 48px rgba(188, 82, 103, 0.1);
 }
 
 .login-page__body {
@@ -73,12 +75,22 @@ useHead({
   margin-bottom: 1.5rem;
 }
 
-.login-page__logo {
-  width: 96px;
-  height: 96px;
-  object-fit: contain;
+.login-page__logo-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  padding: 20px;
   border-radius: 50%;
-  box-shadow: 0 12px 32px rgba(235, 88, 137, 0.2);
+  background: #1a1a1a;
+  box-shadow: 0 12px 32px rgba(188, 82, 103, 0.25);
+}
+
+.login-page__logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .login-page__title {

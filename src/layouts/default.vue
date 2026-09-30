@@ -22,7 +22,7 @@ useHead({
   min-height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(circle at top, rgba(235, 88, 137, 0.12), transparent 42%),
+    radial-gradient(circle at top, rgba(188, 82, 103, 0.12), transparent 42%),
     linear-gradient(180deg, #fff 0%, #faf7f8 100%);
 }
 
@@ -38,7 +38,7 @@ useHead({
   left: -80px;
   width: 320px;
   height: 320px;
-  background: rgba(235, 88, 137, 0.18);
+  background: rgba(188, 82, 103, 0.18);
 }
 
 .default-layout__glow--right {
@@ -46,7 +46,7 @@ useHead({
   bottom: -80px;
   width: 280px;
   height: 280px;
-  background: rgba(244, 143, 177, 0.22);
+  background: rgba(214, 151, 163, 0.22);
 }
 
 .default-layout__container {
