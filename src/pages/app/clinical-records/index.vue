@@ -6,8 +6,11 @@
       :rowOptions="rowOptions"
       :filters="tableFilters"
       :items="clinicalRecordsList"
-      :total-items="clinicalRecordsList.length"
+      :total-items="totalItems"
       :loading="loadingClinicalRecordsList"
+      :page="currentPage"
+      :items-per-page="itemsPerPage"
+      @update:pagination="handlePagination"
       @handle-create-button="handleCreateButton"
       @handle-row-action-button="handleRowActionButton"
   />
@@ -58,6 +61,8 @@ const openClinicalRecordDrawer = ref<boolean>(false);
 const openBranchDrawer = ref<boolean>(false)
 const showDeleteDialog = ref<boolean>(false)
 const clinicalRecordToRemove = ref<ClinicalRecord>()
+const currentPage = ref(1)
+const itemsPerPage = ref(10)
 
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
@@ -95,12 +100,35 @@ const dataModalForm = ref<clinicalRecordDataModalForm>({
 
 // Computed
 const clinicalRecordsList = computed(() => {
-  return clinicalRecordsStore.list;
+  return clinicalRecordsStore.data?.content ?? [];
+});
+
+const totalItems = computed(() => {
+  return clinicalRecordsStore.data?.totalElements ?? 0
 });
 
 const loadingClinicalRecordsList = computed(() => {
   return clinicalRecordsStore.loading;
 });
+
+const fetchClinicalRecords = async () => {
+  await clinicalRecordsStore.fetchClinicalRecords(
+    currentPage.value - 1,
+    itemsPerPage.value
+  )
+};
+
+const handlePagination = async ({
+  page,
+  itemsPerPage: newItemsPerPage,
+}: {
+  page: number
+  itemsPerPage: number
+}) => {
+  currentPage.value = page
+  itemsPerPage.value = newItemsPerPage
+  await fetchClinicalRecords()
+};
 
 const handleCreateButton = (): void => {
   dataModalForm.value.action = 'create'
@@ -129,7 +157,7 @@ const handleRowActionButton = (clinicalRecord: ClinicalRecord, action: string): 
 const closeClinicalRecordDrawer = () => {
   openClinicalRecordDrawer.value = false;
   openBranchDrawer.value = false;
-  clinicalRecordsStore.fetchClinicalRecords();
+  fetchClinicalRecords();
 };
 
 const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
@@ -176,7 +204,7 @@ const handleDeleteClinicalRecord = async () => {
       method: "DELETE",
     });
     notifyDeleted("historial clínico");
-    await clinicalRecordsStore.fetchClinicalRecords();
+    await fetchClinicalRecords();
   } catch (err) {
     notifyError(err, "eliminar el historial clínico");
   } finally {
@@ -186,6 +214,6 @@ const handleDeleteClinicalRecord = async () => {
 
 // Mounted
 onMounted(() => {
-  clinicalRecordsStore.fetchClinicalRecords();
+  fetchClinicalRecords();
 });
 </script>

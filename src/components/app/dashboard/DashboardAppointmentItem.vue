@@ -6,7 +6,7 @@
   >
     <div class="d-flex align-start justify-space-between ga-3">
       <div class="min-width-0 flex-grow-1">
-        <p class="text-caption text-medium-emphasis mb-1">
+        <p class="text-body-2 text-medium-emphasis mb-1">
           {{ timeLabel }}
         </p>
         <button
@@ -20,14 +20,14 @@
           </span>
           <span
             v-if="appointment.clientPhone"
-            class="text-caption text-medium-emphasis d-block"
+            class="text-body-2 text-medium-emphasis d-block"
           >
             {{ appointment.clientPhone }}
           </span>
         </button>
         <p
           v-if="appointment.serviceName"
-          class="text-caption text-medium-emphasis mb-0 mt-1"
+          class="text-body-2 text-medium-emphasis mb-0 mt-1"
         >
           {{ appointment.serviceName }}
         </p>
@@ -35,9 +35,8 @@
 
       <v-chip
         v-if="appointment.status"
-        size="x-small"
+        size="small"
         variant="tonal"
-        rounded="pill"
         :color="getAppointmentStatusColor(appointment.status)"
       >
         {{ getAppointmentStatusLabel(appointment.status) }}
@@ -47,7 +46,7 @@
     <div class="d-flex flex-wrap ga-2 mt-2">
       <v-chip
         v-if="appointment.userName"
-        size="x-small"
+        size="small"
         variant="tonal"
         prepend-icon="tabler:user"
       >
@@ -55,7 +54,7 @@
       </v-chip>
       <v-chip
         v-if="appointment.branchName"
-        size="x-small"
+        size="small"
         variant="tonal"
         prepend-icon="tabler:building-store"
       >

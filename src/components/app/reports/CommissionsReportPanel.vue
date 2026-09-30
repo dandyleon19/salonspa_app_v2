@@ -170,7 +170,6 @@
                             size="x-small"
                             variant="tonal"
                             :color="item.usedServiceCommission ? 'primary' : 'grey'"
-                            rounded="pill"
                           >
                             {{ item.usedServiceCommission ? "Por servicio" : "General" }}
                           </v-chip>

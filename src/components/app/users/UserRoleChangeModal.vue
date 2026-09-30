@@ -8,7 +8,7 @@
       <v-card-text class="user-role-modal__body pa-6 pa-sm-7">
         <div class="user-role-modal__icon-wrap mb-4">
           <v-avatar size="52" color="primary" variant="tonal">
-            <v-icon size="26">tabler:shield-user</v-icon>
+            <v-icon size="26">tabler:shield-cog</v-icon>
           </v-avatar>
         </div>
 

@@ -20,7 +20,7 @@
               <p v-if="salonName" class="text-body-2 text-medium-emphasis mb-0">
                 {{ salonName }}
               </p>
-              <p class="text-caption text-medium-emphasis mt-2 mb-0">
+              <p class="text-body-2 text-medium-emphasis mt-2 mb-0">
                 {{ selectedDateLabel }}
               </p>
             </div>
@@ -171,7 +171,7 @@
                 </v-tooltip>
               </div>
             </div>
-            <p v-else class="text-caption text-medium-emphasis mb-0">
+            <p v-else class="text-body-2 text-medium-emphasis mb-0">
               Aún no hay suficientes días con ventas para mostrar la tendencia
             </p>
           </div>
@@ -317,7 +317,7 @@
       elevation="0"
     >
       <v-card-text class="pa-4">
-        <p class="text-caption text-medium-emphasis mb-3">Estado de citas de hoy</p>
+        <p class="text-subtitle-1 font-weight-bold mb-3">Estado de citas de hoy</p>
 
         <AppSkeletonTransition>
           <v-skeleton-loader
@@ -352,7 +352,7 @@
                 {{ segment.label }}: {{ segment.value }}
               </v-tooltip>
             </div>
-            <p v-else class="text-caption text-medium-emphasis mb-0 text-center">
+            <p v-else class="text-body-2 text-medium-emphasis mb-0 text-center">
               Sin citas registradas hoy
             </p>
 
@@ -366,8 +366,8 @@
                 class="dashboard-status-bar__legend-item"
               >
                 <span class="dashboard-status-bar__dot" :class="`bg-${stat.color}`" />
-                <span class="text-caption text-medium-emphasis">{{ stat.label }}</span>
-                <span class="text-caption font-weight-bold">{{ stat.value }}</span>
+                <span class="text-body-2 text-medium-emphasis">{{ stat.label }}</span>
+                <span class="text-body-2 font-weight-bold">{{ stat.value }}</span>
               </div>
             </div>
           </div>
@@ -381,7 +381,7 @@
           <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
             <div>
               <p class="text-subtitle-1 font-weight-bold mb-0">Agenda del día</p>
-              <p class="text-caption text-medium-emphasis mb-0">
+              <p class="text-body-2 text-medium-emphasis mb-0">
                 {{ todaySchedule.length }} cita{{ todaySchedule.length === 1 ? "" : "s" }}
               </p>
             </div>
@@ -434,7 +434,7 @@
           <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
             <div>
               <p class="text-subtitle-1 font-weight-bold mb-0">Próximas citas</p>
-              <p class="text-caption text-medium-emphasis mb-0">Siguientes citas activas</p>
+              <p class="text-body-2 text-medium-emphasis mb-0">Siguientes citas activas</p>
             </div>
             <v-btn :to="upcomingAppointmentsLink" variant="text" color="primary" size="small">
               Ver todas
@@ -478,7 +478,7 @@
           <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
             <div>
               <p class="text-subtitle-1 font-weight-bold mb-0">Resumen del mes</p>
-              <p class="text-caption text-medium-emphasis mb-0">
+              <p class="text-body-2 text-medium-emphasis mb-0">
                 {{ monthLabel }}
               </p>
             </div>
@@ -521,7 +521,7 @@
                     {{ item.label }}: {{ item.value }}
                   </v-tooltip>
                 </div>
-                <p v-else class="text-caption text-medium-emphasis mb-0 text-center">
+                <p v-else class="text-body-2 text-medium-emphasis mb-0 text-center">
                   Sin citas registradas este mes
                 </p>
 
@@ -535,8 +535,8 @@
                     class="dashboard-status-bar__legend-item"
                   >
                     <span class="dashboard-status-bar__dot" :class="`bg-${item.color}`" />
-                    <span class="text-caption text-medium-emphasis">{{ item.label }}</span>
-                    <span class="text-caption font-weight-bold">{{ item.value }}</span>
+                    <span class="text-body-2 text-medium-emphasis">{{ item.label }}</span>
+                    <span class="text-body-2 font-weight-bold">{{ item.value }}</span>
                   </div>
                 </div>
               </div>
@@ -716,7 +716,11 @@ const salesTrendAreaPath = computed(() => {
   return `${salesTrendLinePath.value} L ${last.x} 40 L ${first.x} 40 Z`
 })
 
-const topServices = computed(() => (salesReport.value?.topServices ?? []).slice(0, 3))
+const topServices = computed(() =>
+  [...(salesReport.value?.topServices ?? [])]
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 3)
+)
 
 const maxTopServiceRevenue = computed(() =>
   Math.max(...topServices.value.map((item) => item.revenue), 1)
@@ -726,7 +730,11 @@ const showTopProfessionals = computed(
   () => authStore.isAdmin || authStore.isSuperAdmin
 )
 
-const topProfessionals = computed(() => (salesReport.value?.byProfessional ?? []).slice(0, 3))
+const topProfessionals = computed(() =>
+  [...(salesReport.value?.byProfessional ?? [])]
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 3)
+)
 
 const maxTopProfessionalRevenue = computed(() =>
   Math.max(...topProfessionals.value.map((item) => item.revenue), 1)
@@ -828,28 +836,28 @@ const todayBreakdownStats = computed(() => {
       label: "Agendadas",
       value: data.todayScheduled,
       icon: "tabler:clock",
-      color: "grey",
+      color: getAppointmentStatusColor("SCHEDULED"),
     },
     {
       key: "todayConfirmed",
       label: "Confirmadas",
       value: data.todayConfirmed,
       icon: "tabler:circle-check",
-      color: "primary",
+      color: getAppointmentStatusColor("CONFIRMED"),
     },
     {
       key: "todayInProgress",
       label: "En curso",
       value: data.todayInProgress,
       icon: "tabler:player-play",
-      color: "warning",
+      color: getAppointmentStatusColor("IN_PROGRESS"),
     },
     {
       key: "todayCompleted",
       label: "Completadas",
       value: data.todayCompleted,
       icon: "tabler:checks",
-      color: "success",
+      color: getAppointmentStatusColor("COMPLETED"),
     },
   ]
 })
@@ -1058,8 +1066,8 @@ onMounted(async () => {
 }
 
 .dashboard-status-bar__dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
 }

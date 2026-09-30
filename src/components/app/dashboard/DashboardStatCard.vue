@@ -13,7 +13,7 @@
       </v-avatar>
       <div class="flex-grow-1 min-width-0">
         <div class="d-flex align-center ga-1 mb-1">
-          <p class="text-caption text-medium-emphasis mb-0">{{ label }}</p>
+          <p class="text-body-2 text-medium-emphasis mb-0">{{ label }}</p>
           <v-tooltip v-if="hint" location="top">
             <template #activator="{ props }">
               <v-icon v-bind="props" icon="tabler:info-circle" size="14" />

@@ -177,7 +177,7 @@ const getUserRowOptions = (item: User & { tableActions?: UserTableAction[] }) =>
     {
       action: "changePassword",
       color: "warning",
-      icon: "tabler:lock-reset",
+      icon: "tabler:lock-password",
       title: "Cambiar contraseña",
     },
     {

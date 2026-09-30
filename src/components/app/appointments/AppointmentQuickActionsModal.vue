@@ -24,7 +24,6 @@
           v-if="appointment?.status"
           size="small"
           variant="tonal"
-          rounded="pill"
           :color="getAppointmentStatusColor(appointment.status)"
           class="mb-4"
         >

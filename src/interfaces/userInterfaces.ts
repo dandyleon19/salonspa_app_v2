@@ -90,7 +90,7 @@ export const USER_ACTION_COLORS: Record<UserTableAction, string> = {
 export const USER_ACTION_ICONS: Record<UserTableAction, string> = {
   "status:activate": "tabler:user-check",
   "status:deactivate": "tabler:user-off",
-  "role:change": "tabler:shield-user",
+  "role:change": "tabler:shield-cog",
 }
 
 export const USER_ACTION_LABELS: Record<UserTableAction, string> = {

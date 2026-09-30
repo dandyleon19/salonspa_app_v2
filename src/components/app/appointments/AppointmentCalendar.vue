@@ -166,7 +166,6 @@
                   <v-chip
                     size="x-small"
                     variant="tonal"
-                    rounded="pill"
                     :color="getAppointmentStatusColor(appointment.status)"
                     class="appointment-calendar__event-status"
                   >
@@ -224,7 +223,6 @@
               <v-chip
                 size="x-small"
                 variant="tonal"
-                rounded="pill"
                 :color="getAppointmentStatusColor(appointment.status)"
               >
                 {{ getAppointmentStatusLabel(appointment.status) }}

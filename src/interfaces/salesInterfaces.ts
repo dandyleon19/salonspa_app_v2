@@ -1,5 +1,5 @@
 export type SaleStatus = "COMPLETED" | "PARTIALLY_PAID" | "CANCELLED"
-export type PaymentMethod = "CASH" | "CARD" | "TRANSFER" | "OTHER"
+export type PaymentMethod = "CASH" | "CARD" | "TRANSFER" | "YAPE" | "PLIN" | "OTHER"
 
 export interface SaleItem {
   id?: number
@@ -144,6 +144,8 @@ export const PAYMENT_METHOD_OPTIONS: Array<{ label: string; value: PaymentMethod
   { label: "Efectivo", value: "CASH" },
   { label: "Tarjeta", value: "CARD" },
   { label: "Transferencia", value: "TRANSFER" },
+  { label: "Yape", value: "YAPE" },
+  { label: "Plin", value: "PLIN" },
   { label: "Otro", value: "OTHER" },
 ]
 
@@ -163,6 +165,8 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   CASH: "Efectivo",
   CARD: "Tarjeta",
   TRANSFER: "Transferencia",
+  YAPE: "Yape",
+  PLIN: "Plin",
   OTHER: "Otro",
 }
 

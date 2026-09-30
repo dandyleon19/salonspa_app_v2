@@ -638,6 +638,15 @@ const applyAppointmentFields = (appointment: Appointment) => {
   if (date) saleDate.value = date
   if (time) saleTime.value = time
 
+  if (appointment.depositAmount) {
+    sale.value.payments.push({
+      key: nextKey(),
+      amount: Number(appointment.depositAmount),
+      paymentMethod: (appointment.depositPaymentMethod as PaymentMethod) ?? "CASH",
+      reference: "Adelanto de la cita",
+    })
+  }
+
   const firstItem = sale.value.items[0]
   if (!firstItem) return
 

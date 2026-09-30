@@ -34,7 +34,13 @@
             </template>
         </AppPageTitle>
 
-        <v-card class="app-table" rounded="xl" elevation="0">
+        <v-card
+            ref="tableCardRef"
+            class="app-table"
+            :class="{ 'app-table--scrolled-end': isScrolledToEnd }"
+            rounded="xl"
+            elevation="0"
+        >
             <div class="app-table__toolbar">
                 <div class="app-table__toolbar-inner">
                     <v-text-field
@@ -124,6 +130,7 @@
                     :loading="loading"
                     :search="tableSearch"
                     :items-per-page="props.itemsPerPage"
+                    :items-per-page-options="[10, 25, 50, 100]"
                     :page="props.page"
                     :item-class="itemClass"
                     hover
@@ -152,7 +159,6 @@
                             v-if="resolveChipValue(item, chip)"
                             size="small"
                             variant="tonal"
-                            rounded="pill"
                             :color="resolveChipColor(item, chip)"
                             :prepend-icon="resolveChipIcon(item, chip)"
                             :class="['app-table__chip', chip.class]"
@@ -237,7 +243,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, useSlots, computed, watch, onBeforeUnmount } from "vue";
+import { ref, useSlots, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import AppTableWrapper from "~/components/app/shared/AppTableWrapper.vue";
 import type { TableHeader, FilterOption, TableRowOption, TableChipColumn } from "~/interfaces/tableInterfaces";
 import { normalizeTableSearch } from "~/helpers/tableSearchHelpers";
@@ -350,6 +356,45 @@ const maxRowActionsCount = computed(() => {
 
 const actionsColumnWidth = computed(() =>
     getActionsColumnWidth(maxRowActionsCount.value)
+)
+
+const actionsColumnWidthPx = computed(() => `${actionsColumnWidth.value}px`)
+
+const SCROLL_END_EPSILON = 4
+
+const tableCardRef = ref<{ $el: HTMLElement } | null>(null)
+const isScrolledToEnd = ref(true)
+let tableScrollEl: HTMLElement | null = null
+let tableResizeObserver: ResizeObserver | null = null
+
+const updateScrolledToEnd = () => {
+    if (!tableScrollEl) return
+    const { scrollLeft, scrollWidth, clientWidth } = tableScrollEl
+    isScrolledToEnd.value =
+        scrollWidth - clientWidth <= SCROLL_END_EPSILON ||
+        scrollLeft + clientWidth >= scrollWidth - SCROLL_END_EPSILON
+}
+
+onMounted(() => {
+    tableScrollEl = tableCardRef.value?.$el?.querySelector(".v-table__wrapper") ?? null
+    tableScrollEl?.addEventListener("scroll", updateScrolledToEnd, { passive: true })
+
+    if (tableScrollEl && typeof ResizeObserver !== "undefined") {
+        tableResizeObserver = new ResizeObserver(updateScrolledToEnd)
+        tableResizeObserver.observe(tableScrollEl)
+    }
+
+    updateScrolledToEnd()
+})
+
+onBeforeUnmount(() => {
+    tableScrollEl?.removeEventListener("scroll", updateScrolledToEnd)
+    tableResizeObserver?.disconnect()
+})
+
+watch(
+    () => [props.items, props.headers],
+    () => nextTick(updateScrolledToEnd)
 )
 
 const tableHeaders = computed(() =>
@@ -556,10 +601,54 @@ watch(selectedFilters, (val) => {
     white-space: nowrap;
 }
 
+.app-table__data :deep(.v-data-table__tbody td:not(:last-child):not(:first-child):not(:has(.app-table__actions)):not(:has(.app-table__chip))) {
+    max-width: 150px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: break-word;
+}
+
 .app-table__data :deep(.v-data-table__tbody td:has(.app-table__chip)) {
     overflow: visible;
     text-overflow: clip;
     white-space: normal;
+}
+
+.app-table__data :deep(.v-data-table__tbody td:has(.app-table__chip--branch)) {
+    min-width: 140px;
+    max-width: 220px;
+}
+
+.app-table__data :deep(.v-data-table__tbody td:has(.app-table__chip--service)) {
+    min-width: 160px;
+    max-width: 260px;
+}
+
+.app-table__data :deep(.app-table__chip--branch) {
+    max-width: 200px;
+    white-space: normal;
+    height: auto;
+    min-height: 1.5rem;
+    text-align: left;
+}
+
+.app-table__data :deep(.app-table__chip--service) {
+    max-width: 240px;
+    white-space: normal;
+    height: auto;
+    min-height: 1.5rem;
+    text-align: left;
+}
+
+.app-table__data :deep(.app-table__chip--branch .v-chip__content),
+.app-table__data :deep(.app-table__chip--service .v-chip__content) {
+    white-space: normal;
+    overflow-wrap: break-word;
+    line-height: 1.2;
+    padding-block: 0.15rem;
+    text-align: left;
+    justify-content: flex-start;
 }
 
 .app-table__data :deep(.v-data-table__tbody td:has(.appointment-client-cell)) {
@@ -605,11 +694,39 @@ watch(selectedFilters, (val) => {
 
 .app-table__data :deep(.v-data-table__tbody td:has(.app-table__actions)),
 .app-table__data :deep(.v-data-table__thead th:has(.app-table__actions)) {
-    width: auto !important;
-    min-width: fit-content;
-    max-width: none !important;
+    width: v-bind(actionsColumnWidthPx) !important;
+    min-width: v-bind(actionsColumnWidthPx) !important;
+    max-width: v-bind(actionsColumnWidthPx) !important;
     white-space: nowrap;
     overflow: visible;
+    position: sticky;
+    right: 0;
+    z-index: 2;
+    transition: box-shadow 0.25s ease;
+}
+
+.app-table__data :deep(.v-data-table__thead th:has(.app-table__actions)) {
+    background: rgb(var(--v-theme-surface)) !important;
+    z-index: 3;
+    box-shadow: -8px 0 12px -4px rgba(var(--v-theme-on-surface), 0.18);
+}
+
+.app-table__data :deep(.v-data-table__tbody td:has(.app-table__actions)) {
+    background: rgb(var(--v-theme-background));
+    box-shadow: -8px 0 12px -4px rgba(var(--v-theme-on-surface), 0.14);
+}
+
+.app-table__data :deep(.v-data-table__tbody tr:nth-child(even) td:has(.app-table__actions)) {
+    background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 1.8%, rgb(var(--v-theme-background)));
+}
+
+.app-table__data :deep(.v-data-table__tbody tr:hover td:has(.app-table__actions)) {
+    background: color-mix(in srgb, rgb(var(--v-theme-primary)) 5%, rgb(var(--v-theme-background))) !important;
+}
+
+.app-table--scrolled-end .app-table__data :deep(.v-data-table__thead th:has(.app-table__actions)),
+.app-table--scrolled-end .app-table__data :deep(.v-data-table__tbody td:has(.app-table__actions)) {
+    box-shadow: none;
 }
 
 .app-table__search {
@@ -645,7 +762,7 @@ watch(selectedFilters, (val) => {
     min-width: 2rem;
     height: 1.75rem;
     padding-inline: 0.5rem;
-    border-radius: 999px;
+    border-radius: 8px;
     font-size: 0.75rem;
     font-weight: 600;
     color: rgba(var(--v-theme-on-surface), 0.72);

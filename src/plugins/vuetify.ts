@@ -4,6 +4,7 @@ import '~/assets/styles/typography.css'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { createVuetify } from 'vuetify'
+import { es } from 'vuetify/locale'
 import { VBtn } from 'vuetify/components/VBtn'
 import { createHybridIconSet } from '~/helpers/iconHelpers'
 import { VUETIFY_ICON_ALIASES } from '~/constants/vuetifyIconAliases'
@@ -29,6 +30,11 @@ export default defineNuxtPlugin(nuxtApp => {
 
   const vuetify = createVuetify({
     ssr: false,
+    locale: {
+      locale: 'es',
+      fallback: 'en',
+      messages: { es },
+    },
     components: {
       ...components,
     },
@@ -46,6 +52,9 @@ export default defineNuxtPlugin(nuxtApp => {
       }
     },
     defaults : {
+      VChip: {
+        rounded: 'lg',
+      },
       VBtn: {
         variant: 'flat',
         color: 'primary',

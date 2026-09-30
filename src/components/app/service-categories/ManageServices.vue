@@ -64,7 +64,18 @@
                 :rules="[rules.required, rules.decimal, rules.positiveNumber, rules.money]"
               />
             </v-col>
-            <v-col cols="12" md="6" class="d-flex align-center">
+            <v-col cols="12" md="6">
+              <v-select
+                v-model="serviceFormData.durationMinutes"
+                v-bind="select"
+                label="Duración"
+                :items="durationOptions"
+                item-title="label"
+                item-value="value"
+                :rules="[rules.required]"
+              />
+            </v-col>
+            <v-col cols="12" class="d-flex align-center">
               <v-switch
                 v-model="serviceFormData.isActive"
                 label="Servicio activo"
@@ -134,7 +145,7 @@
 import { computed, reactive, ref, watch } from "vue"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 
-const { field, textarea } = useFormFields()
+const { field, textarea, select } = useFormFields()
 const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } = useApiNotification()
 import type { Service } from "~/interfaces/serviceInterfaces"
 import type { serviceCategoryDataModalForm } from "~/interfaces/serviceCategoryInterfaces"
@@ -142,6 +153,25 @@ import type { serviceCategoryDataModalForm } from "~/interfaces/serviceCategoryI
 const props = defineProps<{
   dataModalForm: serviceCategoryDataModalForm
 }>()
+
+const DURATION_STEP_MINUTES = 5
+const DURATION_MIN_MINUTES = 15
+const DURATION_MAX_MINUTES = 240
+
+const formatDurationLabel = (minutes: number) => {
+  if (minutes < 60) return `${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  const remainder = minutes % 60
+  return remainder === 0 ? `${hours} h` : `${hours} h ${remainder} min`
+}
+
+const durationOptions = Array.from(
+  { length: (DURATION_MAX_MINUTES - DURATION_MIN_MINUTES) / DURATION_STEP_MINUTES + 1 },
+  (_, index) => {
+    const value = DURATION_MIN_MINUTES + index * DURATION_STEP_MINUTES
+    return { value, label: formatDurationLabel(value) }
+  }
+)
 
 const loading = ref(false)
 const services = ref<Service[]>([])
@@ -167,6 +197,7 @@ const serviceFormData = reactive<Service>({
   description: "",
   longDescription: "",
   price: null,
+  durationMinutes: 60,
   isActive: true,
 })
 
@@ -200,6 +231,7 @@ const resetServiceForm = () => {
     description: "",
     longDescription: "",
     price: null,
+    durationMinutes: 60,
     isActive: true,
   })
 }
@@ -213,7 +245,9 @@ const handleOpenCreate = () => {
 const handleOpenEdit = (service: Service) => {
   formMode.value = "edit"
   editingId.value = service.id
-  Object.assign(serviceFormData, service)
+  Object.assign(serviceFormData, service, {
+    durationMinutes: service.durationMinutes ?? 60,
+  })
 }
 
 const handleOpenDelete = (service: Service) => {
@@ -238,6 +272,7 @@ const handleCreateService = async (service: Service) => {
         longDescription: service.longDescription,
         isActive: service.isActive,
         price: service.price,
+        durationMinutes: service.durationMinutes,
         categoryId: props.dataModalForm.rowId,
       },
     })
@@ -263,6 +298,7 @@ const handleUpdateService = async (service: Service) => {
         longDescription: service.longDescription,
         isActive: service.isActive,
         price: service.price,
+        durationMinutes: service.durationMinutes,
       },
     })
     notifyUpdated("servicio")

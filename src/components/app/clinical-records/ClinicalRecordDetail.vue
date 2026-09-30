@@ -172,7 +172,6 @@
                 size="small"
                 color="warning"
                 variant="tonal"
-                rounded="pill"
                 prepend-icon="tabler:clock-exclamation"
               >
                 Fecha pasada
@@ -181,7 +180,6 @@
                 v-if="nextAppointment.status"
                 size="small"
                 variant="tonal"
-                rounded="pill"
                 :color="getAppointmentStatusColor(nextAppointment.status)"
               >
                 {{ getAppointmentStatusLabel(nextAppointment.status) }}

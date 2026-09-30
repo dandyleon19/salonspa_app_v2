@@ -23,6 +23,7 @@
             label="Fecha de la cita"
             required
             :min="getTodayDate()"
+            :disabled="isPastAppointment"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -32,6 +33,7 @@
             label="Hora de la cita"
             required
             min-now
+            :disabled="isPastAppointment"
           />
         </v-col>
         <v-col v-if="estimatedEndTimeLabel" cols="12">
@@ -45,7 +47,6 @@
           <v-chip
             :color="getAppointmentStatusColor(currentStatus)"
             variant="tonal"
-            rounded="pill"
             size="small"
           >
             {{ getAppointmentStatusLabel(currentStatus) }}
@@ -65,6 +66,37 @@
             v-bind="textarea"
             label="Notas"
             rows="2"
+          />
+        </v-col>
+      </v-row>
+    </AppFormSection>
+
+    <AppFormSection title="Adelanto" subtitle="Opcional: monto que el cliente ya dejó para esta cita">
+      <v-row dense>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model.number="appointment.depositAmount"
+            label="Monto del adelanto"
+            type="number"
+            min="0"
+            step="0.01"
+            prefix="S/"
+            variant="outlined"
+            density="comfortable"
+            rounded="lg"
+            hide-details="auto"
+            :disabled="isPastAppointment"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-select
+            v-model="appointment.depositPaymentMethod"
+            v-bind="select"
+            label="Método de pago del adelanto"
+            :items="PAYMENT_METHOD_OPTIONS"
+            item-title="label"
+            item-value="value"
+            :disabled="isPastAppointment || !appointment.depositAmount"
           />
         </v-col>
       </v-row>
@@ -211,6 +243,7 @@ import type {
   appointmentDataModalForm,
 } from "~/interfaces/appointmentInterfaces"
 import type { Client, clientDataModalForm } from "~/interfaces/clientInterfaces"
+import { PAYMENT_METHOD_OPTIONS } from "~/interfaces/salesInterfaces"
 import {
   getAppointmentStatusColor,
   getAppointmentStatusLabel,
@@ -259,15 +292,23 @@ const appointment = ref<{
   branchId: number | string | null
   serviceId: number | string | null
   notes: string
+  depositAmount: number | string | null
+  depositPaymentMethod: string | null
 }>({
   clientId: null,
   userId: null,
   branchId: null,
   serviceId: null,
   notes: "",
+  depositAmount: null,
+  depositPaymentMethod: null,
 })
 
 const isUpdateMode = computed(() => props.dataModalForm.action === "update")
+
+const isPastAppointment = computed(
+  () => isUpdateMode.value && !isDateTimeAfterNow(appointmentDate.value, appointmentTime.value)
+)
 
 const isFormLoading = useFormLoading({
   action: computed(() => props.dataModalForm.action),
@@ -386,6 +427,8 @@ const resetForm = () => {
     branchId: null,
     serviceId: null,
     notes: "",
+    depositAmount: null,
+    depositPaymentMethod: null,
   }
   currentStatus.value = undefined
   cancellationReasonDisplay.value = ""
@@ -404,6 +447,8 @@ const applyAppointment = (data: Appointment) => {
     branchId: data.branchId ?? null,
     serviceId: data.serviceId ?? null,
     notes: data.notes ?? "",
+    depositAmount: data.depositAmount ?? null,
+    depositPaymentMethod: data.depositPaymentMethod ?? null,
   }
   currentStatus.value = data.status
   cancellationReasonDisplay.value = data.cancellationReason ?? ""
@@ -434,7 +479,15 @@ const onSubmit = async () => {
   const valid = await appointmentFormRef.value?.validate()
   if (!valid.valid) return
 
-  if (!isDateTimeAfterNow(appointmentDate.value, appointmentTime.value)) {
+  if (
+    props.dataModalForm.action === "create" &&
+    !isDateTimeAfterNow(appointmentDate.value, appointmentTime.value)
+  ) {
+    notifyApiError(
+      {},
+      "agendar la cita",
+      "La fecha y hora de la cita deben ser posteriores al momento actual."
+    )
     return
   }
 
@@ -451,6 +504,11 @@ const onSubmit = async () => {
       payload.serviceId = Number(appointment.value.serviceId)
     }
 
+    if (appointment.value.depositAmount) {
+      payload.depositAmount = Number(appointment.value.depositAmount)
+      payload.depositPaymentMethod = appointment.value.depositPaymentMethod ?? "CASH"
+    }
+
     emit("create", payload)
     return
   }
@@ -464,6 +522,11 @@ const onSubmit = async () => {
 
   if (appointment.value.serviceId) {
     payload.serviceId = Number(appointment.value.serviceId)
+  }
+
+  if (appointment.value.depositAmount) {
+    payload.depositAmount = Number(appointment.value.depositAmount)
+    payload.depositPaymentMethod = appointment.value.depositPaymentMethod ?? "CASH"
   }
 
   emit("update", {

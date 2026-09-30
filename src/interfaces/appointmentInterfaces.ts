@@ -21,6 +21,9 @@ export interface Appointment {
   notes?: string
   cancellationReason?: string
   cancelledAt?: string
+  depositAmount?: number | null
+  depositPaymentMethod?: string | null
+  depositPaidAt?: string | null
   clientName?: string
   clientPhone?: string | null
   clientEmail?: string | null
@@ -35,11 +38,15 @@ export interface Appointment {
 
 export type AppointmentClientContact = Pick<
   Appointment,
+  | "id"
+  | "status"
   | "clientName"
   | "clientPhone"
   | "clientEmail"
   | "clientBirthDate"
   | "clientGender"
+  | "depositAmount"
+  | "depositPaymentMethod"
 >
 
 export interface CreateAppointmentRequest {
@@ -49,6 +56,8 @@ export interface CreateAppointmentRequest {
   serviceId?: number
   startAt: string
   notes?: string
+  depositAmount?: number
+  depositPaymentMethod?: string
 }
 
 export interface UpdateAppointmentRequest {
@@ -59,6 +68,8 @@ export interface UpdateAppointmentRequest {
   status?: AppointmentStatus
   notes?: string
   cancellationReason?: string
+  depositAmount?: number
+  depositPaymentMethod?: string
 }
 
 export interface NextAppointmentRequest {
@@ -109,7 +120,7 @@ export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
 export const APPOINTMENT_STATUS_COLORS: Record<AppointmentStatus, string> = {
   SCHEDULED: "grey",
   CONFIRMED: "primary",
-  IN_PROGRESS: "warning",
+  IN_PROGRESS: "info",
   COMPLETED: "success",
   CANCELLED: "error",
   NO_SHOW: "error",
@@ -119,8 +130,8 @@ export const APPOINTMENT_STATUS_ACTIONS: Record<
   AppointmentStatus,
   AppointmentStatus[]
 > = {
-  SCHEDULED: ["CONFIRMED", "CANCELLED"],
-  CONFIRMED: ["IN_PROGRESS", "CANCELLED", "NO_SHOW"],
+  SCHEDULED: ["CONFIRMED", "COMPLETED", "CANCELLED"],
+  CONFIRMED: ["IN_PROGRESS", "COMPLETED", "CANCELLED", "NO_SHOW"],
   IN_PROGRESS: ["COMPLETED"],
   COMPLETED: [],
   CANCELLED: [],
@@ -151,7 +162,7 @@ export const APPOINTMENT_STATUS_ACTION_COLORS: Partial<
   Record<AppointmentStatus, string>
 > = {
   CONFIRMED: "primary",
-  IN_PROGRESS: "warning",
+  IN_PROGRESS: "info",
   COMPLETED: "success",
   CANCELLED: "error",
   NO_SHOW: "error",

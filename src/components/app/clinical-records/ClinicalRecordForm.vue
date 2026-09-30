@@ -328,8 +328,6 @@ const isFormLoading = useFormLoading({
   recordLoading: loadingRecord,
 })
 
-const clinicalRecordsList = computed(() => clinicalRecordsStore.list)
-
 const filteredBranchesList = computed(() => {
   const options: { value: string | null; label: string }[] = [
     { value: null, label: "Seleccione una sucursal..." },
@@ -423,9 +421,7 @@ async function loadClinicalRecord() {
 
   try {
     loadingRecord.value = true
-    const found = clinicalRecordsList.value.find(
-      (record) => record.id == props.dataModalForm.rowId
-    )
+    const found = await clinicalRecordsStore.fetchClinicalRecordById(props.dataModalForm.rowId)
     clinicalRecord.value = { ...found } as ClinicalRecord
 
     const { date, time } = splitIsoDateTime(found?.sessionDate)
