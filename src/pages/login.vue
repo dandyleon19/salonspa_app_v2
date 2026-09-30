@@ -5,8 +5,8 @@
         <div class="login-page__brand">
           <div class="login-page__logo-wrap">
             <img
-              :src="logoMarite"
-              alt="Marité Salon & Spa"
+              :src="logoDafacha"
+              alt="Dafacha Salón & Spa"
               class="login-page__logo"
             />
           </div>
@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import logoMarite from "../assets/img/logo-marite.png"
+import logoDafacha from "../assets/img/logo-dafacha-icon.png"
 
 useHead({
   title: "Iniciar sesión",
