@@ -176,8 +176,8 @@ const getStatusActionIcon = (status: AppointmentStatus) =>
 const getStatusActionColor = (status: AppointmentStatus) =>
   APPOINTMENT_STATUS_ACTION_COLORS[status] ?? "primary"
 
-const isAppointmentTomorrow = (item: Appointment) =>
-  splitIsoDateTime(item.startAt).date === getTomorrowDate()
+const isAppointmentUpcoming = (item: Appointment) =>
+  new Date(item.startAt).getTime() > Date.now() && !isInactiveAppointmentStatus(item.status)
 
 const getAppointmentRowOptions = (
   item: Appointment & { statusActions?: AppointmentStatus[] }
@@ -192,7 +192,7 @@ const getAppointmentRowOptions = (
   )
 
   const reminderOptions: TableRowOption[] =
-    item.clientPhone && isAppointmentTomorrow(item)
+    item.clientPhone && isAppointmentUpcoming(item)
       ? [
           {
             action: "whatsapp",

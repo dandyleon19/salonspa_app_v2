@@ -1,5 +1,11 @@
 import type { Appointment } from "~/interfaces/appointmentInterfaces"
-import { formatDateDisplay, formatTimeDisplay, splitIsoDateTime } from "~/helpers/dateTimeHelpers"
+import {
+  formatDateDisplay,
+  formatTimeDisplay,
+  getTodayDate,
+  getTomorrowDate,
+  splitIsoDateTime,
+} from "~/helpers/dateTimeHelpers"
 
 const PERU_COUNTRY_CODE = "51"
 
@@ -26,9 +32,17 @@ export function buildAppointmentReminderMessage(
   const clientFirstName = appointment.clientName?.split(" ")[0] ?? ""
   const spa = salonName || "nuestro salón"
 
+  const relativeDay =
+    date === getTodayDate() ? "hoy" : date === getTomorrowDate() ? "mañana" : null
+
+  const whenLabel =
+    dateLabel && timeLabel
+      ? `${relativeDay ? `${relativeDay}, ` : "el "}${dateLabel} a las ${timeLabel}`
+      : relativeDay || "pronto"
+
   const parts = [
     `Hola${clientFirstName ? ` ${clientFirstName}` : ""}, te recordamos tu cita en ${spa}`,
-    dateLabel && timeLabel ? `mañana ${dateLabel} a las ${timeLabel}` : "mañana",
+    whenLabel,
     appointment.serviceName ? `para ${appointment.serviceName}` : "",
     ". ¡Te esperamos!",
   ]

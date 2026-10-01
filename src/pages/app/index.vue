@@ -311,7 +311,7 @@
     </v-row>
 
     <v-row class="mb-4">
-      <v-col v-if="todayBreakdownStats.length" cols="12" lg="6">
+      <v-col v-if="todayBreakdownStats.length" cols="12" :lg="showAdvancedFilters ? 6 : 12">
         <v-card class="dashboard__panel" rounded="xl" elevation="0" style="height: 100%">
           <v-card-text class="pa-4">
             <p class="text-subtitle-1 font-weight-bold mb-3">Estado de citas de hoy</p>
@@ -373,106 +373,61 @@
         </v-card>
       </v-col>
 
-      <v-col cols="12" :lg="todayBreakdownStats.length ? 6 : 12">
+      <v-col v-if="showAdvancedFilters" cols="12" :lg="todayBreakdownStats.length ? 6 : 12">
         <v-card class="dashboard__panel" rounded="xl" elevation="0" style="height: 100%">
           <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
             <div>
-              <p class="text-subtitle-1 font-weight-bold mb-0">Recordatorios de mañana</p>
+              <p class="text-subtitle-1 font-weight-bold mb-0">Productos con stock bajo</p>
               <p class="text-body-2 text-medium-emphasis mb-0">
-                {{ tomorrowDateLabel }} · envío manual por WhatsApp
+                Stock en o por debajo de la alerta configurada
               </p>
             </div>
+            <v-btn to="/app/product-categories" variant="text" color="primary" size="small">
+              Ver productos
+            </v-btn>
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
             <AppSkeletonTransition>
               <v-skeleton-loader
-                v-if="remindersLoading"
-                key="dashboard-reminders-skeleton"
+                v-if="lowStockLoading"
+                key="dashboard-low-stock-skeleton"
                 type="list-item-two-line@3"
               />
               <div
-                v-else-if="!tomorrowAppointments.length"
-                key="dashboard-reminders-empty"
+                v-else-if="!lowStockProducts.length"
+                key="dashboard-low-stock-empty"
                 class="dashboard__empty"
               >
                 <p class="text-body-2 text-medium-emphasis mb-0">
-                  No hay citas programadas para mañana
+                  Todos los productos activos tienen stock suficiente
                 </p>
               </div>
               <div
                 v-else
-                key="dashboard-reminders-content"
+                key="dashboard-low-stock-content"
                 class="d-flex flex-column ga-2"
               >
-                <DashboardReminderItem
-                  v-for="appointment in tomorrowAppointments"
-                  :key="appointment.id"
-                  :appointment="appointment"
-                  :time-label="formatAppointmentTimeRange(appointment)"
-                  :salon-name="salonName"
-                  :sent="sentReminderIds.has(appointment.id!)"
-                  @sent="markReminderSent"
-                />
+                <div
+                  v-for="product in lowStockProducts"
+                  :key="product.id"
+                  class="dashboard-low-stock-item"
+                >
+                  <span class="text-body-2 font-weight-medium">{{ product.name }}</span>
+                  <v-chip
+                    size="small"
+                    variant="tonal"
+                    :color="getProductStockStatusColor(getProductStockStatus(product))"
+                  >
+                    {{ getProductStockStatusLabel(product) }}
+                  </v-chip>
+                </div>
               </div>
             </AppSkeletonTransition>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
-
-    <v-card v-if="showAdvancedFilters" class="dashboard__panel mb-4" rounded="xl" elevation="0">
-      <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
-        <div>
-          <p class="text-subtitle-1 font-weight-bold mb-0">Productos con stock bajo</p>
-          <p class="text-body-2 text-medium-emphasis mb-0">
-            Stock en o por debajo de la alerta configurada
-          </p>
-        </div>
-        <v-btn to="/app/product-categories" variant="text" color="primary" size="small">
-          Ver productos
-        </v-btn>
-      </v-card-title>
-      <v-divider />
-      <v-card-text class="pa-4">
-        <AppSkeletonTransition>
-          <v-skeleton-loader
-            v-if="lowStockLoading"
-            key="dashboard-low-stock-skeleton"
-            type="list-item-two-line@3"
-          />
-          <div
-            v-else-if="!lowStockProducts.length"
-            key="dashboard-low-stock-empty"
-            class="dashboard__empty"
-          >
-            <p class="text-body-2 text-medium-emphasis mb-0">
-              Todos los productos activos tienen stock suficiente
-            </p>
-          </div>
-          <div
-            v-else
-            key="dashboard-low-stock-content"
-            class="d-flex flex-column ga-2"
-          >
-            <div
-              v-for="product in lowStockProducts"
-              :key="product.id"
-              class="dashboard-low-stock-item"
-            >
-              <span class="text-body-2 font-weight-medium">{{ product.name }}</span>
-              <v-chip
-                size="small"
-                variant="tonal"
-                :color="getProductStockStatusColor(getProductStockStatus(product))"
-              >
-                {{ getProductStockStatusLabel(product) }}
-              </v-chip>
-            </div>
-          </div>
-        </AppSkeletonTransition>
-      </v-card-text>
-    </v-card>
 
     <v-row>
       <v-col cols="12" lg="7">
@@ -566,7 +521,11 @@
                   :key="appointment.id ?? `${appointment.startAt}-${appointment.clientId}`"
                   :appointment="appointment"
                   :time-label="formatUpcomingAppointmentLabel(appointment)"
+                  :salon-name="salonName"
+                  :sent="sentReminderIds.has(appointment.id!)"
+                  :show-reminder-action="true"
                   @open-client-contact="openClientContact"
+                  @sent="markReminderSent"
                 />
               </div>
             </AppSkeletonTransition>
@@ -663,7 +622,6 @@ import type { DashboardFilters } from "~/interfaces/dashboardInterfaces"
 import { useAuthStore } from "~/store/modules/auth"
 import { useProductsStore } from "~/store/modules/product"
 import {
-  useAppointmentsStore,
   useBranchesStore,
   useDashboardStore,
   useSalesStore,
@@ -683,7 +641,6 @@ import {
   formatDateDisplay,
   formatTimeDisplay,
   getTodayDate,
-  getTomorrowDate,
   splitIsoDateTime,
 } from "~/helpers/dateTimeHelpers"
 import { formatCurrency, getMonthDateRange } from "~/helpers/salesHelpers"
@@ -700,7 +657,6 @@ const dashboardStore = useDashboardStore()
 const branchesStore = useBranchesStore()
 const usersStore = useUsersStore()
 const salesStore = useSalesStore()
-const remindersStore = useAppointmentsStore()
 const lowStockProductsStore = useProductsStore()
 
 const filterBranchId = ref<number | null>(null)
@@ -710,15 +666,7 @@ const activeFilters = ref<DashboardFilters>({ date: getTodayDate() })
 const showClientContactModal = ref(false)
 const selectedClientAppointment = ref<Appointment | null>(null)
 
-const remindersLoading = ref(true)
 const sentReminderIds = ref(new Set<number | string>())
-const tomorrowAppointments = computed(() =>
-  (remindersStore.data?.content ?? []).filter(
-    (appointment) =>
-      appointment.status !== "CANCELLED" && appointment.status !== "NO_SHOW"
-  )
-)
-const tomorrowDateLabel = computed(() => formatDateDisplay(getTomorrowDate()))
 
 const loading = computed(() => dashboardStore.loading)
 const dashboardData = computed(() => dashboardStore.data)
@@ -1068,15 +1016,6 @@ const openClientContact = (appointment: Appointment) => {
   showClientContactModal.value = true
 }
 
-const fetchReminders = async () => {
-  remindersLoading.value = true
-  try {
-    await remindersStore.fetchAppointments(0, 50, { date: getTomorrowDate() })
-  } finally {
-    remindersLoading.value = false
-  }
-}
-
 const markReminderSent = (appointment: Appointment) => {
   if (appointment.id == null) return
   sentReminderIds.value.add(appointment.id)
@@ -1144,7 +1083,6 @@ onMounted(async () => {
     fetchDashboard(),
     loadFilterOptions(),
     fetchSalesSummary(),
-    fetchReminders(),
     fetchLowStockProducts(),
   ])
 })

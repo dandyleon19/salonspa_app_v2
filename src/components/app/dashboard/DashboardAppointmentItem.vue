@@ -33,14 +33,28 @@
         </p>
       </div>
 
-      <v-chip
-        v-if="appointment.status"
-        size="small"
-        variant="tonal"
-        :color="getAppointmentStatusColor(appointment.status)"
-      >
-        {{ getAppointmentStatusLabel(appointment.status) }}
-      </v-chip>
+      <div class="d-flex flex-column align-end ga-2">
+        <v-chip
+          v-if="appointment.status"
+          size="small"
+          variant="tonal"
+          :color="getAppointmentStatusColor(appointment.status)"
+        >
+          {{ getAppointmentStatusLabel(appointment.status) }}
+        </v-chip>
+
+        <v-btn
+          v-if="showReminderAction && whatsAppLink"
+          :color="sent ? 'success' : 'primary'"
+          :variant="sent ? 'tonal' : 'flat'"
+          size="small"
+          rounded="lg"
+          :prepend-icon="sent ? 'tabler:check' : 'tabler:brand-whatsapp'"
+          @click="handleSend"
+        >
+          {{ sent ? "Enviado" : "Recordar" }}
+        </v-btn>
+      </div>
     </div>
 
     <div class="d-flex flex-wrap ga-2 mt-2">
@@ -65,20 +79,36 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
 import type { Appointment } from "~/interfaces/appointmentInterfaces"
 import {
   getAppointmentStatusColor,
   getAppointmentStatusLabel,
 } from "~/interfaces/appointmentInterfaces"
+import { buildWhatsAppReminderLink } from "~/helpers/whatsappHelpers"
 
-defineProps<{
+const props = defineProps<{
   appointment: Appointment
   timeLabel: string
+  salonName?: string | null
+  sent?: boolean
+  showReminderAction?: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: "openClientContact", appointment: Appointment): void
+  (e: "sent", appointment: Appointment): void
 }>()
+
+const whatsAppLink = computed(() =>
+  buildWhatsAppReminderLink(props.appointment, props.salonName)
+)
+
+const handleSend = () => {
+  if (!whatsAppLink.value) return
+  window.open(whatsAppLink.value, "_blank", "noopener")
+  emit("sent", props.appointment)
+}
 </script>
 
 <style scoped>
