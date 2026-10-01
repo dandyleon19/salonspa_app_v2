@@ -59,6 +59,8 @@ definePageMeta({
   allowedRoles: ['SUPER_ADMIN', 'ADMIN_USER'],
 })
 
+useHead({ title: "Sucursales" })
+
 // Composables
 const branchesStore = useBranchesStore()
 const authStore = useAuthStore()

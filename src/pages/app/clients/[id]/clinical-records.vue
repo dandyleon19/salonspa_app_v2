@@ -197,6 +197,10 @@ definePageMeta({
   layout: "app",
 })
 
+useHead({
+  title: () => (patientFullName.value ? `Historial Clínico - ${patientFullName.value}` : "Historial Clínico"),
+})
+
 const route = useRoute()
 const clientId = Number(route.params.id)
 const authStore = useAuthStore()

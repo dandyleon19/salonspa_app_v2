@@ -346,6 +346,8 @@ definePageMeta({
   layout: "app",
 })
 
+useHead({ title: "Reportes" })
+
 const salesStore = useSalesStore()
 const branchesStore = useBranchesStore()
 const usersStore = useUsersStore()

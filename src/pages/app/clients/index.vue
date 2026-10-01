@@ -75,6 +75,8 @@ definePageMeta({
   allowedRoles: ['ADMIN_USER'],
 })
 
+useHead({ title: "Clientes" })
+
 // Composables
 const clientsStore = useClientsStore();
 const router = useRouter()

@@ -100,6 +100,8 @@ definePageMeta({
   allowedRoles: ["ADMIN_USER"],
 })
 
+useHead({ title: "Configuración" })
+
 const authStore = useAuthStore()
 const { field } = useFormFields()
 const { notifyUpdated, notifyDeleted, notifyError } = useApiNotification()

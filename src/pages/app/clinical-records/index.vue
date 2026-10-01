@@ -51,6 +51,8 @@ definePageMeta({
   layout: 'app'
 })
 
+useHead({ title: "Historiales Clínicos" })
+
 // Composables
 const clinicalRecordsStore = useClinicalRecordsStore();
 const authStore = useAuthStore();

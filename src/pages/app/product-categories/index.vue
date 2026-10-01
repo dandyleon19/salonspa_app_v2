@@ -78,6 +78,8 @@ definePageMeta({
   allowedRoles: ['ADMIN_USER'],
 })
 
+useHead({ title: "Categorías de Producto" })
+
 // Composables
 const productCategoriesStore = useProductCategoriesStore();
 

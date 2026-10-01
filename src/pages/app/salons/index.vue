@@ -67,6 +67,8 @@ definePageMeta({
   allowedRoles: ['SUPER_ADMIN'],
 })
 
+useHead({ title: "Salones" })
+
 // Composables
 const salonsStore = useSalonsStore();
 

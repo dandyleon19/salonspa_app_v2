@@ -106,6 +106,8 @@ definePageMeta({
   allowedRoles: ['SUPER_ADMIN', 'ADMIN_USER'],
 })
 
+useHead({ title: "Usuarios" })
+
 const usersStore = useUsersStore()
 const authStore = useAuthStore()
 

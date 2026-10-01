@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 useHead({
-  titleTemplate: "%s - Marité Salon & Spa",
+  titleTemplate: "%s - SalonSpa",
 })
 </script>
 

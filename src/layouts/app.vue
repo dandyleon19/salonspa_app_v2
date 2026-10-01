@@ -13,6 +13,16 @@
 
 <script setup lang="ts">
 import NavBar from "~/components/app/shared/NavBar.vue"
+import { useAuthStore } from "~/store/modules/auth"
+
+const authStore = useAuthStore()
+
+useHead({
+  titleTemplate: (title) => {
+    const salonName = authStore.user?.salonName || "SalonSpa"
+    return title ? `${title} - ${salonName}` : salonName
+  },
+})
 </script>
 
 <style scoped>

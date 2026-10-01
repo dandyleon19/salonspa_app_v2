@@ -70,6 +70,8 @@ definePageMeta({
   layout: "app",
 })
 
+useHead({ title: "Citas" })
+
 const route = useRoute()
 const appointmentsStore = useAppointmentsStore()
 

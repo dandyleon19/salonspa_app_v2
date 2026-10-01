@@ -692,6 +692,8 @@ definePageMeta({
   layout: "app",
 })
 
+useHead({ title: "Dashboard" })
+
 const authStore = useAuthStore()
 const dashboardStore = useDashboardStore()
 const branchesStore = useBranchesStore()
