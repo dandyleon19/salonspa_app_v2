@@ -310,115 +310,116 @@
       </v-col>
     </v-row>
 
-    <v-card
-      v-if="todayBreakdownStats.length"
-      class="dashboard__panel mb-4"
-      rounded="xl"
-      elevation="0"
-    >
-      <v-card-text class="pa-4">
-        <p class="text-subtitle-1 font-weight-bold mb-3">Estado de citas de hoy</p>
+    <v-row class="mb-4">
+      <v-col v-if="todayBreakdownStats.length" cols="12" lg="6">
+        <v-card class="dashboard__panel" rounded="xl" elevation="0" style="height: 100%">
+          <v-card-text class="pa-4">
+            <p class="text-subtitle-1 font-weight-bold mb-3">Estado de citas de hoy</p>
 
-        <AppSkeletonTransition>
-          <v-skeleton-loader
-            v-if="loading"
-            key="dashboard-status-bar-skeleton"
-            type="image"
-            height="22"
-          />
-          <div v-else key="dashboard-status-bar-content">
-            <div v-if="todayBreakdownTotal > 0" class="dashboard-status-bar">
-              <v-tooltip
-                v-for="(segment, index) in nonZeroBreakdownStats"
-                :key="segment.key"
-                location="top"
-              >
-                <template #activator="{ props }">
+            <AppSkeletonTransition>
+              <v-skeleton-loader
+                v-if="loading"
+                key="dashboard-status-bar-skeleton"
+                type="image"
+                height="22"
+              />
+              <div v-else key="dashboard-status-bar-content">
+                <div v-if="todayBreakdownTotal > 0" class="dashboard-status-bar">
+                  <v-tooltip
+                    v-for="(segment, index) in nonZeroBreakdownStats"
+                    :key="segment.key"
+                    location="top"
+                  >
+                    <template #activator="{ props }">
+                      <div
+                        v-bind="props"
+                        class="dashboard-status-bar__segment"
+                        :class="`bg-${segment.color}`"
+                        :style="{
+                          flexGrow: segment.value,
+                          borderTopLeftRadius: index === 0 ? '4px' : 0,
+                          borderBottomLeftRadius: index === 0 ? '4px' : 0,
+                          borderTopRightRadius:
+                            index === nonZeroBreakdownStats.length - 1 ? '4px' : 0,
+                          borderBottomRightRadius:
+                            index === nonZeroBreakdownStats.length - 1 ? '4px' : 0,
+                        }"
+                      />
+                    </template>
+                    {{ segment.label }}: {{ segment.value }}
+                  </v-tooltip>
+                </div>
+                <p v-else class="text-body-2 text-medium-emphasis mb-0 text-center">
+                  Sin citas registradas hoy
+                </p>
+
+                <div
+                  class="dashboard-status-bar__legend mt-3"
+                  :class="{ 'dashboard-status-bar__legend--center': !todayBreakdownTotal }"
+                >
                   <div
-                    v-bind="props"
-                    class="dashboard-status-bar__segment"
-                    :class="`bg-${segment.color}`"
-                    :style="{
-                      flexGrow: segment.value,
-                      borderTopLeftRadius: index === 0 ? '4px' : 0,
-                      borderBottomLeftRadius: index === 0 ? '4px' : 0,
-                      borderTopRightRadius:
-                        index === nonZeroBreakdownStats.length - 1 ? '4px' : 0,
-                      borderBottomRightRadius:
-                        index === nonZeroBreakdownStats.length - 1 ? '4px' : 0,
-                    }"
-                  />
-                </template>
-                {{ segment.label }}: {{ segment.value }}
-              </v-tooltip>
-            </div>
-            <p v-else class="text-body-2 text-medium-emphasis mb-0 text-center">
-              Sin citas registradas hoy
-            </p>
-
-            <div
-              class="dashboard-status-bar__legend mt-3"
-              :class="{ 'dashboard-status-bar__legend--center': !todayBreakdownTotal }"
-            >
-              <div
-                v-for="stat in todayBreakdownStats"
-                :key="stat.key"
-                class="dashboard-status-bar__legend-item"
-              >
-                <span class="dashboard-status-bar__dot" :class="`bg-${stat.color}`" />
-                <span class="text-body-2 text-medium-emphasis">{{ stat.label }}</span>
-                <span class="text-body-2 font-weight-bold">{{ stat.value }}</span>
+                    v-for="stat in todayBreakdownStats"
+                    :key="stat.key"
+                    class="dashboard-status-bar__legend-item"
+                  >
+                    <span class="dashboard-status-bar__dot" :class="`bg-${stat.color}`" />
+                    <span class="text-body-2 text-medium-emphasis">{{ stat.label }}</span>
+                    <span class="text-body-2 font-weight-bold">{{ stat.value }}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </AppSkeletonTransition>
-      </v-card-text>
-    </v-card>
+            </AppSkeletonTransition>
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-    <v-card class="dashboard__panel mb-4" rounded="xl" elevation="0">
-      <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
-        <div>
-          <p class="text-subtitle-1 font-weight-bold mb-0">Recordatorios de mañana</p>
-          <p class="text-body-2 text-medium-emphasis mb-0">
-            {{ tomorrowDateLabel }} · envío manual por WhatsApp
-          </p>
-        </div>
-      </v-card-title>
-      <v-divider />
-      <v-card-text class="pa-4">
-        <AppSkeletonTransition>
-          <v-skeleton-loader
-            v-if="remindersLoading"
-            key="dashboard-reminders-skeleton"
-            type="list-item-two-line@3"
-          />
-          <div
-            v-else-if="!tomorrowAppointments.length"
-            key="dashboard-reminders-empty"
-            class="dashboard__empty"
-          >
-            <p class="text-body-2 text-medium-emphasis mb-0">
-              No hay citas programadas para mañana
-            </p>
-          </div>
-          <div
-            v-else
-            key="dashboard-reminders-content"
-            class="d-flex flex-column ga-2"
-          >
-            <DashboardReminderItem
-              v-for="appointment in tomorrowAppointments"
-              :key="appointment.id"
-              :appointment="appointment"
-              :time-label="formatAppointmentTimeRange(appointment)"
-              :salon-name="salonName"
-              :sent="sentReminderIds.has(appointment.id!)"
-              @sent="markReminderSent"
-            />
-          </div>
-        </AppSkeletonTransition>
-      </v-card-text>
-    </v-card>
+      <v-col cols="12" :lg="todayBreakdownStats.length ? 6 : 12">
+        <v-card class="dashboard__panel" rounded="xl" elevation="0" style="height: 100%">
+          <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
+            <div>
+              <p class="text-subtitle-1 font-weight-bold mb-0">Recordatorios de mañana</p>
+              <p class="text-body-2 text-medium-emphasis mb-0">
+                {{ tomorrowDateLabel }} · envío manual por WhatsApp
+              </p>
+            </div>
+          </v-card-title>
+          <v-divider />
+          <v-card-text class="pa-4">
+            <AppSkeletonTransition>
+              <v-skeleton-loader
+                v-if="remindersLoading"
+                key="dashboard-reminders-skeleton"
+                type="list-item-two-line@3"
+              />
+              <div
+                v-else-if="!tomorrowAppointments.length"
+                key="dashboard-reminders-empty"
+                class="dashboard__empty"
+              >
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  No hay citas programadas para mañana
+                </p>
+              </div>
+              <div
+                v-else
+                key="dashboard-reminders-content"
+                class="d-flex flex-column ga-2"
+              >
+                <DashboardReminderItem
+                  v-for="appointment in tomorrowAppointments"
+                  :key="appointment.id"
+                  :appointment="appointment"
+                  :time-label="formatAppointmentTimeRange(appointment)"
+                  :salon-name="salonName"
+                  :sent="sentReminderIds.has(appointment.id!)"
+                  @sent="markReminderSent"
+                />
+              </div>
+            </AppSkeletonTransition>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <v-card v-if="showAdvancedFilters" class="dashboard__panel mb-4" rounded="xl" elevation="0">
       <v-card-title class="d-flex align-center justify-space-between py-4 px-5">
