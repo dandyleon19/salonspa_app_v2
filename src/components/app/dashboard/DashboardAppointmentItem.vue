@@ -54,6 +54,12 @@
         >
           {{ sent ? "Enviado" : "Recordar" }}
         </v-btn>
+        <span
+          v-else-if="showReminderAction"
+          class="text-caption text-medium-emphasis"
+        >
+          Sin número
+        </span>
       </div>
     </div>
 
