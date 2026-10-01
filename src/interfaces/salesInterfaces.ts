@@ -4,9 +4,11 @@ export type PaymentMethod = "CASH" | "CARD" | "TRANSFER" | "YAPE" | "PLIN" | "OT
 export interface SaleItem {
   id?: number
   saleId?: number
-  serviceId: number
+  serviceId?: number | null
   serviceName?: string
-  userId: number
+  productId?: number | null
+  productName?: string
+  userId?: number | null
   userName?: string
   quantity: number
   unitPrice: number
@@ -112,8 +114,9 @@ export interface CreateSalePaymentPayload {
 }
 
 export interface CreateSaleItemPayload {
-  serviceId: number
-  userId: number
+  serviceId?: number
+  productId?: number
+  userId?: number
   quantity: number
   unitPrice?: number
   discountAmount?: number
@@ -204,6 +207,10 @@ export function getSalePendingAmount(
 
 export function getSaleSoldAt(sale?: Pick<Sale, "soldAt" | "createdAt"> | null): string | undefined {
   return sale?.soldAt ?? sale?.createdAt
+}
+
+export function getSaleItemLabel(item: SaleItem): string {
+  return item.serviceName ?? item.productName ?? "—"
 }
 
 export function getSaleItemTotal(item: SaleItem): number {

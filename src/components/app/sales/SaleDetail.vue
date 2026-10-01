@@ -38,20 +38,20 @@
 
     <v-card class="sale-detail__section mb-4" rounded="lg" elevation="0">
       <v-card-title class="text-subtitle-2 font-weight-bold py-3 px-4">
-        Servicios
+        Servicios y productos
       </v-card-title>
       <v-divider />
       <v-list density="compact" class="py-0">
         <v-list-item
           v-for="(item, index) in sale.items ?? []"
-          :key="item.id ?? `${item.serviceId}-${index}`"
+          :key="item.id ?? `${item.serviceId ?? item.productId}-${index}`"
         >
           <v-list-item-title class="text-body-2 font-weight-medium">
-            {{ item.serviceName || `Servicio #${item.serviceId}` }}
+            {{ getSaleItemLabel(item) }}
           </v-list-item-title>
           <v-list-item-subtitle>
-            {{ item.userName || `Prof. #${item.userId}` }}
-            · Cant. {{ item.quantity }}
+            <template v-if="item.serviceId">{{ item.userName || `Prof. #${item.userId}` }} · </template>
+            Cant. {{ item.quantity }}
             · {{ formatCurrency(item.unitPrice) }}
           </v-list-item-subtitle>
           <template #append>
@@ -131,6 +131,7 @@ import type { Sale } from "~/interfaces/salesInterfaces"
 import {
   getPaymentMethodLabel,
   getSaleAmountPaid,
+  getSaleItemLabel,
   getSaleItemTotal,
   getSalePendingAmount,
   getSaleSoldAt,

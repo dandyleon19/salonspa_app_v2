@@ -45,8 +45,6 @@
                 item-value="value"
                 clearable
                 no-data-text="Sin coincidencias"
-                hint="¿Cliente nuevo? Créalo aquí sin salir de esta pantalla"
-                persistent-hint
                 :rules="[rules.required]"
                 class="sale-form__client-input"
               />
@@ -110,11 +108,6 @@
               rows="2"
             />
           </v-col>
-          <v-col v-if="sale.clientId && clientSalonId" cols="12">
-            <p class="text-caption text-medium-emphasis mb-0">
-              Solo se muestran sucursales y servicios del mismo salón que el cliente seleccionado.
-            </p>
-          </v-col>
         </v-row>
       </AppFormSection>
 
@@ -131,7 +124,6 @@
               <div class="d-flex justify-space-between align-center mb-3">
                 <span class="text-subtitle-2 font-weight-bold">Servicio {{ index + 1 }}</span>
                 <v-btn
-                  v-if="sale.items.length > 1"
                   icon="tabler:trash"
                   variant="text"
                   size="small"
@@ -184,8 +176,6 @@
                     type="number"
                     min="0"
                     step="0.01"
-                    hint="Vacío = precio del catálogo"
-                    persistent-hint
                     :rules="[rules.positiveNumber]"
                   />
                 </v-col>
@@ -213,6 +203,90 @@
           >
             <v-icon start>tabler:plus</v-icon>
             Agregar servicio
+          </v-btn>
+        </div>
+      </AppFormSection>
+
+      <AppFormSection title="Productos" subtitle="Agrega productos vendidos en esta venta (opcional)">
+        <div class="d-flex flex-column ga-3">
+          <v-card
+            v-for="(item, index) in sale.productItems"
+            :key="item.key"
+            class="sale-form__item-card"
+            rounded="lg"
+            elevation="0"
+          >
+            <v-card-text class="pa-4">
+              <div class="d-flex justify-space-between align-center mb-3">
+                <span class="text-subtitle-2 font-weight-bold">Producto {{ index + 1 }}</span>
+                <v-btn
+                  icon="tabler:trash"
+                  variant="text"
+                  size="small"
+                  color="error"
+                  @click="removeProductItem(index)"
+                />
+              </div>
+              <v-row dense>
+                <v-col cols="12" md="6">
+                  <v-autocomplete
+                    v-model="item.productId"
+                    v-bind="autocomplete"
+                    label="Producto"
+                    :items="productsAutocompleteList"
+                    item-title="label"
+                    item-value="value"
+                    :disabled="!sale.clientId"
+                    clearable
+                    no-data-text="Sin coincidencias"
+                    @update:model-value="applyProductPrice(item)"
+                  />
+                </v-col>
+                <v-col cols="12" sm="4" md="2">
+                  <v-text-field
+                    v-model.number="item.quantity"
+                    v-bind="field"
+                    label="Cantidad"
+                    type="number"
+                    min="1"
+                    :rules="[rules.positiveNumber, productStockRule(item)]"
+                  />
+                </v-col>
+                <v-col cols="12" sm="4" md="2">
+                  <v-text-field
+                    v-model.number="item.unitPrice"
+                    v-bind="field"
+                    label="Precio unitario"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    :rules="[rules.positiveNumber]"
+                  />
+                </v-col>
+                <v-col cols="12" sm="4" md="2">
+                  <v-text-field
+                    v-model.number="item.discountAmount"
+                    v-bind="field"
+                    label="Descuento ítem"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    :rules="[rules.positiveNumber]"
+                  />
+                </v-col>
+              </v-row>
+            </v-card-text>
+          </v-card>
+
+          <v-btn
+            variant="tonal"
+            color="primary"
+            rounded="lg"
+            :disabled="!sale.clientId"
+            @click="addProductItem"
+          >
+            <v-icon start>tabler:plus</v-icon>
+            Agregar producto
           </v-btn>
         </div>
       </AppFormSection>
@@ -249,8 +323,6 @@
                     type="number"
                     min="0.01"
                     step="0.01"
-                    hint="Se sugiere el saldo pendiente al agregar el pago"
-                    persistent-hint
                     :rules="[rules.required, rules.positiveNumber]"
                   />
                 </v-col>
@@ -291,7 +363,7 @@
         rounded="lg"
         class="mb-4"
       >
-        Subtotal de servicios:
+        Subtotal:
         <strong>{{ formatCurrency(estimatedItemsSubtotal) }}</strong>
         <span v-if="sale.discountAmount">
           · Descuento general: <strong>{{ formatCurrency(sale.discountAmount) }}</strong>
@@ -377,6 +449,7 @@ import type {
 import { PAYMENT_METHOD_OPTIONS } from "~/interfaces/salesInterfaces"
 import { useBranchesStore, useClientsStore, useUsersStore } from "~/store"
 import { useServicesStore } from "~/store/modules/service"
+import { useProductsStore } from "~/store/modules/product"
 
 const { error: notifyError } = useNotification()
 const { notifyCreated, notifyError: notifyApiError } = useApiNotification()
@@ -387,6 +460,7 @@ const branchesStore = useBranchesStore()
 const clientsStore = useClientsStore()
 const usersStore = useUsersStore()
 const servicesStore = useServicesStore()
+const productsStore = useProductsStore()
 
 const props = defineProps<{
   dataModalForm: saleDataModalForm
@@ -398,6 +472,7 @@ const emit = defineEmits<{
 }>()
 
 type SaleItemForm = CreateSaleItemPayload & { key: string }
+type SaleProductItemForm = CreateSaleItemPayload & { key: string }
 type SalePaymentForm = CreateSalePaymentPayload & { key: string }
 
 const isValid = ref(false)
@@ -431,6 +506,14 @@ const createItem = (): SaleItemForm => ({
   discountAmount: 0,
 })
 
+const createProductItem = (): SaleProductItemForm => ({
+  key: nextKey(),
+  productId: null as unknown as number,
+  quantity: 1,
+  unitPrice: undefined,
+  discountAmount: 0,
+})
+
 const createPayment = (amount?: number): SalePaymentForm => ({
   key: nextKey(),
   amount: amount ?? (null as unknown as number),
@@ -444,13 +527,14 @@ const sale = ref({
   appointmentId: null as number | null,
   discountAmount: null as number | null,
   notes: "",
-  items: [createItem()] as SaleItemForm[],
+  items: [] as SaleItemForm[],
+  productItems: [] as SaleProductItemForm[],
   payments: [] as SalePaymentForm[],
 })
 
 const isFormLoading = useFormLoading({
   action: computed(() => props.dataModalForm.action),
-  stores: [branchesStore, clientsStore, usersStore, servicesStore],
+  stores: [branchesStore, clientsStore, usersStore, servicesStore, productsStore],
 })
 
 const paymentMethodItems = PAYMENT_METHOD_OPTIONS.map((option) => ({
@@ -527,6 +611,28 @@ const clientsAutocompleteList = computed(() =>
 
 const servicesAutocompleteList = computed(() =>
   servicesList.value.filter((option) => option.value != null)
+)
+
+const productsList = computed(() => {
+  const options: { value: string | number | null; label: string }[] = [
+    { value: null, label: "Seleccione un producto..." },
+  ]
+  productsStore.products
+    .filter((product) => belongsToSalon(product, clientSalonId.value))
+    .forEach((product) => {
+      const priceLabel =
+        product.price != null ? ` · ${formatCurrency(product.price)}` : ""
+      const stockLabel = ` · Stock: ${product.stockQuantity ?? 0}`
+      options.push({
+        value: product.id ?? null,
+        label: `${product.name}${priceLabel}${stockLabel}`,
+      })
+    })
+  return options
+})
+
+const productsAutocompleteList = computed(() =>
+  productsList.value.filter((option) => option.value != null)
 )
 
 const appointmentsAutocompleteList = computed(() =>
@@ -647,16 +753,18 @@ const applyAppointmentFields = (appointment: Appointment) => {
     })
   }
 
-  const firstItem = sale.value.items[0]
-  if (!firstItem) return
-
   if (appointment.serviceId) {
+    if (!sale.value.items.length) {
+      sale.value.items.push(createItem())
+    }
+    const firstItem = sale.value.items[0]
+
     firstItem.serviceId = Number(appointment.serviceId)
     applyServicePrice(firstItem)
-  }
 
-  if (appointment.userId) {
-    firstItem.userId = Number(appointment.userId)
+    if (appointment.userId) {
+      firstItem.userId = Number(appointment.userId)
+    }
   }
 }
 
@@ -706,15 +814,48 @@ const applyServicePrice = (item: SaleItemForm) => {
   }
 }
 
-const estimatedItemsSubtotal = computed(() =>
-  sale.value.items.reduce((total, item) => {
+const getProductById = (productId: number | string | null | undefined) =>
+  productsStore.products.find(
+    (product) => String(product.id) === String(productId)
+  ) ?? null
+
+const applyProductPrice = (item: SaleProductItemForm) => {
+  const product = getProductById(item.productId)
+  if (product?.price != null) {
+    item.unitPrice = Number(product.price)
+  }
+}
+
+const productStockRule = (item: SaleProductItemForm) => (value: number) => {
+  const product = getProductById(item.productId)
+  if (!product) return true
+
+  const stock = product.stockQuantity ?? 0
+  if (Number(value) > stock) {
+    return stock > 0 ? `Solo hay ${stock} disponibles` : "Sin stock disponible"
+  }
+  return true
+}
+
+const estimatedItemsSubtotal = computed(() => {
+  const servicesSubtotal = sale.value.items.reduce((total, item) => {
     const service = getServiceById(item.serviceId)
     const unitPrice = item.unitPrice ?? service?.price ?? 0
     const quantity = Number(item.quantity) || 0
     const discount = Number(item.discountAmount) || 0
     return total + Math.max(0, unitPrice * quantity - discount)
   }, 0)
-)
+
+  const productsSubtotal = sale.value.productItems.reduce((total, item) => {
+    const product = getProductById(item.productId)
+    const unitPrice = item.unitPrice ?? product?.price ?? 0
+    const quantity = Number(item.quantity) || 0
+    const discount = Number(item.discountAmount) || 0
+    return total + Math.max(0, unitPrice * quantity - discount)
+  }, 0)
+
+  return servicesSubtotal + productsSubtotal
+})
 
 const estimatedSaleTotal = computed(() =>
   Math.max(
@@ -742,6 +883,14 @@ const removeItem = (index: number) => {
   sale.value.items.splice(index, 1)
 }
 
+const addProductItem = () => {
+  sale.value.productItems.push(createProductItem())
+}
+
+const removeProductItem = (index: number) => {
+  sale.value.productItems.splice(index, 1)
+}
+
 const addPayment = () => {
   const suggestedAmount = Number(
     Math.max(0, estimatedSaleTotal.value - totalPayments.value).toFixed(2)
@@ -765,7 +914,8 @@ const resetForm = () => {
     appointmentId: null,
     discountAmount: null,
     notes: "",
-    items: [createItem()],
+    items: [],
+    productItems: [],
     payments: [],
   }
   saleFormRef.value?.resetValidation()
@@ -775,6 +925,23 @@ const buildItemPayload = (item: SaleItemForm): CreateSaleItemPayload => {
   const payload: CreateSaleItemPayload = {
     serviceId: Number(item.serviceId),
     userId: Number(item.userId),
+    quantity: Number(item.quantity),
+  }
+
+  if (item.unitPrice != null && Number(item.unitPrice) >= 0) {
+    payload.unitPrice = Number(item.unitPrice)
+  }
+
+  if (item.discountAmount != null && Number(item.discountAmount) > 0) {
+    payload.discountAmount = Number(item.discountAmount)
+  }
+
+  return payload
+}
+
+const buildProductItemPayload = (item: SaleProductItemForm): CreateSaleItemPayload => {
+  const payload: CreateSaleItemPayload = {
+    productId: Number(item.productId),
     quantity: Number(item.quantity),
   }
 
@@ -807,6 +974,11 @@ const getValidItems = () =>
       Number(item.quantity) > 0
   )
 
+const getValidProductItems = () =>
+  sale.value.productItems.filter(
+    (item) => item.productId != null && Number(item.quantity) > 0
+  )
+
 const getValidPayments = () =>
   sale.value.payments.filter((payment) => Number(payment.amount) > 0)
 
@@ -815,8 +987,12 @@ const onSubmit = async () => {
   if (!valid?.valid) return
 
   const validItems = getValidItems()
-  if (!validItems.length) {
-    notifyError("Agrega al menos un servicio con profesional y cantidad.", "Datos incompletos")
+  const validProductItems = getValidProductItems()
+  if (!validItems.length && !validProductItems.length) {
+    notifyError(
+      "Agrega al menos un servicio (con profesional y cantidad) o un producto.",
+      "Datos incompletos"
+    )
     return
   }
 
@@ -845,7 +1021,10 @@ const onSubmit = async () => {
     clientId: Number(sale.value.clientId),
     branchId: Number(sale.value.branchId),
     soldAt,
-    items: validItems.map(buildItemPayload),
+    items: [
+      ...validItems.map(buildItemPayload),
+      ...validProductItems.map(buildProductItemPayload),
+    ],
   }
 
   if (sale.value.appointmentId != null && sale.value.appointmentId > 0) {
@@ -899,6 +1078,16 @@ watch(clientSalonId, () => {
       item.unitPrice = undefined
     }
   })
+
+  sale.value.productItems.forEach((item) => {
+    const productAvailable = productsList.value.some(
+      (option) => String(option.value) === String(item.productId)
+    )
+    if (!productAvailable) {
+      item.productId = null as unknown as number
+      item.unitPrice = undefined
+    }
+  })
 })
 
 watch(
@@ -918,6 +1107,7 @@ onMounted(() => {
   clientsStore.fetchClients(0, 100)
   usersStore.fetchUsers(0, 100)
   servicesStore.fetchServices()
+  productsStore.fetchProducts()
 })
 </script>
 

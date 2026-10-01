@@ -20,7 +20,7 @@ export default defineNuxtPlugin(nuxtApp => {
       text: '#212121',
       'text-secondary': '#9E9E9E',
       success: '#81C784',
-      warning: '#FFD54F',
+      warning: '#FB8C00',
       info: '#4FC3F7',
       error: '#E57373',
       navbar: '#bc5267',

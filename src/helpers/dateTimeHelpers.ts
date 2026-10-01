@@ -15,6 +15,12 @@ export function getTodayDate(): string {
   return formatDateInput(new Date())
 }
 
+export function getTomorrowDate(): string {
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  return formatDateInput(date)
+}
+
 export function getCurrentTime(): string {
   return formatTimeInput(new Date())
 }
@@ -102,7 +108,8 @@ export function isTimeBeforeOrEqualCurrentTime(time: string): boolean {
 export function formatDateDisplay(value?: string): string {
   if (!value) return ""
 
-  const parsed = new Date(`${value}T12:00:00`)
+  const datePart = value.includes("T") ? value.split("T")[0] : value
+  const parsed = new Date(`${datePart}T12:00:00`)
   if (Number.isNaN(parsed.getTime())) return value
 
   const day = parsed.getDate()

@@ -26,7 +26,7 @@
               prepend-icon="tabler:calendar-month"
               class="mb-3"
             >
-              {{ formatDate(record.sessionDate) }}
+              {{ formatDateDisplay(record.sessionDate) }}
             </v-chip>
             <h3 class="text-h5 font-weight-bold mb-1">
               {{ record.diagnosis || "Sin diagnóstico registrado" }}
@@ -299,14 +299,6 @@ const isNextAppointmentPast = computed(() => {
   return isIsoDateTimeBeforeNow(referenceDateTime)
 })
 
-const formatDate = (date?: string | number | Date) => {
-  if (!date) return "Sin fecha"
-  return new Date(date).toLocaleDateString("es-PE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
-}
 </script>
 
 <style scoped>

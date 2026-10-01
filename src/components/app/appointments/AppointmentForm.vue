@@ -116,8 +116,6 @@
               :disabled="isUpdateMode"
               clearable
               no-data-text="Sin coincidencias"
-              hint="¿Cliente nuevo? Créalo aquí sin salir de esta pantalla"
-              persistent-hint
               :rules="[rules.required]"
               class="appointment-form__client-input"
             />
@@ -170,11 +168,6 @@
             clearable
             no-data-text="Sin coincidencias"
           />
-        </v-col>
-        <v-col v-if="appointment.clientId && clientSalonId" cols="12">
-          <p class="text-caption text-medium-emphasis mb-0">
-            Solo se muestran sucursales y servicios del mismo salón que el cliente seleccionado.
-          </p>
         </v-col>
       </v-row>
     </AppFormSection>

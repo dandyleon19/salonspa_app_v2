@@ -48,7 +48,7 @@
             <div class="d-flex align-start justify-space-between ga-2 mb-2">
               <div class="min-width-0">
                 <p class="text-caption text-medium-emphasis mb-1">
-                  {{ formatDate(record.sessionDate) }}
+                  {{ formatDateDisplay(record.sessionDate) }}
                 </p>
                 <p class="text-body-2 font-weight-bold text-truncate">
                   {{ record.diagnosis || "Sin diagnóstico" }}
@@ -85,6 +85,7 @@
 
 <script setup lang="ts">
 import type { ClinicalRecord } from "~/interfaces/clinicalRecordInterfaces";
+import { formatDateDisplay } from "~/helpers/dateTimeHelpers";
 
 const props = withDefaults(
   defineProps<{
@@ -113,7 +114,7 @@ const filteredRecords = computed(() => {
       record.observations,
       record.userName,
       record.branchName,
-      formatDate(record.sessionDate),
+      formatDateDisplay(record.sessionDate),
     ]
       .filter(Boolean)
       .join(" ")
@@ -134,14 +135,6 @@ const emitDelete = (record: ClinicalRecord) => {
   emit("delete", record)
 }
 
-const formatDate = (date?: string | number | Date) => {
-  if (!date) return "Sin fecha"
-  return new Date(date).toLocaleDateString("es-PE", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
 </script>
 
 <style scoped>

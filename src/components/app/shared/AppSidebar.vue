@@ -106,6 +106,12 @@ const items = [
     to: "/app/service-categories",
     onlyFor: ["ADMIN_USER"],
   },
+  {
+    title: "Categorías de Producto",
+    icon: APP_ICONS.package,
+    to: "/app/product-categories",
+    onlyFor: ["ADMIN_USER"],
+  },
 ]
 
 const filteredItems = computed(() =>

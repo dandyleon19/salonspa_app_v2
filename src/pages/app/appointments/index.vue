@@ -1,4 +1,37 @@
 <template>
+  <div class="d-flex align-center ga-2 mb-3">
+    <v-btn
+      size="small"
+      :variant="activeQuickFilter === 'today' ? 'flat' : 'tonal'"
+      color="primary"
+      rounded="lg"
+      @click="applyQuickDateFilter('today')"
+    >
+      Hoy
+    </v-btn>
+    <v-btn
+      size="small"
+      :variant="activeQuickFilter === 'tomorrow' ? 'flat' : 'tonal'"
+      color="primary"
+      rounded="lg"
+      @click="applyQuickDateFilter('tomorrow')"
+    >
+      Mañana
+    </v-btn>
+    <v-tooltip v-if="activeQuickFilter" location="top" text="Limpiar filtro">
+      <template #activator="{ props: tooltipProps }">
+        <v-btn
+          v-bind="tooltipProps"
+          size="small"
+          variant="text"
+          rounded="lg"
+          icon="tabler:x"
+          @click="applyQuickDateFilter(null)"
+        />
+      </template>
+    </v-tooltip>
+  </div>
+
   <AppTable
     title="Citas"
     subtitle="Lista de citas registradas"
@@ -80,8 +113,11 @@ import {
 import {
   formatDateDisplay,
   formatTimeDisplay,
+  getTodayDate,
+  getTomorrowDate,
   splitIsoDateTime,
 } from "~/helpers/dateTimeHelpers"
+import { buildWhatsAppReminderLink } from "~/helpers/whatsappHelpers"
 
 const appointmentsStore = useAppointmentsStore()
 const branchesStore = useBranchesStore()
@@ -96,8 +132,10 @@ const selectedClientAppointment = ref<Appointment | null>(null)
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 const activeFilters = ref<AppointmentFilters>({})
+const activeQuickFilter = ref<"today" | "tomorrow" | null>(null)
 
 const canManageAppointments = computed(() => authStore.canManageAppointments)
+const salonName = computed(() => (authStore.user as any)?.salonName ?? "")
 
 const baseHeaders: TableHeader[] = [
   { title: "ID", key: "id" },
@@ -138,6 +176,9 @@ const getStatusActionIcon = (status: AppointmentStatus) =>
 const getStatusActionColor = (status: AppointmentStatus) =>
   APPOINTMENT_STATUS_ACTION_COLORS[status] ?? "primary"
 
+const isAppointmentTomorrow = (item: Appointment) =>
+  splitIsoDateTime(item.startAt).date === getTomorrowDate()
+
 const getAppointmentRowOptions = (
   item: Appointment & { statusActions?: AppointmentStatus[] }
 ): TableRowOption[] => {
@@ -150,8 +191,21 @@ const getAppointmentRowOptions = (
     })
   )
 
+  const reminderOptions: TableRowOption[] =
+    item.clientPhone && isAppointmentTomorrow(item)
+      ? [
+          {
+            action: "whatsapp",
+            color: "success",
+            icon: "tabler:brand-whatsapp",
+            title: "Recordar por WhatsApp",
+          },
+        ]
+      : []
+
   return [
     ...statusOptions,
+    ...reminderOptions,
     {
       action: "update",
       color: "primary",
@@ -290,6 +344,12 @@ watch(showClientContactModal, (open) => {
 const handleRowActionButton = (appointment: Appointment, action: string) => {
   if (!canManageAppointments.value) return
 
+  if (action === "whatsapp") {
+    const link = buildWhatsAppReminderLink(appointment, salonName.value)
+    if (link) window.open(link, "_blank", "noopener")
+    return
+  }
+
   if (action.startsWith("status:")) {
     const status = action.slice("status:".length) as AppointmentStatus
     management.openStatusChange(appointment, status)
@@ -316,8 +376,36 @@ const handleExportData = () => {
   console.log("Exportar citas")
 }
 
+const syncActiveQuickFilter = (date?: string) => {
+  if (date === getTodayDate()) {
+    activeQuickFilter.value = "today"
+  } else if (date === getTomorrowDate()) {
+    activeQuickFilter.value = "tomorrow"
+  } else {
+    activeQuickFilter.value = null
+  }
+}
+
 const handleApplyFilters = (values: Record<string, unknown>) => {
   const nextFilters = normalizeAppointmentFilters(values)
+
+  syncActiveQuickFilter(nextFilters.date)
+
+  if (areAppointmentFiltersEqual(activeFilters.value, nextFilters)) {
+    return
+  }
+
+  activeFilters.value = nextFilters
+  currentPage.value = 1
+  fetchAppointments()
+}
+
+const applyQuickDateFilter = (kind: "today" | "tomorrow" | null) => {
+  const date =
+    kind === "today" ? getTodayDate() : kind === "tomorrow" ? getTomorrowDate() : undefined
+
+  const nextFilters = normalizeAppointmentFilters({ ...activeFilters.value, date })
+  activeQuickFilter.value = kind
 
   if (areAppointmentFiltersEqual(activeFilters.value, nextFilters)) {
     return
