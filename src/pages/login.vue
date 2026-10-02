@@ -4,13 +4,11 @@
       <v-card-text class="login-page__body">
         <div class="login-page__brand">
           <div class="login-page__logo-wrap">
-            <div class="login-page__logo-badge">
-              <img
-                :src="logoDafacha"
-                alt="Dafacha Salón & Spa"
-                class="login-page__logo"
-              />
-            </div>
+            <img
+              :src="logoDfMark"
+              alt="Salón & Spa"
+              class="login-page__logo"
+            />
           </div>
 
           <h1 class="login-page__title">Ingresa a tu cuenta</h1>
@@ -30,13 +28,13 @@
 </template>
 
 <script setup lang="ts">
-import logoDafacha from "../assets/img/logo-dafacha-icon.png"
+import logoDfMark from "../assets/img/logo-df-mark.png"
 
 useHead({
   title: "Iniciar sesión",
   link: [
-    { rel: "icon", href: "/favicon.ico?v=2", sizes: "any" },
-    { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png?v=2" },
+    { rel: "icon", href: "/favicon.ico?v=3", sizes: "any" },
+    { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png?v=3" },
   ],
 })
 </script>
@@ -75,22 +73,10 @@ useHead({
   margin-bottom: 1.5rem;
 }
 
-.login-page__logo-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 112px;
-  height: 112px;
-  padding: 20px;
-  border-radius: 50%;
-  background: #1a1a1a;
-  box-shadow: 0 12px 32px rgba(188, 82, 103, 0.25);
-}
-
 .login-page__logo {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  width: 170px;
+  max-width: 60%;
+  height: auto;
 }
 
 .login-page__title {
