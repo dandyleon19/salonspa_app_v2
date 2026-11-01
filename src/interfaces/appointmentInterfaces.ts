@@ -21,6 +21,7 @@ export interface Appointment {
   notes?: string
   cancellationReason?: string
   cancelledAt?: string
+  reminderSentAt?: string | null
   depositAmount?: number | null
   depositPaymentMethod?: string | null
   depositPaidAt?: string | null

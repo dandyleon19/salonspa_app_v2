@@ -346,7 +346,14 @@ const handleRowActionButton = (appointment: Appointment, action: string) => {
 
   if (action === "whatsapp") {
     const link = buildWhatsAppReminderLink(appointment, salonName.value)
-    if (link) window.open(link, "_blank", "noopener")
+    if (link) {
+      window.open(link, "_blank", "noopener")
+      if (appointment.id != null) {
+        appointmentsStore.markReminderSent(appointment.id).catch((err) => {
+          console.error("Error al registrar el recordatorio enviado:", err)
+        })
+      }
+    }
     return
   }
 

@@ -43,17 +43,22 @@
           {{ getAppointmentStatusLabel(appointment.status) }}
         </v-chip>
 
-        <v-btn
-          v-if="showReminderAction && whatsAppLink"
-          :color="sent ? 'success' : 'primary'"
-          :variant="sent ? 'tonal' : 'flat'"
-          size="small"
-          rounded="lg"
-          :prepend-icon="sent ? 'tabler:check' : 'tabler:brand-whatsapp'"
-          @click="handleSend"
-        >
-          {{ sent ? "Enviado" : "Recordar" }}
-        </v-btn>
+        <template v-if="showReminderAction && whatsAppLink">
+          <v-btn
+            :color="sent ? 'success' : 'primary'"
+            :variant="sent ? 'tonal' : 'flat'"
+            size="small"
+            rounded="lg"
+            :loading="sending"
+            :prepend-icon="sent ? 'tabler:rotate-clockwise' : 'tabler:brand-whatsapp'"
+            @click="handleSend"
+          >
+            {{ sent ? "Reenviar" : "Recordar" }}
+          </v-btn>
+          <span v-if="sent" class="text-caption text-medium-emphasis">
+            Enviado {{ sentAtLabel }}
+          </span>
+        </template>
         <span
           v-else-if="showReminderAction"
           class="text-caption text-medium-emphasis"
@@ -85,19 +90,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import type { Appointment } from "~/interfaces/appointmentInterfaces"
 import {
   getAppointmentStatusColor,
   getAppointmentStatusLabel,
 } from "~/interfaces/appointmentInterfaces"
 import { buildWhatsAppReminderLink } from "~/helpers/whatsappHelpers"
+import { formatDateDisplay, formatTimeDisplay, splitIsoDateTime } from "~/helpers/dateTimeHelpers"
+import { useAppointmentsStore } from "~/store"
 
 const props = defineProps<{
   appointment: Appointment
   timeLabel: string
   salonName?: string | null
-  sent?: boolean
   showReminderAction?: boolean
 }>()
 
@@ -106,14 +112,34 @@ const emit = defineEmits<{
   (e: "sent", appointment: Appointment): void
 }>()
 
+const appointmentsStore = useAppointmentsStore()
+const sending = ref(false)
+
+const sent = computed(() => !!props.appointment.reminderSentAt)
+
+const sentAtLabel = computed(() => {
+  if (!props.appointment.reminderSentAt) return ""
+  const { date, time } = splitIsoDateTime(props.appointment.reminderSentAt)
+  return `${formatDateDisplay(date)} ${formatTimeDisplay(time)}`.trim()
+})
+
 const whatsAppLink = computed(() =>
   buildWhatsAppReminderLink(props.appointment, props.salonName)
 )
 
-const handleSend = () => {
-  if (!whatsAppLink.value) return
+const handleSend = async () => {
+  if (!whatsAppLink.value || sending.value || props.appointment.id == null) return
   window.open(whatsAppLink.value, "_blank", "noopener")
-  emit("sent", props.appointment)
+
+  sending.value = true
+  try {
+    const updated = await appointmentsStore.markReminderSent(props.appointment.id)
+    emit("sent", updated)
+  } catch (err) {
+    console.error("Error al registrar el recordatorio enviado:", err)
+  } finally {
+    sending.value = false
+  }
 }
 </script>
 

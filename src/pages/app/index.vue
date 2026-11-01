@@ -522,10 +522,9 @@
                   :appointment="appointment"
                   :time-label="formatUpcomingAppointmentLabel(appointment)"
                   :salon-name="salonName"
-                  :sent="sentReminderIds.has(appointment.id!)"
                   :show-reminder-action="true"
                   @open-client-contact="openClientContact"
-                  @sent="markReminderSent"
+                  @sent="handleReminderSent"
                 />
               </div>
             </AppSkeletonTransition>
@@ -665,8 +664,6 @@ const activeFilters = ref<DashboardFilters>({ date: getTodayDate() })
 
 const showClientContactModal = ref(false)
 const selectedClientAppointment = ref<Appointment | null>(null)
-
-const sentReminderIds = ref(new Set<number | string>())
 
 const loading = computed(() => dashboardStore.loading)
 const dashboardData = computed(() => dashboardStore.data)
@@ -1016,9 +1013,15 @@ const openClientContact = (appointment: Appointment) => {
   showClientContactModal.value = true
 }
 
-const markReminderSent = (appointment: Appointment) => {
-  if (appointment.id == null) return
-  sentReminderIds.value.add(appointment.id)
+const patchAppointmentInList = (list: Appointment[] | undefined, updated: Appointment) => {
+  if (!list) return
+  const index = list.findIndex((item) => item.id === updated.id)
+  if (index !== -1) list[index] = { ...list[index], ...updated }
+}
+
+const handleReminderSent = (updated: Appointment) => {
+  patchAppointmentInList(dashboardData.value?.upcomingAppointments, updated)
+  patchAppointmentInList(dashboardData.value?.todaySchedule, updated)
 }
 
 const lowStockLoading = computed(() => lowStockProductsStore.loading)

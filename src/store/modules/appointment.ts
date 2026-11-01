@@ -85,5 +85,12 @@ export const useAppointmentsStore = defineStore("appointments", {
         body: buildAppointmentStatusUpdateBody(status, cancellationReason),
       })
     },
+
+    async markReminderSent(id: number | string): Promise<Appointment> {
+      const { $api } = useNuxtApp()
+      return await $api<Appointment>(`/api/appointments/${id}/reminder-sent`, {
+        method: "POST",
+      })
+    },
   },
 })
