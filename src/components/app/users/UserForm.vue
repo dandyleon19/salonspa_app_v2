@@ -142,6 +142,7 @@ import type { User, userDataModalForm, UserServiceCommissionInput } from "~/inte
 import { USER_ROLE_OPTIONS } from "~/interfaces/userInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 import { useAuthStore } from "~/store/modules/auth"
+import { useSubscriptionStore } from "~/store/modules/subscription"
 import { useSalonsStore, useUsersStore } from "~/store"
 
 const { field, select } = useFormFields()
@@ -149,6 +150,7 @@ const { error: notifyError } = useNotification()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
 const salonsStore = useSalonsStore()
+const subscriptionStore = useSubscriptionStore()
 
 const props = defineProps<{
   dataModalForm: userDataModalForm
@@ -191,6 +193,7 @@ const showServiceCommissions = computed(
   () =>
     props.dataModalForm.action === "update" &&
     canManageServiceCommissions.value &&
+    subscriptionStore.hasFeature("commissions") &&
     user.value.id != null
 )
 

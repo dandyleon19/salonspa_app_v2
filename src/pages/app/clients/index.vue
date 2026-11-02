@@ -3,7 +3,7 @@
       title="Clientes"
       subtitle="Lista de clientes registrados"
       :headers="headers"
-      :rowOptions="rowOptions"
+      :rowOptions="visibleRowOptions"
       :filters="tableFilters"
       :items="clientsList"
       :loading="loadingClientsList"
@@ -63,6 +63,7 @@ import { ref } from "vue";
 import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tableInterfaces";
 import type { Client, clientDataModalForm } from "~/interfaces/clientInterfaces";
 import { useClientsStore } from "~/store/modules/client";
+import { useSubscriptionStore } from "~/store/modules/subscription";
 import { useRouter } from "#vue-router";
 import {
   areTableSearchEqual,
@@ -119,6 +120,14 @@ const rowOptions = ref<Array<TableRowOption>>([
     icon: 'tabler:trash',
   },
 ]);
+
+// The clinical-records action only appears on plans that include them.
+const subscriptionStore = useSubscriptionStore()
+const visibleRowOptions = computed(() =>
+  rowOptions.value.filter(
+    (option) => option.action !== 'clinicalRecords' || subscriptionStore.hasFeature('clinical_records')
+  )
+)
 
 const tableFilters = ref<FilterOption[]>([]);
 

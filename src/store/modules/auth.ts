@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import type { User } from "~/interfaces/userInterfaces";
+import { useSubscriptionStore } from "~/store/modules/subscription"
+
 
 const resolveAuthRole = (state: {
     role: string | null
@@ -52,6 +54,8 @@ export const useAuthStore = defineStore('auth', {
             this.role = null
             this.token = null
             this.user = null
+            // The next user may belong to another salon: never reuse this one's plan.
+            useSubscriptionStore().reset()
         }
     }
 })

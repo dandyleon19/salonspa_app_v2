@@ -4,6 +4,7 @@
 
     <v-main class="app-layout-main">
       <NavBar />
+      <SubscriptionBanner />
       <v-container class="app-layout-container" fluid>
         <slot />
       </v-container>
@@ -13,6 +14,7 @@
 
 <script setup lang="ts">
 import NavBar from "~/components/app/shared/NavBar.vue"
+import SubscriptionBanner from "~/components/app/shared/SubscriptionBanner.vue"
 import { useAuthStore } from "~/store/modules/auth"
 
 const authStore = useAuthStore()
@@ -27,13 +29,13 @@ useHead({
 
 <style scoped>
 .app-layout-main {
-  background: rgb(var(--v-theme-surface));
+  background: var(--app-canvas);
 }
 
 .app-layout-container {
   width: 100%;
   max-width: 100%;
-  padding-top: 8px;
-  padding-bottom: 24px;
+  padding-top: 16px;
+  padding-bottom: 32px;
 }
 </style>

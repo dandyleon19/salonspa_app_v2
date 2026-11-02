@@ -88,6 +88,9 @@ export const APP_ICONS = {
   error: "tabler:alert-circle",
   info: "tabler:info-circle",
   warning: "tabler:alert-triangle",
+  whatsapp: "tabler:brand-whatsapp",
+  refresh: "tabler:refresh",
+  subscription: "tabler:credit-card",
 } as const
 
 export type AppIconName = (typeof APP_ICONS)[keyof typeof APP_ICONS]

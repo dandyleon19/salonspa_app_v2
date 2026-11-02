@@ -207,7 +207,11 @@
         </div>
       </AppFormSection>
 
-      <AppFormSection title="Productos" subtitle="Agrega productos vendidos en esta venta (opcional)">
+      <AppFormSection
+        v-if="hasProductsFeature"
+        title="Productos"
+        subtitle="Agrega productos vendidos en esta venta (opcional)"
+      >
         <div class="d-flex flex-column ga-3">
           <v-card
             v-for="(item, index) in sale.productItems"
@@ -450,6 +454,7 @@ import { PAYMENT_METHOD_OPTIONS } from "~/interfaces/salesInterfaces"
 import { useBranchesStore, useClientsStore, useUsersStore } from "~/store"
 import { useServicesStore } from "~/store/modules/service"
 import { useProductsStore } from "~/store/modules/product"
+import { useSubscriptionStore } from "~/store/modules/subscription"
 
 const { error: notifyError } = useNotification()
 const { notifyCreated, notifyError: notifyApiError } = useApiNotification()
@@ -461,6 +466,10 @@ const clientsStore = useClientsStore()
 const usersStore = useUsersStore()
 const servicesStore = useServicesStore()
 const productsStore = useProductsStore()
+const subscriptionStore = useSubscriptionStore()
+
+// Selling products belongs to the plans that include products and stock.
+const hasProductsFeature = computed(() => subscriptionStore.hasFeature("products"))
 
 const props = defineProps<{
   dataModalForm: saleDataModalForm
@@ -1107,7 +1116,9 @@ onMounted(() => {
   clientsStore.fetchClients(0, 100)
   usersStore.fetchUsers(0, 100)
   servicesStore.fetchServices()
-  productsStore.fetchProducts()
+  if (hasProductsFeature.value) {
+    productsStore.fetchProducts()
+  }
 })
 </script>
 
