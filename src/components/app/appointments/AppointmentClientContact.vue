@@ -180,7 +180,7 @@ const timelineSteps = computed(() => {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(var(--v-theme-on-surface), 0.55);
+  color: rgba(var(--v-theme-on-surface), 0.70);
 }
 
 .appointment-client-contact__value {

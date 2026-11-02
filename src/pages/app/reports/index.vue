@@ -137,185 +137,65 @@
       </v-col>
     </v-row>
 
-    <v-row>
-      <v-col cols="12" lg="6">
-        <v-card class="sales-report__panel" rounded="xl" elevation="0">
-          <v-card-title class="py-4 px-5">
-            <p class="text-subtitle-1 font-weight-bold mb-0">Por método de pago</p>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <AppSkeletonTransition>
-              <v-skeleton-loader
-                v-if="loading"
-                key="payment-method-skeleton"
-                type="list-item-two-line@3"
-              />
-              <div
-                v-else-if="!paymentMethodBreakdown.length"
-                key="payment-method-empty"
-                class="sales-report__empty"
-              >
-                <p class="text-body-2 text-medium-emphasis mb-0">Sin datos en el período</p>
-              </div>
-              <div
-                v-else
-                key="payment-method-content"
-                class="d-flex flex-column ga-2"
-              >
-                <div
-                  v-for="item in paymentMethodBreakdown"
-                  :key="item.paymentMethod"
-                  class="d-flex justify-space-between align-center"
-                >
-                  <span class="text-body-2">{{ getPaymentMethodLabel(item.paymentMethod) }}</span>
-                  <span class="text-body-2 font-weight-medium">{{ formatCurrency(item.amount) }}</span>
-                </div>
-              </div>
-            </AppSkeletonTransition>
-          </v-card-text>
-        </v-card>
-      </v-col>
+    <div class="sales-report__stack">
+      <DashboardPanel
+        title="Evolución diaria"
+        subtitle="Ingresos por día en el período seleccionado"
+      >
+        <AppSkeletonTransition>
+          <v-skeleton-loader v-if="loading" key="daily-skeleton" type="image" height="220" />
+          <DashboardSalesChart v-else key="daily-chart" :points="dailyPoints" />
+        </AppSkeletonTransition>
+      </DashboardPanel>
 
-      <v-col cols="12" lg="6">
-        <v-card class="sales-report__panel" rounded="xl" elevation="0">
-          <v-card-title class="py-4 px-5">
-            <p class="text-subtitle-1 font-weight-bold mb-0">Top servicios vendidos</p>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <AppSkeletonTransition>
-              <v-skeleton-loader
-                v-if="loading"
-                key="top-services-skeleton"
-                type="list-item-two-line@4"
-              />
-              <div
-                v-else-if="!topServices.length"
-                key="top-services-empty"
-                class="sales-report__empty"
-              >
-                <p class="text-body-2 text-medium-emphasis mb-0">Sin datos en el período</p>
-              </div>
-              <div
-                v-else
-                key="top-services-content"
-                class="d-flex flex-column ga-2"
-              >
-                <div
-                  v-for="(item, index) in topServices"
-                  :key="item.serviceId ?? `${item.serviceName}-${index}`"
-                  class="d-flex justify-space-between align-start ga-3"
-                >
-                  <div>
-                    <p class="text-body-2 font-weight-medium mb-0">{{ item.serviceName }}</p>
-                    <p class="text-caption text-medium-emphasis mb-0">
-                      {{ item.quantity }} vendido{{ item.quantity === 1 ? "" : "s" }}
-                    </p>
-                  </div>
-                  <span class="text-body-2 font-weight-medium">{{ formatCurrency(item.revenue) }}</span>
-                </div>
-              </div>
-            </AppSkeletonTransition>
-          </v-card-text>
-        </v-card>
-      </v-col>
+      <div class="sales-report__grid">
+        <DashboardPanel title="Por método de pago" subtitle="Cómo pagan tus clientes">
+          <AppSkeletonTransition>
+            <v-skeleton-loader v-if="loading" key="payment-skeleton" type="image" height="260" />
+            <DashboardEmpty
+              v-else-if="!paymentSegments.length"
+              key="payment-empty"
+              icon="tabler:credit-card-off"
+              title="Sin datos en el período"
+            />
+            <DashboardDonut
+              v-else
+              key="payment-donut"
+              :segments="paymentSegments"
+              center-label="cobrado"
+              :format="formatCurrency"
+            />
+          </AppSkeletonTransition>
+        </DashboardPanel>
 
-      <v-col cols="12" lg="6">
-        <v-card class="sales-report__panel" rounded="xl" elevation="0">
-          <v-card-title class="py-4 px-5">
-            <p class="text-subtitle-1 font-weight-bold mb-0">Ingresos por profesional</p>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <AppSkeletonTransition>
-              <v-skeleton-loader
-                v-if="loading"
-                key="professional-skeleton"
-                type="list-item-two-line@4"
-              />
-              <div
-                v-else-if="!professionalRevenue.length"
-                key="professional-empty"
-                class="sales-report__empty"
-              >
-                <p class="text-body-2 text-medium-emphasis mb-0">Sin datos en el período</p>
-              </div>
-              <div
-                v-else
-                key="professional-content"
-                class="d-flex flex-column ga-2"
-              >
-                <div
-                  v-for="item in professionalRevenue"
-                  :key="item.userId"
-                  class="d-flex justify-space-between align-start ga-3"
-                >
-                  <div>
-                    <p class="text-body-2 font-weight-medium mb-0">
-                      {{ item.userName || `Profesional #${item.userId}` }}
-                    </p>
-                    <p class="text-caption text-medium-emphasis mb-0">
-                      {{ item.itemsSold }} servicio{{ item.itemsSold === 1 ? "" : "s" }}
-                    </p>
-                  </div>
-                  <span class="text-body-2 font-weight-medium">{{ formatCurrency(item.revenue) }}</span>
-                </div>
-              </div>
-            </AppSkeletonTransition>
-          </v-card-text>
-        </v-card>
-      </v-col>
+        <DashboardPanel title="Servicios más vendidos" subtitle="Por ingresos">
+          <AppSkeletonTransition>
+            <v-skeleton-loader v-if="loading" key="services-skeleton" type="list-item-two-line@4" />
+            <DashboardEmpty
+              v-else-if="!topServiceItems.length"
+              key="services-empty"
+              icon="tabler:scissors"
+              title="Sin datos en el período"
+            />
+            <DashboardRankList v-else key="services" :items="topServiceItems" />
+          </AppSkeletonTransition>
+        </DashboardPanel>
 
-      <v-col cols="12" lg="6">
-        <v-card class="sales-report__panel" rounded="xl" elevation="0">
-          <v-card-title class="py-4 px-5">
-            <p class="text-subtitle-1 font-weight-bold mb-0">Desglose diario</p>
-          </v-card-title>
-          <v-divider />
-          <v-card-text class="pa-4">
-            <AppSkeletonTransition>
-              <v-skeleton-loader
-                v-if="loading"
-                key="daily-skeleton"
-                type="list-item-two-line@5"
-              />
-              <div
-                v-else-if="!dailyBreakdown.length"
-                key="daily-empty"
-                class="sales-report__empty"
-              >
-                <p class="text-body-2 text-medium-emphasis mb-0">Sin datos en el período</p>
-              </div>
-              <div
-                v-else
-                key="daily-content"
-                class="d-flex flex-column ga-2"
-              >
-                <div
-                  v-for="item in dailyBreakdown"
-                  :key="item.date"
-                  class="sales-report__daily-item pa-3 rounded-lg"
-                >
-                  <div class="d-flex justify-space-between align-center mb-1">
-                    <span class="text-body-2 font-weight-medium">
-                      {{ formatDateDisplay(item.date) }}
-                    </span>
-                    <span class="text-caption text-medium-emphasis">
-                      {{ item.salesCount }} venta{{ item.salesCount === 1 ? "" : "s" }}
-                    </span>
-                  </div>
-                  <div class="d-flex justify-space-between">
-                    <span class="text-caption text-medium-emphasis">Ingresos</span>
-                    <span class="text-caption font-weight-medium">{{ formatCurrency(item.revenue) }}</span>
-                  </div>
-                </div>
-              </div>
-            </AppSkeletonTransition>
-          </v-card-text>
-        </v-card>
-      </v-col>
-              </v-row>
+        <DashboardPanel title="Ingresos por profesional" subtitle="Por ingresos">
+          <AppSkeletonTransition>
+            <v-skeleton-loader v-if="loading" key="pros-skeleton" type="list-item-two-line@4" />
+            <DashboardEmpty
+              v-else-if="!professionalItems.length"
+              key="pros-empty"
+              icon="tabler:users"
+              title="Sin datos en el período"
+            />
+            <DashboardRankList v-else key="pros" :items="professionalItems" />
+          </AppSkeletonTransition>
+        </DashboardPanel>
+      </div>
+    </div>
+
             </v-window-item>
 
             <v-window-item value="commissions">
@@ -340,7 +220,7 @@ import {
   normalizeSaleReportFilters,
 } from "~/helpers/salesHelpers"
 import { getPaymentMethodLabel } from "~/interfaces/salesInterfaces"
-import { formatDateDisplay } from "~/helpers/dateTimeHelpers"
+import { formatDateDisplay, getTodayDate } from "~/helpers/dateTimeHelpers"
 
 definePageMeta({
   layout: "app",
@@ -482,6 +362,70 @@ const topServices = computed(() => reportData.value?.topServices ?? [])
 const professionalRevenue = computed(() => reportData.value?.byProfessional ?? [])
 const dailyBreakdown = computed(() => reportData.value?.dailyBreakdown ?? [])
 
+// One point per day of the period (days without sales are 0), up to today: days to come are unknown, not zero.
+const dailyPoints = computed(() => {
+  const data = reportData.value
+  if (!data?.from || !data?.to) return []
+
+  const byDate = new Map(data.dailyBreakdown.map((item) => [item.date, item]))
+  const today = getTodayDate()
+  const last = data.to < today ? data.to : today
+  const cursor = new Date(`${data.from}T00:00:00`)
+  const points: { date: string; revenue: number; count: number }[] = []
+
+  for (let guard = 0; guard < 400; guard++) {
+    const month = String(cursor.getMonth() + 1).padStart(2, "0")
+    const day = String(cursor.getDate()).padStart(2, "0")
+    const iso = `${cursor.getFullYear()}-${month}-${day}`
+    if (iso > last) break
+
+    const item = byDate.get(iso)
+    points.push({ date: iso, revenue: item?.revenue ?? 0, count: item?.salesCount ?? 0 })
+    cursor.setDate(cursor.getDate() + 1)
+  }
+
+  return points
+})
+
+// One color per payment method, so the ring reads the same in every report.
+const PAYMENT_COLORS: Record<string, string> = {
+  CASH: "#1B8556",
+  YAPE: "#7C3AED",
+  PLIN: "#0E9AA7",
+  CARD: "#1F78C1",
+  TRANSFER: "#FF8000",
+  OTHER: "#8A8F98",
+}
+
+const paymentSegments = computed(() =>
+  paymentMethodBreakdown.value.map((item) => ({
+    key: item.paymentMethod,
+    label: getPaymentMethodLabel(item.paymentMethod),
+    value: item.amount,
+    color: PAYMENT_COLORS[item.paymentMethod] ?? PAYMENT_COLORS.OTHER,
+  }))
+)
+
+const topServiceItems = computed(() =>
+  topServices.value.map((item, index) => ({
+    key: item.serviceId ?? `${item.serviceName}-${index}`,
+    label: item.serviceName,
+    value: item.revenue,
+    valueLabel: formatCurrency(item.revenue),
+    caption: `${item.quantity} vendido${item.quantity === 1 ? "" : "s"}`,
+  }))
+)
+
+const professionalItems = computed(() =>
+  professionalRevenue.value.map((item) => ({
+    key: item.userId,
+    label: item.userName || `Profesional #${item.userId}`,
+    value: item.revenue,
+    valueLabel: formatCurrency(item.revenue),
+    caption: `${item.itemsSold} servicio${item.itemsSold === 1 ? "" : "s"}`,
+  }))
+)
+
 let lastAppliedFilters: ReturnType<typeof normalizeSaleReportFilters> = null
 
 const fetchReport = async () => {
@@ -520,10 +464,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.sales-report__panel {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-}
-
 .sales-report__tabs {
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   background: rgba(var(--v-theme-on-surface), 0.02);
@@ -533,13 +473,15 @@ onMounted(async () => {
   min-width: 0;
 }
 
-.sales-report__empty {
-  padding: 2rem 1rem;
-  text-align: center;
+.sales-report__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.sales-report__daily-item {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
-  background: rgba(var(--v-theme-on-surface), 0.02);
+.sales-report__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
 }
 </style>

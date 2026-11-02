@@ -146,7 +146,15 @@ const handleSend = async () => {
 <style scoped>
 .dashboard-appointment-item {
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-left: 3px solid rgba(var(--v-theme-primary), 0.55);
   background: rgba(var(--v-theme-on-surface), 0.02);
+  transition: background-color 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.dashboard-appointment-item:hover {
+  background: rgba(var(--v-theme-primary), 0.04);
+  border-left-color: rgb(var(--v-theme-primary));
+  box-shadow: 0 6px 16px rgba(11, 11, 12, 0.07);
 }
 
 .dashboard-appointment-item__client {

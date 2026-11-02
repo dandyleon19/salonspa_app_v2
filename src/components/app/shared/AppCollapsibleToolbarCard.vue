@@ -74,18 +74,16 @@ const toggleExpanded = () => {
 
 <style scoped>
 .app-collapsible-toolbar-card {
-  border: 1px solid rgba(var(--v-border-color), 0.55);
+  border: 1px solid rgba(var(--v-border-color), 0.12);
   overflow: hidden;
   background: rgb(var(--v-theme-background));
   width: 100%;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 12px 32px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-card);
 }
 
 .app-collapsible-toolbar-card__header {
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid rgba(var(--v-border-color), 0.45);
+  border-bottom: 1px solid rgba(var(--v-border-color), 0.1);
   background:
     linear-gradient(
       180deg,
@@ -101,7 +99,7 @@ const toggleExpanded = () => {
   gap: 0.75rem;
   padding: 0.625rem 1.25rem;
   background: rgba(var(--v-theme-on-surface), 0.02);
-  border-bottom: 1px solid rgba(var(--v-border-color), 0.45);
+  border-bottom: 1px solid rgba(var(--v-border-color), 0.1);
 }
 
 .app-collapsible-toolbar-card__toggle-bar--with-header {
@@ -124,7 +122,7 @@ const toggleExpanded = () => {
 
 .app-collapsible-toolbar-card__toggle:hover {
   background: rgba(var(--v-theme-on-surface), 0.04);
-  color: rgb(var(--v-theme-primary));
+  color: var(--ink-primary);
 }
 
 .app-collapsible-toolbar-card__toggle-label {
@@ -156,7 +154,7 @@ const toggleExpanded = () => {
       rgba(var(--v-theme-primary), 0.045) 0%,
       rgba(var(--v-theme-background), 1) 100%
     );
-  border-bottom: 1px solid rgba(var(--v-border-color), 0.45);
+  border-bottom: 1px solid rgba(var(--v-border-color), 0.1);
 }
 
 .app-collapsible-toolbar-card__toolbar-inner {
@@ -176,7 +174,7 @@ const toggleExpanded = () => {
 
 .app-collapsible-toolbar-card__toolbar-inner :deep(.v-field) {
   background: rgba(var(--v-theme-surface), 0.65) !important;
-  box-shadow: inset 0 0 0 1px rgba(var(--v-border-color), 0.55);
+  box-shadow: inset 0 0 0 1px rgba(var(--v-border-color), 0.12);
   transition: box-shadow 0.2s ease, background-color 0.2s ease;
 }
 

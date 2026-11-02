@@ -169,7 +169,7 @@ const emitDelete = (record: ClinicalRecord) => {
 .clinical-record-list__item--active {
   border-color: rgb(var(--v-theme-primary));
   background: rgba(var(--v-theme-primary), 0.06);
-  box-shadow: 0 8px 20px rgba(188, 82, 103, 0.12);
+  box-shadow: 0 8px 20px rgba(255, 128, 0, 0.12);
 }
 
 .clinical-record-list__timeline {

@@ -13,18 +13,31 @@ export default defineNuxtPlugin(nuxtApp => {
   const myCustomLightTheme = {
     dark: false,
     colors: {
-      primary: '#bc5267',
-      'primary-light': '#d697a3',
+      // Papaya orange on carbon black (McLaren). Orange is the action color; black frames the app.
+      primary: '#FF8000',
+      'primary-light': '#FFA64D',
       background: '#FFFFFF',
-      surface: '#F5F5F5',
+      // Cards and panels are white; the page behind them is a soft tinted canvas (--app-canvas).
+      surface: '#FFFFFF',
       text: '#212121',
       'text-secondary': '#9E9E9E',
-      success: '#81C784',
-      warning: '#FB8C00',
-      info: '#4FC3F7',
-      error: '#E57373',
-      navbar: '#bc5267',
-      sidebar: '#212121',
+      // State fills are deep enough for WHITE text (4.5:1 or better); orange and amber are too light for white,
+      // so their text is near-black. The "on-*" colors below are what buttons, chips and alerts print on each fill.
+      success: '#1B8556',
+      warning: '#F2B100',
+      info: '#1F78C1',
+      error: '#D32F2F',
+      'on-primary': '#14110F',
+      'on-warning': '#14110F',
+      'on-success': '#FFFFFF',
+      'on-info': '#FFFFFF',
+      'on-error': '#FFFFFF',
+      navbar: '#0E0E10',
+      sidebar: '#0B0B0C',
+    },
+    variables: {
+      // Secondary text ("text-medium-emphasis", subtitles) was 60% black = 4.3:1; 72% is 6:1.
+      'medium-emphasis-opacity': 0.72,
     },
   }
 

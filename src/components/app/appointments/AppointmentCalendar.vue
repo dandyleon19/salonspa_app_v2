@@ -449,7 +449,7 @@ defineExpose({
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(var(--v-theme-on-surface), 0.62);
+  color: rgba(var(--v-theme-on-surface), 0.72);
   border-bottom: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 

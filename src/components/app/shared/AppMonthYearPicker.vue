@@ -263,7 +263,7 @@ const handleDone = () => {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(var(--v-theme-on-surface), 0.55);
+  color: rgba(var(--v-theme-on-surface), 0.70);
 }
 
 .app-month-year-picker__year-list {
@@ -328,7 +328,7 @@ const handleDone = () => {
 .app-month-year-picker__year-caption {
   margin: 4px 0 0;
   font-size: 0.78rem;
-  color: rgba(var(--v-theme-on-surface), 0.58);
+  color: rgba(var(--v-theme-on-surface), 0.70);
 }
 
 .app-month-year-picker__month-grid {
@@ -376,7 +376,7 @@ const handleDone = () => {
   align-items: center;
   gap: 8px;
   font-size: 0.8rem;
-  color: rgba(var(--v-theme-on-surface), 0.62);
+  color: rgba(var(--v-theme-on-surface), 0.72);
 }
 
 .app-month-year-picker__current-dot,

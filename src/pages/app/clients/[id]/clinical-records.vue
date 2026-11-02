@@ -36,7 +36,7 @@
           <div class="d-flex align-center justify-space-between flex-wrap ga-4">
             <div class="d-flex align-center ga-4">
               <v-avatar size="64" color="primary" class="clinical-records-page__avatar">
-                <span class="text-h6 font-weight-bold text-white">
+                <span class="text-h6 font-weight-bold text-on-primary">
                   {{ patientInitials }}
                 </span>
               </v-avatar>
@@ -407,7 +407,7 @@ onMounted(async () => {
 }
 
 .clinical-records-page__avatar {
-  box-shadow: 0 8px 20px rgba(188, 82, 103, 0.25);
+  box-shadow: 0 8px 20px rgba(255, 128, 0, 0.25);
 }
 
 .clinical-records-page__panel {

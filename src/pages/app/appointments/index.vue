@@ -1,37 +1,4 @@
 <template>
-  <div class="d-flex align-center ga-2 mb-3">
-    <v-btn
-      size="small"
-      :variant="activeQuickFilter === 'today' ? 'flat' : 'tonal'"
-      color="primary"
-      rounded="lg"
-      @click="applyQuickDateFilter('today')"
-    >
-      Hoy
-    </v-btn>
-    <v-btn
-      size="small"
-      :variant="activeQuickFilter === 'tomorrow' ? 'flat' : 'tonal'"
-      color="primary"
-      rounded="lg"
-      @click="applyQuickDateFilter('tomorrow')"
-    >
-      Mañana
-    </v-btn>
-    <v-tooltip v-if="activeQuickFilter" location="top" text="Limpiar filtro">
-      <template #activator="{ props: tooltipProps }">
-        <v-btn
-          v-bind="tooltipProps"
-          size="small"
-          variant="text"
-          rounded="lg"
-          icon="tabler:x"
-          @click="applyQuickDateFilter(null)"
-        />
-      </template>
-    </v-tooltip>
-  </div>
-
   <AppTable
     title="Citas"
     subtitle="Lista de citas registradas"
@@ -55,6 +22,37 @@
     @handle-update-filters="handleApplyFilters"
     @handle-row-action-button="handleRowActionButton"
   >
+    <template #summary>
+      <span class="appointments-quick__label">Atajos</span>
+      <v-chip
+        size="small"
+        :variant="activeQuickFilter === 'today' ? 'flat' : 'tonal'"
+        color="primary"
+        class="appointments-quick__chip"
+        @click="applyQuickDateFilter(activeQuickFilter === 'today' ? null : 'today')"
+      >
+        Hoy
+      </v-chip>
+      <v-chip
+        size="small"
+        :variant="activeQuickFilter === 'tomorrow' ? 'flat' : 'tonal'"
+        color="primary"
+        class="appointments-quick__chip"
+        @click="applyQuickDateFilter(activeQuickFilter === 'tomorrow' ? null : 'tomorrow')"
+      >
+        Mañana
+      </v-chip>
+      <v-btn
+        v-if="activeQuickFilter"
+        variant="text"
+        size="x-small"
+        class="text-none"
+        @click="applyQuickDateFilter(null)"
+      >
+        Quitar filtro
+      </v-btn>
+    </template>
+
     <template #item.clientLabel="{ item }">
       <button
         type="button"
@@ -489,5 +487,19 @@ onMounted(async () => {
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
+}
+
+.appointments-quick__label {
+  margin-right: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+}
+
+.appointments-quick__chip {
+  font-weight: 600;
+  cursor: pointer;
 }
 </style>

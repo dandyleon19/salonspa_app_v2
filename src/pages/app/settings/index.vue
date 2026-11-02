@@ -239,7 +239,8 @@ onMounted(loadSalon)
 
 <style scoped>
 .app-settings-card {
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  max-width: 760px;
+  border: 1px solid rgba(var(--v-border-color), 0.1);
 }
 
 .app-settings-logo {

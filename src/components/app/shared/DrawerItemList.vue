@@ -168,7 +168,7 @@ const getItemKey = (item: any) => item?.id ?? item?.name
 }
 
 .drawer-item-list__create-btn {
-  color: #fff !important;
+  color: rgb(var(--v-theme-on-primary)) !important;
   text-transform: none;
   letter-spacing: normal;
 }
@@ -208,7 +208,7 @@ const getItemKey = (item: any) => item?.id ?? item?.name
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(var(--v-theme-on-surface), 0.55);
+  color: rgba(var(--v-theme-on-surface), 0.70);
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
