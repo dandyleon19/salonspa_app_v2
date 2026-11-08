@@ -97,6 +97,7 @@ import {
   normalizeUserFilters,
 } from "~/helpers/userHelpers"
 import { normalizeTableSearch } from "~/helpers/tableSearchHelpers"
+import { describeLastSession } from "~/helpers/lastSessionHelpers"
 import { useAuthStore } from "~/store/modules/auth"
 import { useUsersStore } from "~/store"
 
@@ -133,6 +134,7 @@ const headers = computed<TableHeader[]>(() => {
     { title: "Email", key: "email" },
     { title: "Rol", key: "roleLabel" },
     { title: "Estado", key: "statusLabel" },
+    { title: "Última sesión", key: "lastLoginLabel" },
   ]
 
   if (authStore.isSuperAdmin) {
@@ -153,6 +155,10 @@ const userChipColumns: TableChipColumn[] = [
   {
     key: "statusLabel",
     color: (item) => getUserStatusColor(item.isActive),
+  },
+  {
+    key: "lastLoginLabel",
+    color: (item) => item.lastLoginTone,
   },
 ]
 
@@ -222,6 +228,8 @@ const usersList = computed(() => {
     fullName: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
     roleLabel: getUserRoleLabel(user.role),
     statusLabel: getUserStatusLabel(user.isActive),
+    lastLoginLabel: describeLastSession(user.lastLoginAt).label,
+    lastLoginTone: describeLastSession(user.lastLoginAt).tone,
     tableActions: getUserTableActions(user),
     commissionPercentageLabel:
       user.commissionPercentage != null && user.commissionPercentage !== ""

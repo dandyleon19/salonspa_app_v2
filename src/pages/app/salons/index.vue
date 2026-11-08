@@ -107,6 +107,7 @@ import {
 } from "~/interfaces/subscriptionInterfaces";
 import { formatDateDisplay } from "~/helpers/dateTimeHelpers";
 import { APP_ICONS } from "~/constants/appIcons";
+import { describeLastSession } from "~/helpers/lastSessionHelpers";
 import { useSubscriptionStore } from "~/store/modules/subscription";
 import type { Salon, salonDataModalForm } from "~/interfaces/salonInterfaces";
 import { useSalonsStore } from "~/store";
@@ -144,6 +145,8 @@ const headers = ref<Array<TableHeader>>([
   { title: "Plan", key: "planName" },
   { title: "Estado", key: "subscriptionStatusLabel" },
   { title: "Vence", key: "subscriptionEnd" },
+  { title: "Última sesión", key: "lastSessionLabel" },
+  { title: "Último en entrar", key: "lastSessionBy" },
   { title: "Acciones", key: "actions", sortable: false },
 ]);
 
@@ -176,6 +179,10 @@ const salonChipColumns: TableChipColumn[] = [
   {
     key: "subscriptionStatusLabel",
     color: (item) => SUBSCRIPTION_STATUS_COLORS[item.subscriptionStatus as SubscriptionStatus] ?? "default",
+  },
+  {
+    key: "lastSessionLabel",
+    color: (item) => item.lastSessionTone,
   },
 ];
 
@@ -238,8 +245,13 @@ const salonsList = computed(() => {
             ? subscription?.currentPeriodEnd
             : null
 
+      const lastSession = describeLastSession(salon.lastSessionAt)
+
       return {
         ...salon,
+        lastSessionLabel: lastSession.label,
+        lastSessionTone: lastSession.tone,
+        lastSessionBy: salon.lastSessionBy || "—",
         planName: subscription?.planName ?? "—",
         subscriptionStatus: status,
         subscriptionStatusLabel: subscription ? subscriptionStatusText(subscription) : "",

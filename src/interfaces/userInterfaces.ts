@@ -17,6 +17,8 @@ export interface User {
   salonId?: number
   salonName?: string
   salonLogoUrl?: string | null
+  /** When the user last signed in or renewed their session (null = never). */
+  lastLoginAt?: string | null
   password: string
   passwordConfirmation?: string
 }

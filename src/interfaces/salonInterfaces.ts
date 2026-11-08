@@ -7,6 +7,9 @@ export interface Salon {
     phone?: string
     logoUrl?: string | null
     branches?: Branch[]
+    /** Only for the platform admin: the salon's most recent session (null = never) and whose it was. */
+    lastSessionAt?: string | null
+    lastSessionBy?: string | null
 }
 
 export interface Branch {
