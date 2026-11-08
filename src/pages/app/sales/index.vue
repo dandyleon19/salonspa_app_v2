@@ -235,7 +235,10 @@ const tableFilters = computed<FilterOption[]>(() => [
     key: "to",
     items: [],
   },
-  { type: "remote-select", kind: "client", label: "Cliente", key: "clientId", items: [] },
+  // The platform admin does not manage clients (the API refuses them), so there is nothing to filter by.
+  ...(authStore.isSuperAdmin
+    ? []
+    : [{ type: "remote-select" as const, kind: "client" as const, label: "Cliente", key: "clientId", items: [] }]),
   {
     type: "select",
     label: "Sucursal",
