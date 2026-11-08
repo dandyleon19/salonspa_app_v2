@@ -85,6 +85,7 @@
             density="comfortable"
             rounded="lg"
             hide-details="auto"
+            :rules="[depositRule]"
             :disabled="isPastAppointment"
           />
         </v-col>
@@ -106,18 +107,14 @@
       <v-row dense>
         <v-col cols="12" md="6">
           <div class="appointment-form__client-field">
-            <v-autocomplete
+            <RemoteSelect
               v-model="appointment.clientId"
-              v-bind="autocomplete"
+              kind="client"
               label="Cliente"
-              :items="clientsAutocompleteList"
-              item-title="label"
-              item-value="value"
               :disabled="isUpdateMode"
-              clearable
-              no-data-text="Sin coincidencias"
               :rules="[rules.required]"
               class="appointment-form__client-input"
+              @select="selectedClient = $event as Client | null"
             />
             <v-btn
               v-if="!isUpdateMode"
@@ -133,13 +130,10 @@
           </div>
         </v-col>
         <v-col cols="12" md="6">
-          <v-select
+          <RemoteSelect
             v-model="appointment.userId"
-            v-bind="select"
+            kind="user"
             label="Profesional"
-            :items="usersList"
-            item-title="label"
-            item-value="value"
             :disabled="!appointment.clientId"
             :rules="[rules.required]"
           />
@@ -157,16 +151,13 @@
           />
         </v-col>
         <v-col cols="12" md="6">
-          <v-autocomplete
+          <RemoteSelect
             v-model="appointment.serviceId"
-            v-bind="autocomplete"
+            kind="service"
             label="Servicio"
-            :items="servicesAutocompleteList"
-            item-title="label"
-            item-value="value"
+            :salon-id="clientSalonId"
             :disabled="!appointment.clientId"
-            clearable
-            no-data-text="Sin coincidencias"
+            @select="selectedService = $event as Service | null"
           />
         </v-col>
       </v-row>
@@ -243,19 +234,14 @@ import {
 } from "~/interfaces/appointmentInterfaces"
 import {
   useBranchesStore,
-  useClientsStore,
-  useUsersStore,
 } from "~/store"
-import { useServicesStore } from "~/store/modules/service"
+import type { Service } from "~/interfaces/serviceInterfaces"
 
 const { notifyCreated, notifyError: notifyApiError } = useApiNotification()
 
 const { textarea, select, autocomplete } = useFormFields()
 
 const branchesStore = useBranchesStore()
-const clientsStore = useClientsStore()
-const usersStore = useUsersStore()
-const servicesStore = useServicesStore()
 
 const props = defineProps<{
   dataModalForm: appointmentDataModalForm
@@ -305,25 +291,17 @@ const isPastAppointment = computed(
 
 const isFormLoading = useFormLoading({
   action: computed(() => props.dataModalForm.action),
-  stores: [branchesStore, clientsStore, usersStore, servicesStore],
+  stores: [branchesStore],
   recordLoading: loadingAppointment,
 })
 
-const selectedClient = computed(() =>
-  (clientsStore.data?.content ?? []).find(
-    (client) => String(client.id) === String(appointment.value.clientId)
-  )
-)
+// Set by the client picker (which searches the clients on the server) once it knows the chosen one.
+const selectedClient = ref<Client | null>(null)
 
 const clientSalonId = computed(() => selectedClient.value?.salonId ?? null)
 
-const servicesItems = computed(() => servicesStore.services)
-
-const selectedService = computed(() =>
-  servicesItems.value.find(
-    (service) => String(service.id) === String(appointment.value.serviceId)
-  ) ?? null
-)
+// Set by the service picker (which searches the services on the server) once it knows the chosen one.
+const selectedService = ref<Service | null>(null)
 
 const selectedDurationMinutes = computed(() =>
   getServiceDurationMinutes(selectedService.value)
@@ -358,52 +336,6 @@ const branchesList = computed(() => {
     )
   return options
 })
-
-const clientsList = computed(() => {
-  const options: { value: string | number | null; label: string }[] = [
-    { value: null, label: "Seleccione un cliente..." },
-  ]
-  ;(clientsStore.data?.content ?? []).forEach((client) =>
-    options.push({
-      value: client.id ?? null,
-      label: `${client.firstName} ${client.lastName}`.trim(),
-    })
-  )
-  return options
-})
-
-const usersList = computed(() => {
-  const options: { value: string | number | null; label: string }[] = [
-    { value: null, label: "Seleccione un profesional..." },
-  ]
-  ;(usersStore.data?.content ?? []).forEach((user) =>
-    options.push({
-      value: user.id ?? null,
-      label: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
-    })
-  )
-  return options
-})
-
-const servicesList = computed(() => {
-  const options: { value: string | number | null; label: string }[] = [
-    { value: null, label: "Seleccione un servicio..." },
-  ]
-  servicesItems.value
-    .filter((service) => belongsToSalon(service, clientSalonId.value))
-    .forEach((service) =>
-      options.push({ value: service.id ?? null, label: service.name })
-    )
-  return options
-})
-
-const clientsAutocompleteList = computed(() =>
-  clientsList.value.filter((option) => option.value != null)
-)
-
-const servicesAutocompleteList = computed(() =>
-  servicesList.value.filter((option) => option.value != null)
-)
 
 const isOptionAvailable = (
   value: string | number | null,
@@ -466,6 +398,14 @@ async function loadAppointment() {
   } finally {
     loadingAppointment.value = false
   }
+}
+
+// The deposit is optional; when there is one the backend wants an amount above 0 with at most two decimals.
+const depositRule = (value: number | string | null) => {
+  if (value === null || value === undefined || value === "") return true
+  if (!(Number(value) > 0)) return "El adelanto debe ser mayor a 0"
+  const money = rules.money(value)
+  return money === true ? rules.maxIntegerDigits(10)(value) : money
 }
 
 const onSubmit = async () => {
@@ -550,28 +490,15 @@ watch(clientSalonId, () => {
     appointment.value.branchId = null
   }
 
-  if (!isOptionAvailable(appointment.value.serviceId, servicesList.value)) {
+  // A service of another salon cannot stay chosen.
+  const service = selectedService.value
+  if (service?.salonId != null && clientSalonId.value != null && String(service.salonId) !== String(clientSalonId.value)) {
     appointment.value.serviceId = null
   }
 })
 
-const resolveCreatedClientId = (
-  created: Client | void,
-  submitted: Client
-): string | number | null => {
-  if (created?.id != null) return created.id
-
-  const normalizedFirstName = submitted.firstName.trim().toLowerCase()
-  const normalizedLastName = submitted.lastName.trim().toLowerCase()
-
-  const match = (clientsStore.data?.content ?? []).find(
-    (client) =>
-      client.firstName.trim().toLowerCase() === normalizedFirstName &&
-      client.lastName.trim().toLowerCase() === normalizedLastName
-  )
-
-  return match?.id ?? null
-}
+// The server answers with the created client; the picker finds it by id.
+const resolveCreatedClientId = (created: Client | void): string | number | null => created?.id ?? null
 
 const openCreateClientDialog = () => {
   clientDataModalForm.value = { action: "create" }
@@ -589,9 +516,7 @@ const handleCreateClient = async (client: Client) => {
       body: { ...client },
     })
 
-    await clientsStore.fetchClients(0, 100)
-
-    const newClientId = resolveCreatedClientId(created, client)
+    const newClientId = resolveCreatedClientId(created)
     if (newClientId != null) {
       appointment.value.clientId = newClientId
     }
@@ -607,9 +532,6 @@ const handleCreateClient = async (client: Client) => {
 
 onMounted(() => {
   branchesStore.fetchBranches(0, 100)
-  clientsStore.fetchClients(0, 100)
-  usersStore.fetchUsers(0, 100)
-  servicesStore.fetchServices()
 })
 </script>
 

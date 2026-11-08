@@ -47,7 +47,9 @@ export const useAuthStore = defineStore('auth', {
                     user.fullName ||
                     [user.firstName, user.lastName].filter(Boolean).join(" ").trim(),
             }
-            this.role = data.role ?? user.role ?? null
+            // The user's own role (read from the database) wins over the one in the token, which can be a day old if
+            // an admin has changed the role since.
+            this.role = user.role ?? data.role ?? null
         },
 
         logout() {

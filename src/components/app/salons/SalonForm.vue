@@ -17,7 +17,7 @@
             v-model="salon.name"
             v-bind="field"
             label="Nombre del salón"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(100)]"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -25,7 +25,7 @@
             v-model="salon.socialReason"
             v-bind="field"
             label="Razón social"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(100)]"
           />
         </v-col>
         <v-col cols="12">
@@ -34,7 +34,7 @@
             v-bind="field"
             label="Dirección fiscal"
             prepend-inner-icon="tabler:map-pin"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(100)]"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -42,7 +42,7 @@
             v-model="salon.rucNumber"
             v-bind="field"
             label="RUC"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(20)]"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -51,7 +51,7 @@
             v-bind="field"
             label="Teléfono"
             prepend-inner-icon="tabler:phone"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(20)]"
           />
         </v-col>
       </v-row>

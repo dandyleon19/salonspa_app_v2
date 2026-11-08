@@ -22,7 +22,7 @@
             v-model="client.firstName"
             v-bind="field"
             label="Nombres"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(100)]"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -30,7 +30,7 @@
             v-model="client.lastName"
             v-bind="field"
             label="Apellidos"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(100)]"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -38,6 +38,7 @@
             v-model="client.documentNumber"
             v-bind="field"
             label="Nro de documento"
+            :rules="[rules.maxLength(20)]"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -69,6 +70,7 @@
             v-bind="field"
             label="Teléfono / Celular"
             prepend-inner-icon="tabler:phone"
+            :rules="[rules.maxLength(20)]"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -78,6 +80,7 @@
             label="Correo electrónico"
             type="email"
             prepend-inner-icon="tabler:mail"
+            :rules="[optionalEmail, rules.maxLength(100)]"
           />
         </v-col>
       </v-row>
@@ -114,6 +117,9 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "create" | "update" | "clinicalRecords", client: Client): void
 }>()
+
+// The email is optional, but when there is one the backend (@Email) refuses a malformed one.
+const optionalEmail = (value?: string) => !value || rules.email(value)
 
 const isValid = ref(false)
 const clientFormRef = ref<any>(null)

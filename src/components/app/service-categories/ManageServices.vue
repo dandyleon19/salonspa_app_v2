@@ -61,7 +61,7 @@
                 label="Precio"
                 type="number"
                 prefix="S/"
-                :rules="[rules.required, rules.decimal, rules.positiveNumber, rules.money]"
+                :rules="[rules.required, rules.decimal, rules.positiveNumber, rules.money, rules.maxIntegerDigits(8)]"
               />
             </v-col>
             <v-col cols="12" md="6">
@@ -271,8 +271,8 @@ const handleCreateService = async (service: Service) => {
         description: service.description,
         longDescription: service.longDescription,
         isActive: service.isActive,
-        price: service.price,
-        durationMinutes: service.durationMinutes,
+        price: Number(service.price),
+        durationMinutes: Number(service.durationMinutes),
         categoryId: props.dataModalForm.rowId,
       },
     })
@@ -297,8 +297,8 @@ const handleUpdateService = async (service: Service) => {
         description: service.description,
         longDescription: service.longDescription,
         isActive: service.isActive,
-        price: service.price,
-        durationMinutes: service.durationMinutes,
+        price: Number(service.price),
+        durationMinutes: Number(service.durationMinutes),
       },
     })
     notifyUpdated("servicio")

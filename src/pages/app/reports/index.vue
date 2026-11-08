@@ -47,14 +47,13 @@
         clearable
         class="app-table__filter"
       />
-      <v-select
+      <RemoteSelect
         v-if="showUserFilter"
         v-model="filterUserId"
+        kind="user"
         label="Profesional"
-        :items="userFilterItems"
-        item-title="title"
-        item-value="value"
         hide-details
+        @select="selectedUserName = $event ? ($event.fullName as string) || `${$event.firstName} ${$event.lastName}`.trim() : ''"
         density="comfortable"
         variant="solo-filled"
         flat
@@ -71,7 +70,7 @@
           rounded="0"
         >
           <v-tab value="sales" prepend-icon="tabler:cash-register">Ventas</v-tab>
-          <v-tab value="commissions" prepend-icon="tabler:coins">Comisiones</v-tab>
+          <v-tab v-if="hasCommissions" value="commissions" prepend-icon="tabler:coins">Comisiones</v-tab>
         </v-tabs>
 
         <div class="sales-report__body pa-4 pa-md-5">
@@ -198,7 +197,7 @@
 
             </v-window-item>
 
-            <v-window-item value="commissions">
+            <v-window-item v-if="hasCommissions" value="commissions">
               <CommissionsReportPanel :filters="activeFilters" />
             </v-window-item>
           </v-window>
@@ -211,7 +210,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue"
 import { useAuthStore } from "~/store/modules/auth"
-import { useBranchesStore, useSalesStore, useUsersStore } from "~/store"
+import { useSubscriptionStore } from "~/store/modules/subscription"
+import { useBranchesStore, useSalesStore } from "~/store"
 import {
   areSaleReportFiltersEqual,
   formatCurrency,
@@ -230,8 +230,13 @@ useHead({ title: "Reportes" })
 
 const salesStore = useSalesStore()
 const branchesStore = useBranchesStore()
-const usersStore = useUsersStore()
 const authStore = useAuthStore()
+const subscriptionStore = useSubscriptionStore()
+
+// Commissions are their own plan feature: without it the backend refuses /api/commissions, so the tab is not offered.
+const hasCommissions = computed(
+  () => authStore.isSuperAdmin || subscriptionStore.hasFeature("commissions")
+)
 
 const defaultRange = getMonthDateRange()
 const activeReportTab = ref<"sales" | "commissions">("sales")
@@ -292,9 +297,8 @@ const reportSubtitle = computed(() => {
     if (branch) filterLabels.push(`Sucursal: ${branch.title}`)
   }
 
-  if (filterUserId.value != null) {
-    const user = userFilterItems.value.find((item) => item.value === filterUserId.value)
-    if (user) filterLabels.push(`Profesional: ${user.title}`)
+  if (filterUserId.value != null && selectedUserName.value) {
+    filterLabels.push(`Profesional: ${selectedUserName.value}`)
   }
 
   const filtersText = filterLabels.length ? ` · ${filterLabels.join(" · ")}` : ""
@@ -317,12 +321,8 @@ const branchFilterItems = computed(() =>
   }))
 )
 
-const userFilterItems = computed(() =>
-  (usersStore.data?.content ?? []).map((user) => ({
-    title: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
-    value: Number(user.id),
-  }))
-)
+// Name of the professional chosen in the filter (the select searches the server, so the page has no list of them).
+const selectedUserName = ref("")
 
 const summaryStats = computed(() => [
   {
@@ -453,13 +453,7 @@ watch(showUserFilter, (canFilterByUser) => {
 })
 
 onMounted(async () => {
-  const requests: Promise<unknown>[] = [branchesStore.fetchBranches(0, 100)]
-
-  if (showUserFilter.value) {
-    requests.push(usersStore.fetchUsers(0, 100))
-  }
-
-  await Promise.allSettled(requests)
+  await Promise.allSettled([branchesStore.fetchBranches(0, 100)])
 })
 </script>
 

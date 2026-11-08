@@ -102,7 +102,7 @@
                 label="Precio"
                 type="number"
                 prefix="S/"
-                :rules="[rules.required, rules.decimal, rules.positiveNumber, rules.money]"
+                :rules="[rules.required, rules.decimal, rules.positiveNumber, rules.money, rules.maxIntegerDigits(8)]"
               />
             </v-col>
             <v-col cols="12" md="6">
@@ -425,9 +425,9 @@ const handleCreateProduct = async (product: Product) => {
         description: product.description,
         longDescription: product.longDescription,
         isActive: product.isActive,
-        price: product.price,
-        stockQuantity: product.stockQuantity,
-        lowStockThreshold: product.lowStockThreshold,
+        price: Number(product.price),
+        stockQuantity: Number(product.stockQuantity),
+        lowStockThreshold: Number(product.lowStockThreshold),
         categoryId: props.dataModalForm.rowId,
       },
     })
@@ -452,9 +452,9 @@ const handleUpdateProduct = async (product: Product) => {
         description: product.description,
         longDescription: product.longDescription,
         isActive: product.isActive,
-        price: product.price,
-        stockQuantity: product.stockQuantity,
-        lowStockThreshold: product.lowStockThreshold,
+        price: Number(product.price),
+        stockQuantity: Number(product.stockQuantity),
+        lowStockThreshold: Number(product.lowStockThreshold),
       },
     })
     notifyUpdated("producto")

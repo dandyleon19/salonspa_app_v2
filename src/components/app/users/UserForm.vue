@@ -23,7 +23,7 @@
               v-model="user.firstName"
               v-bind="field"
               label="Nombres"
-              :rules="[rules.required]"
+              :rules="[rules.required, rules.maxLength(255)]"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -31,7 +31,7 @@
               v-model="user.lastName"
               v-bind="field"
               label="Apellidos"
-              :rules="[rules.required]"
+              :rules="[rules.required, rules.maxLength(255)]"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -41,7 +41,7 @@
               label="Correo"
               type="email"
               prepend-inner-icon="tabler:mail"
-              :rules="[rules.required, rules.email]"
+              :rules="[rules.required, rules.email, rules.maxLength(255)]"
             />
           </v-col>
           <v-col cols="12" md="6">
@@ -55,13 +55,10 @@
             />
           </v-col>
           <v-col v-if="showSalonSelect" cols="12" md="6">
-            <v-select
+            <RemoteSelect
               v-model="user.salonId"
-              v-bind="select"
+              kind="salon"
               label="Salón"
-              :items="salonOptions"
-              item-title="title"
-              item-value="value"
               prepend-inner-icon="tabler:building"
               :rules="[rules.required]"
             />
@@ -104,7 +101,8 @@
               type="password"
               autocomplete="off"
               prepend-inner-icon="tabler:lock"
-              :rules="[rules.required, rules.minLength(6)]"
+              hint="Mínimo 8 caracteres"
+              :rules="[rules.required, rules.minLength(8), rules.maxLength(255)]"
             />
           </v-col>
           <v-col cols="12">
@@ -143,13 +141,12 @@ import { USER_ROLE_OPTIONS } from "~/interfaces/userInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 import { useAuthStore } from "~/store/modules/auth"
 import { useSubscriptionStore } from "~/store/modules/subscription"
-import { useSalonsStore, useUsersStore } from "~/store"
+import { useUsersStore } from "~/store"
 
 const { field, select } = useFormFields()
 const { error: notifyError } = useNotification()
 const authStore = useAuthStore()
 const usersStore = useUsersStore()
-const salonsStore = useSalonsStore()
 const subscriptionStore = useSubscriptionStore()
 
 const props = defineProps<{
@@ -205,15 +202,6 @@ const showSalonSelect = computed(
   () => isSuperAdmin.value && props.dataModalForm.action === "create"
 )
 
-const salonOptions = computed(() =>
-  (salonsStore.data?.content ?? []).map((salon) => ({
-    title: salon.name,
-    value: salon.id != null ? Number(salon.id) : salon.id,
-  }))
-)
-
-const salonsLoading = ref(false)
-
 const roleOptions = computed(() => {
   if (user.value.role === "SUPER_ADMIN") {
     return [{ value: "SUPER_ADMIN", label: "Super administrador" }]
@@ -241,29 +229,7 @@ const usersList = computed(() => usersStore.data?.content ?? [])
 const isFormLoading = useFormLoading({
   action: computed(() => props.dataModalForm.action),
   stores: [usersStore],
-  recordLoading: computed(
-    () => showSalonSelect.value && salonsLoading.value
-  ),
 })
-
-async function loadSalons() {
-  salonsLoading.value = true
-  try {
-    await salonsStore.fetchSalons(0, 100)
-  } finally {
-    salonsLoading.value = false
-  }
-}
-
-watch(
-  () => [props.dataModalForm.action, isSuperAdmin.value] as const,
-  ([action, superAdmin]) => {
-    if (action === "create" && superAdmin) {
-      loadSalons()
-    }
-  },
-  { immediate: true }
-)
 
 async function getUser() {
   try {

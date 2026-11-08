@@ -13,13 +13,10 @@
     <AppFormSection title="Sucursal" subtitle="Ubicación y datos de contacto">
       <v-row dense>
         <v-col v-if="showSalonSelect" cols="12" md="6">
-          <v-select
+          <RemoteSelect
             v-model="branch.salonId"
-            v-bind="select"
+            kind="salon"
             label="Salón"
-            :items="salonOptions"
-            item-title="title"
-            item-value="value"
             prepend-inner-icon="tabler:building"
             :rules="[rules.required]"
           />
@@ -29,7 +26,7 @@
             v-model="branch.name"
             v-bind="field"
             label="Nombre"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(50)]"
           />
         </v-col>
         <v-col cols="12">
@@ -38,7 +35,7 @@
             v-bind="field"
             label="Dirección"
             prepend-inner-icon="tabler:map-pin"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(100)]"
           />
         </v-col>
         <v-col cols="12" md="6">
@@ -47,7 +44,7 @@
             v-bind="field"
             label="Ciudad"
             prepend-inner-icon="tabler:building-community"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(100)]"
           />
         </v-col>
       </v-row>
@@ -72,12 +69,11 @@
 import type { Branch, branchDataModalForm } from "~/interfaces/salonInterfaces"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 import { useAuthStore } from "~/store/modules/auth"
-import { useBranchesStore, useSalonsStore } from "~/store"
+import { useBranchesStore } from "~/store"
 
 const { field, select } = useFormFields()
 const authStore = useAuthStore()
 const branchesStore = useBranchesStore()
-const salonsStore = useSalonsStore()
 
 const props = defineProps<{
   dataModalForm: branchDataModalForm
@@ -103,15 +99,6 @@ const showSalonSelect = computed(
   () => isSuperAdmin.value && props.dataModalForm.action === "create"
 )
 
-const salonOptions = computed(() =>
-  (salonsStore.data?.content ?? []).map((salon) => ({
-    title: salon.name,
-    value: salon.id != null ? Number(salon.id) : salon.id,
-  }))
-)
-
-const salonsLoading = ref(false)
-
 const actionLabel = computed(() => {
   switch (props.dataModalForm.action) {
     case "create":
@@ -129,29 +116,7 @@ const branchesList = computed(() => branchesStore.data?.content ?? [])
 const isFormLoading = useFormLoading({
   action: computed(() => props.dataModalForm.action),
   stores: [branchesStore],
-  recordLoading: computed(
-    () => showSalonSelect.value && salonsLoading.value
-  ),
 })
-
-async function loadSalons() {
-  salonsLoading.value = true
-  try {
-    await salonsStore.fetchSalons(0, 100)
-  } finally {
-    salonsLoading.value = false
-  }
-}
-
-watch(
-  () => [props.dataModalForm.action, isSuperAdmin.value] as const,
-  ([action, superAdmin]) => {
-    if (action === "create" && superAdmin) {
-      loadSalons()
-    }
-  },
-  { immediate: true }
-)
 
 async function getBranch() {
   try {

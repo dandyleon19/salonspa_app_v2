@@ -8,18 +8,20 @@ import {
 } from "~/helpers/dateTimeHelpers"
 
 export const validationRules = {
+  // A text of only spaces counts as empty, like the backend's @NotBlank (otherwise the API would answer 400).
   required: (value: string | number | boolean) =>
       value !== null &&
       value !== undefined &&
-      value !== '' ||
+      (typeof value !== 'string' || value.trim() !== '') ||
       "Este campo es requerido",
 
   textOnly: (value: string) =>
       /^[A-Za-zÁÉÍÓÚáéíóúñÑ ]*$/.test(value) ||
       "Solo se permiten letras",
 
+  // Forms trim the email before sending it, so spaces around a pasted address are not a reason to refuse it.
   email: (value: string) =>
-      /^\S+@\S+\.\S+$/.test(value) ||
+      /^\S+@\S+\.\S+$/.test(String(value ?? '').trim()) ||
       "Correo inválido",
 
   number: (value: string | number) =>
@@ -34,9 +36,28 @@ export const validationRules = {
       Number(value) >= 0 ||
       "Debe ser mayor o igual a 0",
 
+  // The backend's @Positive: zero is not accepted (a payment of 0, a quantity of 0).
+  greaterThanZero: (value: string | number) =>
+      Number(value) > 0 ||
+      "Debe ser mayor a 0",
+
+  // Quantities are Integer in the backend: no fractions.
+  wholeNumber: (value: string | number) =>
+      value === null || value === undefined || value === '' ||
+      Number.isInteger(Number(value)) ||
+      "Debe ser un número entero",
+
   money: (value: string | number) =>
       /^\d+(\.\d{1,2})?$/.test(String(value)) ||
       "Máximo 2 decimales",
+
+  // The money columns are NUMERIC(10, 2) (8 integer digits) and NUMERIC(12, 2) (10): more would overflow in the database.
+  maxIntegerDigits:
+      (max: number) =>
+          (value: string | number | null | undefined) =>
+              value === null || value === undefined || value === '' ||
+              new RegExp(`^-?\\d{1,${max}}(\\.\\d*)?$`).test(String(value)) ||
+              `Máximo ${max} dígitos enteros`,
 
   maxLength:
       (max: number) =>

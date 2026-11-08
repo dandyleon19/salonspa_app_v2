@@ -99,8 +99,6 @@ import {
 import {
   useAppointmentsStore,
   useBranchesStore,
-  useClientsStore,
-  useUsersStore,
 } from "~/store"
 import { useAuthStore } from "~/store/modules/auth"
 import { useAppointmentManagement } from "~/composables/useAppointmentManagement"
@@ -119,8 +117,6 @@ import { buildWhatsAppReminderLink } from "~/helpers/whatsappHelpers"
 
 const appointmentsStore = useAppointmentsStore()
 const branchesStore = useBranchesStore()
-const clientsStore = useClientsStore()
-const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const management = useAppointmentManagement()
 
@@ -246,27 +242,9 @@ const tableFilters = computed<FilterOption[]>(() => [
     key: "date",
     items: [],
   },
-  {
-    type: "searchable-select",
-    label: "Cliente",
-    key: "clientId",
-    items: (clientsStore.data?.content ?? []).map((client) => ({
-      title: `${client.firstName} ${client.lastName}`.trim(),
-      value: Number(client.id),
-    })),
-  },
+  { type: "remote-select", kind: "client", label: "Cliente", key: "clientId", items: [] },
   ...(canManageAppointments.value
-    ? [
-        {
-          type: "searchable-select" as const,
-          label: "Profesional",
-          key: "userId",
-          items: (usersStore.data?.content ?? []).map((user) => ({
-            title: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
-            value: Number(user.id),
-          })),
-        },
-      ]
+    ? [{ type: "remote-select" as const, kind: "user" as const, label: "Profesional", key: "userId", items: [] }]
     : []),
   {
     type: "select",
@@ -435,17 +413,7 @@ const handlePagination = async ({
 
 onMounted(async () => {
   management.registerRefresh(fetchAppointments)
-  const requests = [
-    branchesStore.fetchBranches(0, 100),
-    clientsStore.fetchClients(0, 100),
-    fetchAppointments(),
-  ]
-
-  if (canManageAppointments.value) {
-    requests.push(usersStore.fetchUsers(0, 100))
-  }
-
-  await Promise.all(requests)
+  await Promise.all([branchesStore.fetchBranches(0, 100), fetchAppointments()])
 })
 </script>
 

@@ -40,15 +40,11 @@
             </div>
             <v-row dense>
               <v-col cols="12" md="7">
-                <v-autocomplete
+                <RemoteSelect
                   v-model="row.serviceId"
-                  v-bind="autocomplete"
+                  kind="service"
                   label="Servicio"
-                  :items="getServiceOptionsForRow(row.serviceId)"
-                  item-title="label"
-                  item-value="value"
-                  clearable
-                  no-data-text="Sin servicios disponibles"
+                  :salon-id="salonId"
                   :rules="[rules.required]"
                 />
               </v-col>
@@ -89,12 +85,10 @@
 </template>
 
 <script setup lang="ts">
-import { belongsToSalon } from "~/helpers/appointmentHelpers"
 import { validationRules as rules } from "~/helpers/validationFormRules"
 import { mapUserServiceCommissionsToInputs } from "~/helpers/userHelpers"
 import type { UserServiceCommissionInput } from "~/interfaces/userInterfaces"
 import { useUsersStore } from "~/store"
-import { useServicesStore } from "~/store/modules/service"
 
 const props = defineProps<{
   userId?: number | string
@@ -104,7 +98,6 @@ const props = defineProps<{
 
 const { field, autocomplete } = useFormFields()
 const usersStore = useUsersStore()
-const servicesStore = useServicesStore()
 
 type CommissionRow = UserServiceCommissionInput & { key: string }
 
@@ -122,52 +115,17 @@ const generalCommissionLabel = computed(() => {
   return `${props.generalCommission}%`
 })
 
-const salonServices = computed(() =>
-  servicesStore.services.filter((service) =>
-    belongsToSalon(service, props.salonId)
-  )
-)
-
-const serviceOptions = computed(() =>
-  salonServices.value.map((service) => ({
-    value: Number(service.id),
-    label: service.name,
-  }))
-)
-
-const selectedServiceIds = computed(() =>
-  rows.value
-    .map((row) => row.serviceId)
-    .filter((serviceId) => serviceId != null)
-    .map((serviceId) => Number(serviceId))
-)
-
-const availableServices = computed(() =>
-  serviceOptions.value.filter(
-    (option) => !selectedServiceIds.value.includes(Number(option.value))
-  )
-)
-
-const getServiceOptionsForRow = (serviceId: number | null | undefined) => {
-  const currentId = serviceId != null ? Number(serviceId) : null
-  return serviceOptions.value.filter(
-    (option) =>
-      currentId === Number(option.value) ||
-      !selectedServiceIds.value.includes(Number(option.value))
-  )
-}
-
 const createRow = (serviceId?: number, commissionPercentage?: number): CommissionRow => ({
   key: nextKey(),
   serviceId: serviceId ?? (null as unknown as number),
   commissionPercentage: commissionPercentage ?? (null as unknown as number),
 })
 
+// The service is chosen by the user in the picker; repeating one is refused when saving (see validate).
 const addRow = () => {
-  const nextService = availableServices.value[0]
   rows.value.push(
     createRow(
-      nextService ? Number(nextService.value) : undefined,
+      undefined,
       props.generalCommission != null && props.generalCommission !== ""
         ? Number(props.generalCommission)
         : undefined
@@ -187,7 +145,6 @@ const loadData = async () => {
 
   loading.value = true
   try {
-    await servicesStore.fetchServices(0, 100)
     const commissions = await usersStore.fetchUserServiceCommissions(props.userId)
     rows.value = mapUserServiceCommissionsToInputs(commissions).map((item) => ({
       ...item,

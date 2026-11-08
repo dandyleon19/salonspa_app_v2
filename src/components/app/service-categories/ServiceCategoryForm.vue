@@ -22,7 +22,7 @@
             v-model="serviceCategory.name"
             v-bind="field"
             label="Nombre de la categoría"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.maxLength(100)]"
           />
         </v-col>
         <v-col cols="12">

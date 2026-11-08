@@ -346,6 +346,7 @@ const closeUserDrawer = () => {
 
 const { notifyCreated, notifyUpdated, notifyDeleted, notifyError } =
   useApiNotification()
+const { success: notifySuccess } = useNotification()
 
 const applyUserAction = async (user: User, action: UserTableAction) => {
   if (!user.id) return
@@ -468,7 +469,23 @@ const handleDeleteUser = async () => {
   }
 }
 
-const handleChangePassword = () => {}
+const handleChangePassword = async (user: User) => {
+  if (user.id == null) return
+
+  try {
+    loading.value = true
+    await usersStore.resetPassword(user.id, user.password)
+    notifySuccess(
+      "La contraseña se actualizó y se cerraron las sesiones abiertas de esa persona.",
+      "Contraseña actualizada"
+    )
+    closeUserDrawer()
+  } catch (err) {
+    notifyError(err, "cambiar la contraseña")
+  } finally {
+    loading.value = false
+  }
+}
 
 const handleChangeBranchOffices = () => {}
 

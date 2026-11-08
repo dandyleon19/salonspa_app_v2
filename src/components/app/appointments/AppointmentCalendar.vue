@@ -52,13 +52,11 @@
         </div>
       </template>
 
-      <v-select
+      <RemoteSelect
         v-if="canFilterByProfessional"
         v-model="selectedFilters.userId"
+        kind="user"
         label="Profesional"
-        :items="userFilterItems"
-        item-title="title"
-        item-value="value"
         hide-details
         density="comfortable"
         variant="solo-filled"
@@ -255,7 +253,7 @@ import {
   getAppointmentStatusLabel,
   isInactiveAppointmentStatus,
 } from "~/interfaces/appointmentInterfaces"
-import { useAppointmentsStore, useBranchesStore, useUsersStore } from "~/store"
+import { useAppointmentsStore, useBranchesStore } from "~/store"
 import { useAuthStore } from "~/store/modules/auth"
 
 const MAX_VISIBLE_EVENTS = 3
@@ -268,7 +266,6 @@ const emit = defineEmits<{
 
 const appointmentsStore = useAppointmentsStore()
 const branchesStore = useBranchesStore()
-const usersStore = useUsersStore()
 const authStore = useAuthStore()
 const { notifyError } = useApiNotification()
 
@@ -294,13 +291,6 @@ const calendarCells = computed(() =>
 )
 const appointmentsByDay = computed(() =>
   groupAppointmentsByDay(appointmentsStore.calendarData?.appointments ?? [])
-)
-
-const userFilterItems = computed(() =>
-  (usersStore.data?.content ?? []).map((user) => ({
-    title: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
-    value: Number(user.id),
-  }))
 )
 
 const branchFilterItems = computed(() =>
@@ -402,13 +392,7 @@ const handleDialogSelect = (appointment: Appointment) => {
 watch(selectedFilters, applyFilters, { deep: true })
 
 onMounted(async () => {
-  const requests = [branchesStore.fetchBranches(0, 100), fetchCalendar()]
-
-  if (canFilterByProfessional.value) {
-    requests.push(usersStore.fetchUsers(0, 100))
-  }
-
-  await Promise.all(requests)
+  await Promise.all([branchesStore.fetchBranches(0, 100), fetchCalendar()])
 })
 
 defineExpose({

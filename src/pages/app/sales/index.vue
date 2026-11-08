@@ -141,7 +141,6 @@ import {
 } from "~/interfaces/salesInterfaces"
 import {
   useBranchesStore,
-  useClientsStore,
   useSalesStore,
 } from "~/store"
 import { useAuthStore } from "~/store/modules/auth"
@@ -161,7 +160,6 @@ useHead({ title: "Ventas" })
 
 const salesStore = useSalesStore()
 const branchesStore = useBranchesStore()
-const clientsStore = useClientsStore()
 const authStore = useAuthStore()
 const route = useRoute()
 const router = useRouter()
@@ -237,15 +235,7 @@ const tableFilters = computed<FilterOption[]>(() => [
     key: "to",
     items: [],
   },
-  {
-    type: "searchable-select",
-    label: "Cliente",
-    key: "clientId",
-    items: (clientsStore.data?.content ?? []).map((client) => ({
-      title: `${client.firstName} ${client.lastName}`.trim(),
-      value: Number(client.id),
-    })),
-  },
+  { type: "remote-select", kind: "client", label: "Cliente", key: "clientId", items: [] },
   {
     type: "select",
     label: "Sucursal",
@@ -468,11 +458,7 @@ watch(openPaymentDialog, (open) => {
 })
 
 onMounted(async () => {
-  await Promise.all([
-    branchesStore.fetchBranches(0, 100),
-    clientsStore.fetchClients(0, 100),
-    fetchSales(),
-  ])
+  await Promise.all([branchesStore.fetchBranches(0, 100), fetchSales()])
   openCreateFromAppointment()
 })
 

@@ -34,12 +34,11 @@
               clearable
               class="dashboard-welcome__filter"
             />
-            <v-select
+            <RemoteSelect
               v-model="filterUserId"
+              kind="user"
+              :query="{ isActive: true }"
               placeholder="Todo el equipo"
-              :items="userFilterItems"
-              item-title="title"
-              item-value="value"
               prepend-inner-icon="tabler:user"
               variant="outlined"
               density="compact"
@@ -324,7 +323,6 @@ import {
   useBranchesStore,
   useDashboardStore,
   useSalesStore,
-  useUsersStore,
 } from "~/store"
 import type { Product } from "~/interfaces/productInterfaces"
 import {
@@ -348,7 +346,6 @@ import { CALENDAR_MONTH_LABELS } from "~/helpers/appointmentHelpers"
 const authStore = useAuthStore()
 const dashboardStore = useDashboardStore()
 const branchesStore = useBranchesStore()
-const usersStore = useUsersStore()
 const salesStore = useSalesStore()
 const lowStockProductsStore = useProductsStore()
 const subscriptionStore = useSubscriptionStore()
@@ -684,17 +681,6 @@ const branchFilterItems = computed(() =>
   }))
 )
 
-const userFilterItems = computed(() =>
-  (usersStore.data?.content ?? [])
-    .filter((user) => user.isActive)
-    .map((user) => ({
-      title:
-        user.fullName ||
-        `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(),
-      value: Number(user.id),
-    }))
-)
-
 // ---------------------------------------------------------------- appointment helpers
 
 const formatAppointmentTimeRange = (appointment: Appointment) => {
@@ -765,10 +751,7 @@ const fetchDashboard = async () => {
 const loadFilterOptions = async () => {
   if (!showAdvancedFilters.value) return
 
-  await Promise.allSettled([
-    branchesStore.fetchBranches(0, 100),
-    usersStore.fetchUsers(0, 100, { isActive: true }),
-  ])
+  await Promise.allSettled([branchesStore.fetchBranches(0, 100)])
 }
 
 const fetchSalesSummary = async () => {

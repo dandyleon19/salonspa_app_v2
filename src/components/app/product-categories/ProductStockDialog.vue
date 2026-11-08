@@ -5,7 +5,7 @@
     scrollable
     @update:model-value="$emit('update:modelValue', $event)"
   >
-    <v-card rounded="xl" :loading="loading">
+    <v-card rounded="xl" :loading="submitting">
       <v-card-title class="d-flex align-center justify-space-between pa-5 pb-2">
         <div>
           <span class="text-h6 font-weight-bold d-block">{{ product?.name }}</span>
@@ -43,7 +43,7 @@
             label="¿Cuántas unidades llegaron?"
             type="number"
             min="1"
-            :rules="[rules.required, rules.positiveNumber]"
+            :rules="[rules.required, rules.wholeNumber, rules.greaterThanZero]"
           />
           <v-text-field
             v-else
@@ -62,6 +62,7 @@
             v-bind="field"
             label="Motivo (opcional)"
             class="mt-3"
+            :rules="[rules.maxLength(255)]"
           />
 
           <v-btn

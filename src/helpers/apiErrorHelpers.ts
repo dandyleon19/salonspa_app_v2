@@ -69,13 +69,19 @@ export function getApiErrorMessage(err: unknown, fallback: string): string {
     .join(" ")
 }
 
+/** Only the appointment overlap error is about the schedule; any other conflict (duplicate RUC, in use...) is a plain one. */
+function getConflictTitle(body: ApiErrorBody | null): string {
+  const message = (body?.message ?? "").toLowerCase()
+  return message.includes("horario") || message.includes("time slot") ? "Conflicto de horario" : "Conflicto"
+}
+
 export function getApiErrorTitle(err: unknown): string {
   const body = parseApiError(err)
   const status = body?.status
 
   switch (body?.code) {
     case "CONFLICT":
-      return "Conflicto de horario"
+      return getConflictTitle(body)
     case "VALIDATION_ERROR":
       return "Datos inválidos"
     case "BAD_REQUEST":
@@ -88,7 +94,7 @@ export function getApiErrorTitle(err: unknown): string {
       return "No autorizado"
   }
 
-  if (status === 409) return "Conflicto de horario"
+  if (status === 409) return getConflictTitle(body)
   if (status === 404) return "No encontrado"
   if (status === 403) return "Sin permisos"
   if (status === 401) return "No autorizado"

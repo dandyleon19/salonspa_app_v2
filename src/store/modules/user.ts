@@ -54,6 +54,15 @@ export const useUsersStore = defineStore('users', {
             })
         },
 
+        /** Sets a new password for the user and ends all their open sessions. */
+        async resetPassword(id: number | string, password: string) {
+            const { $api } = useNuxtApp()
+            await $api(`/api/users/${id}/password`, {
+                method: "PUT",
+                body: { password },
+            })
+        },
+
         async fetchUserServiceCommissions(userId: number | string) {
             const { $api } = useNuxtApp()
             return await $api<UserServiceCommission[]>(

@@ -36,17 +36,13 @@
           </v-col>
           <v-col cols="12" md="6">
             <div class="sale-form__client-field">
-              <v-autocomplete
+              <RemoteSelect
                 v-model="sale.clientId"
-                v-bind="autocomplete"
+                kind="client"
                 label="Cliente"
-                :items="clientsAutocompleteList"
-                item-title="label"
-                item-value="value"
-                clearable
-                no-data-text="Sin coincidencias"
                 :rules="[rules.required]"
                 class="sale-form__client-input"
+                @select="selectedClient = $event as Client | null"
               />
               <v-btn
                 variant="tonal"
@@ -133,28 +129,22 @@
               </div>
               <v-row dense>
                 <v-col cols="12" md="6">
-                  <v-autocomplete
+                  <RemoteSelect
                     v-model="item.serviceId"
-                    v-bind="autocomplete"
+                    kind="service"
                     label="Servicio"
-                    :items="servicesAutocompleteList"
-                    item-title="label"
-                    item-value="value"
+                    detail
+                    :salon-id="clientSalonId"
                     :disabled="!sale.clientId"
-                    clearable
-                    no-data-text="Sin coincidencias"
                     :rules="[rules.required]"
-                    @update:model-value="applyServicePrice(item)"
+                    @select="onServiceSelected(item, $event as Service | null)"
                   />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-select
+                  <RemoteSelect
                     v-model="item.userId"
-                    v-bind="select"
+                    kind="user"
                     label="Profesional"
-                    :items="usersList"
-                    item-title="label"
-                    item-value="value"
                     :rules="[rules.required]"
                   />
                 </v-col>
@@ -165,7 +155,7 @@
                     label="Cantidad"
                     type="number"
                     min="1"
-                    :rules="[rules.required, rules.positiveNumber]"
+                    :rules="[rules.required, rules.wholeNumber, rules.greaterThanZero]"
                   />
                 </v-col>
                 <v-col cols="12" sm="4">
@@ -233,17 +223,14 @@
               </div>
               <v-row dense>
                 <v-col cols="12" md="6">
-                  <v-autocomplete
+                  <RemoteSelect
                     v-model="item.productId"
-                    v-bind="autocomplete"
+                    kind="product"
                     label="Producto"
-                    :items="productsAutocompleteList"
-                    item-title="label"
-                    item-value="value"
+                    detail
+                    :salon-id="clientSalonId"
                     :disabled="!sale.clientId"
-                    clearable
-                    no-data-text="Sin coincidencias"
-                    @update:model-value="applyProductPrice(item)"
+                    @select="onProductSelected(item, $event as Product | null)"
                   />
                 </v-col>
                 <v-col cols="12" sm="4" md="2">
@@ -253,7 +240,7 @@
                     label="Cantidad"
                     type="number"
                     min="1"
-                    :rules="[rules.positiveNumber, productStockRule(item)]"
+                    :rules="[rules.required, rules.wholeNumber, rules.greaterThanZero, productStockRule(item)]"
                   />
                 </v-col>
                 <v-col cols="12" sm="4" md="2">
@@ -327,7 +314,7 @@
                     type="number"
                     min="0.01"
                     step="0.01"
-                    :rules="[rules.required, rules.positiveNumber]"
+                    :rules="[rules.required, rules.greaterThanZero, rules.maxIntegerDigits(10)]"
                   />
                 </v-col>
                 <v-col cols="12" md="4">
@@ -346,6 +333,7 @@
                     v-model="payment.reference"
                     v-bind="field"
                     label="Referencia (opcional)"
+                    :rules="[rules.maxLength(100)]"
                   />
                 </v-col>
               </v-row>
@@ -451,9 +439,9 @@ import type {
   saleDataModalForm,
 } from "~/interfaces/salesInterfaces"
 import { PAYMENT_METHOD_OPTIONS } from "~/interfaces/salesInterfaces"
-import { useBranchesStore, useClientsStore, useUsersStore } from "~/store"
-import { useServicesStore } from "~/store/modules/service"
-import { useProductsStore } from "~/store/modules/product"
+import { useBranchesStore } from "~/store"
+import type { Service } from "~/interfaces/serviceInterfaces"
+import type { Product } from "~/interfaces/productInterfaces"
 import { useSubscriptionStore } from "~/store/modules/subscription"
 
 const { error: notifyError } = useNotification()
@@ -462,10 +450,6 @@ const { notifyCreated, notifyError: notifyApiError } = useApiNotification()
 const { field, textarea, select, autocomplete } = useFormFields()
 
 const branchesStore = useBranchesStore()
-const clientsStore = useClientsStore()
-const usersStore = useUsersStore()
-const servicesStore = useServicesStore()
-const productsStore = useProductsStore()
 const subscriptionStore = useSubscriptionStore()
 
 // Selling products belongs to the plans that include products and stock.
@@ -480,8 +464,9 @@ const emit = defineEmits<{
   (e: "create", payload: CreateSaleRequest): void
 }>()
 
-type SaleItemForm = CreateSaleItemPayload & { key: string }
-type SaleProductItemForm = CreateSaleItemPayload & { key: string }
+// `service` / `product` are the records behind the pickers (their price and stock); they are not sent to the API.
+type SaleItemForm = CreateSaleItemPayload & { key: string; service?: Service | null }
+type SaleProductItemForm = CreateSaleItemPayload & { key: string; product?: Product | null }
 type SalePaymentForm = CreateSalePaymentPayload & { key: string }
 
 const isValid = ref(false)
@@ -543,7 +528,7 @@ const sale = ref({
 
 const isFormLoading = useFormLoading({
   action: computed(() => props.dataModalForm.action),
-  stores: [branchesStore, clientsStore, usersStore, servicesStore, productsStore],
+  stores: [branchesStore],
 })
 
 const paymentMethodItems = PAYMENT_METHOD_OPTIONS.map((option) => ({
@@ -551,26 +536,10 @@ const paymentMethodItems = PAYMENT_METHOD_OPTIONS.map((option) => ({
   value: option.value,
 }))
 
-const selectedClient = computed(() =>
-  (clientsStore.data?.content ?? []).find(
-    (client) => String(client.id) === String(sale.value.clientId)
-  )
-)
+// Set by the client picker (which searches the clients on the server) once it knows the chosen one.
+const selectedClient = ref<Client | null>(null)
 
 const clientSalonId = computed(() => selectedClient.value?.salonId ?? null)
-
-const clientsList = computed(() => {
-  const options: { value: string | number | null; label: string }[] = [
-    { value: null, label: "Seleccione un cliente..." },
-  ]
-  ;(clientsStore.data?.content ?? []).forEach((client) =>
-    options.push({
-      value: client.id ?? null,
-      label: `${client.firstName} ${client.lastName}`.trim(),
-    })
-  )
-  return options
-})
 
 const branchesList = computed(() => {
   const options: { value: string | number | null; label: string }[] = [
@@ -583,66 +552,6 @@ const branchesList = computed(() => {
     )
   return options
 })
-
-const usersList = computed(() => {
-  const options: { value: string | number | null; label: string }[] = [
-    { value: null, label: "Seleccione un profesional..." },
-  ]
-  ;(usersStore.data?.content ?? []).forEach((user) =>
-    options.push({
-      value: user.id ?? null,
-      label: user.fullName || `${user.firstName} ${user.lastName}`.trim(),
-    })
-  )
-  return options
-})
-
-const servicesList = computed(() => {
-  const options: { value: string | number | null; label: string }[] = [
-    { value: null, label: "Seleccione un servicio..." },
-  ]
-  servicesStore.services
-    .filter((service) => belongsToSalon(service, clientSalonId.value))
-    .forEach((service) => {
-      const priceLabel =
-        service.price != null ? ` · ${formatCurrency(service.price)}` : ""
-      options.push({
-        value: service.id ?? null,
-        label: `${service.name}${priceLabel}`,
-      })
-    })
-  return options
-})
-
-const clientsAutocompleteList = computed(() =>
-  clientsList.value.filter((option) => option.value != null)
-)
-
-const servicesAutocompleteList = computed(() =>
-  servicesList.value.filter((option) => option.value != null)
-)
-
-const productsList = computed(() => {
-  const options: { value: string | number | null; label: string }[] = [
-    { value: null, label: "Seleccione un producto..." },
-  ]
-  productsStore.products
-    .filter((product) => belongsToSalon(product, clientSalonId.value))
-    .forEach((product) => {
-      const priceLabel =
-        product.price != null ? ` · ${formatCurrency(product.price)}` : ""
-      const stockLabel = ` · Stock: ${product.stockQuantity ?? 0}`
-      options.push({
-        value: product.id ?? null,
-        label: `${product.name}${priceLabel}${stockLabel}`,
-      })
-    })
-  return options
-})
-
-const productsAutocompleteList = computed(() =>
-  productsList.value.filter((option) => option.value != null)
-)
 
 const appointmentsAutocompleteList = computed(() =>
   clientAppointments.value.map((appointment) => ({
@@ -692,23 +601,8 @@ const fetchClientAppointments = async () => {
   }
 }
 
-const resolveCreatedClientId = (
-  created: Client | void,
-  submitted: Client
-): string | number | null => {
-  if (created?.id != null) return created.id
-
-  const normalizedFirstName = submitted.firstName.trim().toLowerCase()
-  const normalizedLastName = submitted.lastName.trim().toLowerCase()
-
-  const match = (clientsStore.data?.content ?? []).find(
-    (client) =>
-      client.firstName.trim().toLowerCase() === normalizedFirstName &&
-      client.lastName.trim().toLowerCase() === normalizedLastName
-  )
-
-  return match?.id ?? null
-}
+// The server answers with the created client; the picker finds it by id.
+const resolveCreatedClientId = (created: Client | void): string | number | null => created?.id ?? null
 
 const openCreateClientDialog = () => {
   clientDataModalForm.value = { action: "create" }
@@ -726,9 +620,7 @@ const handleCreateClient = async (client: Client) => {
       body: { ...client },
     })
 
-    await clientsStore.fetchClients(0, 100)
-
-    const newClientId = resolveCreatedClientId(created, client)
+    const newClientId = resolveCreatedClientId(created)
     if (newClientId != null) {
       sale.value.clientId = newClientId
     }
@@ -768,8 +660,8 @@ const applyAppointmentFields = (appointment: Appointment) => {
     }
     const firstItem = sale.value.items[0]
 
+    // The service picker finds the service by its id and offers its price.
     firstItem.serviceId = Number(appointment.serviceId)
-    applyServicePrice(firstItem)
 
     if (appointment.userId) {
       firstItem.userId = Number(appointment.userId)
@@ -811,32 +703,26 @@ const onAppointmentSelected = (appointmentId: number | null) => {
   applyAppointmentFields(appointment)
 }
 
-const getServiceById = (serviceId: number | string | null) =>
-  servicesStore.services.find(
-    (service) => String(service.id) === String(serviceId)
-  ) ?? null
+// The pickers hand over the whole record once they know it (also when the id came from an appointment). The price is
+// offered when the service changes, not every time the same one is read again.
+const onServiceSelected = (item: SaleItemForm, service: Service | null) => {
+  const changed = String(item.service?.id ?? "") !== String(service?.id ?? "")
+  item.service = service
+  if (!changed) return
 
-const applyServicePrice = (item: SaleItemForm) => {
-  const service = getServiceById(item.serviceId)
-  if (service?.price != null) {
-    item.unitPrice = Number(service.price)
-  }
+  item.unitPrice = service?.price != null ? Number(service.price) : undefined
 }
 
-const getProductById = (productId: number | string | null | undefined) =>
-  productsStore.products.find(
-    (product) => String(product.id) === String(productId)
-  ) ?? null
+const onProductSelected = (item: SaleProductItemForm, product: Product | null) => {
+  const changed = String(item.product?.id ?? "") !== String(product?.id ?? "")
+  item.product = product
+  if (!changed) return
 
-const applyProductPrice = (item: SaleProductItemForm) => {
-  const product = getProductById(item.productId)
-  if (product?.price != null) {
-    item.unitPrice = Number(product.price)
-  }
+  item.unitPrice = product?.price != null ? Number(product.price) : undefined
 }
 
 const productStockRule = (item: SaleProductItemForm) => (value: number) => {
-  const product = getProductById(item.productId)
+  const product = item.product
   if (!product) return true
 
   const stock = product.stockQuantity ?? 0
@@ -848,16 +734,14 @@ const productStockRule = (item: SaleProductItemForm) => (value: number) => {
 
 const estimatedItemsSubtotal = computed(() => {
   const servicesSubtotal = sale.value.items.reduce((total, item) => {
-    const service = getServiceById(item.serviceId)
-    const unitPrice = item.unitPrice ?? service?.price ?? 0
+    const unitPrice = item.unitPrice ?? item.service?.price ?? 0
     const quantity = Number(item.quantity) || 0
     const discount = Number(item.discountAmount) || 0
     return total + Math.max(0, unitPrice * quantity - discount)
   }, 0)
 
   const productsSubtotal = sale.value.productItems.reduce((total, item) => {
-    const product = getProductById(item.productId)
-    const unitPrice = item.unitPrice ?? product?.price ?? 0
+    const unitPrice = item.unitPrice ?? item.product?.price ?? 0
     const quantity = Number(item.quantity) || 0
     const discount = Number(item.discountAmount) || 0
     return total + Math.max(0, unitPrice * quantity - discount)
@@ -1078,21 +962,19 @@ watch(clientSalonId, () => {
     sale.value.branchId = null
   }
 
+  // Services and products of another salon cannot stay in the sale.
+  const ofOtherSalon = (record?: { salonId?: number | string | null } | null) =>
+    record?.salonId != null && clientSalonId.value != null && String(record.salonId) !== String(clientSalonId.value)
+
   sale.value.items.forEach((item) => {
-    const serviceAvailable = servicesList.value.some(
-      (option) => String(option.value) === String(item.serviceId)
-    )
-    if (!serviceAvailable) {
+    if (ofOtherSalon(item.service)) {
       item.serviceId = null as unknown as number
       item.unitPrice = undefined
     }
   })
 
   sale.value.productItems.forEach((item) => {
-    const productAvailable = productsList.value.some(
-      (option) => String(option.value) === String(item.productId)
-    )
-    if (!productAvailable) {
+    if (ofOtherSalon(item.product)) {
       item.productId = null as unknown as number
       item.unitPrice = undefined
     }
@@ -1113,12 +995,6 @@ watch(
 
 onMounted(() => {
   branchesStore.fetchBranches(0, 100)
-  clientsStore.fetchClients(0, 100)
-  usersStore.fetchUsers(0, 100)
-  servicesStore.fetchServices()
-  if (hasProductsFeature.value) {
-    productsStore.fetchProducts()
-  }
 })
 </script>
 
