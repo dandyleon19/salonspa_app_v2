@@ -44,9 +44,9 @@ const menuTitles = async () => {
 }
 
 describe("sidebar menu per role", () => {
-  it("SUPER_ADMIN manages the platform: salons, branches and users (no clients, appointments or sales)", async () => {
+  it("SUPER_ADMIN manages the platform: salons, branches and users (no clients, appointments, sales or reports)", async () => {
     signIn("SUPER_ADMIN")
-    expect(await menuTitles()).toEqual(["Dashboard", "Salones", "Sucursales", "Usuarios", "Citas", "Ventas", "Reportes"])
+    expect(await menuTitles()).toEqual(["Dashboard", "Salones", "Sucursales", "Usuarios"])
   })
 
   it("ADMIN_USER sees the whole salon menu, with settings, and not the platform's salons", async () => {
