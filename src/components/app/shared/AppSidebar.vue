@@ -84,6 +84,8 @@ const salonLogoSrc = computed(() => resolveUploadUrl(authStore.user?.salonLogoUr
 const brandName = computed(() => (salonLogoSrc.value ? salonName.value : "DF SalonSpa"))
 const canManageSalonSettings = computed(() => authStore.role === "ADMIN_USER")
 
+const SALON_ROLES = ["ADMIN_USER", "STAFF_USER"]
+
 const items = [
   { title: "Dashboard", icon: APP_ICONS.dashboard, to: "/app" },
   { title: "Salones", icon: APP_ICONS.salons, to: "/app/salons", onlyFor: ["SUPER_ADMIN"] },
@@ -100,9 +102,16 @@ const items = [
     onlyFor: ["SUPER_ADMIN", "ADMIN_USER"],
   },
   { title: "Clientes", icon: APP_ICONS.clients, to: "/app/clients", onlyFor: ["ADMIN_USER"] },
-  { title: "Citas", icon: APP_ICONS.appointments, to: "/app/appointments" },
-  { title: "Ventas", icon: APP_ICONS.sales, to: "/app/sales" },
-  { title: "Reportes", icon: APP_ICONS.reports, to: "/app/reports", feature: "reports" as FeatureKey },
+  // The platform owner (SUPER_ADMIN) does not work inside a salon: appointments, sales and reports are the salon's own.
+  { title: "Citas", icon: APP_ICONS.appointments, to: "/app/appointments", onlyFor: SALON_ROLES },
+  { title: "Ventas", icon: APP_ICONS.sales, to: "/app/sales", onlyFor: SALON_ROLES },
+  {
+    title: "Reportes",
+    icon: APP_ICONS.reports,
+    to: "/app/reports",
+    onlyFor: SALON_ROLES,
+    feature: "reports" as FeatureKey,
+  },
   {
     title: "Categorías de Servicio",
     icon: APP_ICONS.serviceCategories,

@@ -4,6 +4,7 @@ import { mockNuxtImport } from "@nuxt/test-utils/runtime"
 import { useAuthStore } from "~/store/modules/auth"
 import { useSubscriptionStore } from "~/store/modules/subscription"
 import roleMiddleware from "~/middleware/role"
+import platformMiddleware from "~/middleware/platform.global"
 import subscriptionMiddleware from "~/middleware/subscription.global"
 
 const { navigateToMock, showMock } = vi.hoisted(() => ({
@@ -57,6 +58,45 @@ describe("role middleware", () => {
   it("sends a visitor without a role away", () => {
     run(roleMiddleware, route("/app/clients", { allowedRoles: ["ADMIN_USER"] }))
     expect(navigateToMock).toHaveBeenCalledWith("/app")
+  })
+})
+
+describe("platform middleware (SUPER_ADMIN has the dashboard, the salons, and everyone's branches and users)", () => {
+  it.each(["/app", "/app/", "/app/salons", "/app/salons/", "/app/branches", "/app/users"])("lets SUPER_ADMIN into %s", (path) => {
+    signIn("SUPER_ADMIN")
+    expect(run(platformMiddleware, route(path))).toBeUndefined()
+    expect(navigateToMock).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    "/app/appointments",
+    "/app/appointments/calendar",
+    "/app/sales",
+    "/app/reports",
+    "/app/clients",
+    "/app/clients/3/clinical-records",
+    "/app/clinical-records",
+    "/app/service-categories",
+    "/app/product-categories",
+    "/app/settings",
+  ])("sends SUPER_ADMIN from %s to the dashboard", (path) => {
+    signIn("SUPER_ADMIN")
+    run(platformMiddleware, route(path))
+    expect(navigateToMock).toHaveBeenCalledWith("/app")
+  })
+
+  it.each(["ADMIN_USER", "STAFF_USER"] as Role[])("does not touch the navigation of %s", (role) => {
+    signIn(role)
+    expect(run(platformMiddleware, route("/app/appointments"))).toBeUndefined()
+    expect(navigateToMock).not.toHaveBeenCalled()
+  })
+
+  it("ignores pages outside /app and visitors that are not signed in", () => {
+    signIn("SUPER_ADMIN")
+    expect(run(platformMiddleware, route("/login"))).toBeUndefined()
+    setActivePinia(createPinia())
+    expect(run(platformMiddleware, route("/app/appointments"))).toBeUndefined()
+    expect(navigateToMock).not.toHaveBeenCalled()
   })
 })
 
