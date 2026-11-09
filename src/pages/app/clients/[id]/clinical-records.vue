@@ -197,10 +197,6 @@ definePageMeta({
   layout: "app",
 })
 
-useHead({
-  title: () => (patientFullName.value ? `Historial Clínico - ${patientFullName.value}` : "Historial Clínico"),
-})
-
 const route = useRoute()
 const clientId = Number(route.params.id)
 const authStore = useAuthStore()
@@ -230,6 +226,11 @@ const dataModalForm = ref<clinicalRecordDataModalForm>({
 const patientFullName = computed(() => {
   if (!clienteSelected.value) return ""
   return `${clienteSelected.value.firstName} ${clienteSelected.value.lastName}`.trim()
+})
+
+// Declared after patientFullName: the title reads it as soon as useHead runs.
+useHead({
+  title: () => (patientFullName.value ? `Historial Clínico - ${patientFullName.value}` : "Historial Clínico"),
 })
 
 const patientInitials = computed(() => {

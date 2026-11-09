@@ -69,16 +69,12 @@
           variant="tonal"
           color="primary"
           rounded="lg"
-          :disabled="!availableServices.length"
           @click="addRow"
         >
           <v-icon start>tabler:plus</v-icon>
           Agregar servicio
         </v-btn>
 
-        <p v-if="!availableServices.length && rows.length" class="text-caption text-medium-emphasis mb-0">
-          Ya asignaste comisión a todos los servicios disponibles.
-        </p>
       </div>
     </AppSkeletonTransition>
   </AppFormSection>

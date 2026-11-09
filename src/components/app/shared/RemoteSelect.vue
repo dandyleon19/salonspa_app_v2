@@ -47,7 +47,7 @@ interface RemoteRecord {
 
 const props = withDefaults(
   defineProps<{
-    modelValue: number | string | null
+    modelValue?: number | string | null
     kind: Kind
     label?: string
     /** Extra filters sent with every request, e.g. `{ isActive: true }`. */
@@ -60,7 +60,7 @@ const props = withDefaults(
     /** Only offer records of this salon (a platform admin sees every salon's records). */
     salonId?: number | string | null
   }>(),
-  { label: "", query: () => ({}), rules: () => [], disabled: false, detail: false, salonId: null }
+  { modelValue: null, label: "", query: () => ({}), rules: () => [], disabled: false, detail: false, salonId: null }
 )
 
 const emit = defineEmits<{
