@@ -33,8 +33,8 @@
 
   <ConfirmationModal
       v-model="showDeleteDialog"
-      title="Eliminar usuario"
-      message="¿Deseas eliminar este clinicalRecorde? Esta acción no se puede deshacer."
+      title="Eliminar historial clínico"
+      message="¿Deseas eliminar este historial clínico? Esta acción no se puede deshacer."
       :require-text="false"
       @confirm="handleDeleteClinicalRecord"
   />
@@ -46,6 +46,7 @@ import type { FilterOption, TableHeader, TableRowOption } from "~/interfaces/tab
 import type { ClinicalRecord, clinicalRecordDataModalForm } from "~/interfaces/clinicalRecordInterfaces";
 import { useClinicalRecordsStore } from "~/store/modules/clinicalRecord";
 import { useAuthStore } from "~/store/modules/auth";
+import { formatDateDisplay, formatTimeDisplay, splitIsoDateTime } from "~/helpers/dateTimeHelpers";
 
 definePageMeta({
   layout: 'app'
@@ -66,14 +67,15 @@ const clinicalRecordToRemove = ref<ClinicalRecord>()
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 
+// The columns are the fields a clinical record really has (the client is not part of the list response).
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
-  { title: "Nombres", key: "firstName" },
-  { title: "Apellidos", key: "lastName" },
-  { title: "Nro Documento", key: "documentNumber" },
-  { title: "Teléfono", key: "phone" },
-  { title: "Email", key: "email" },
-  { title: "Cumpleaños", key: "birthDate" },
+  { title: "Fecha de sesión", key: "sessionDateLabel", card: "subtitle" },
+  { title: "Profesional", key: "userName", card: "subtitle" },
+  { title: "Diagnóstico", key: "diagnosis", card: "title" },
+  { title: "Tratamiento", key: "treatment" },
+  { title: "Sucursal", key: "branchName" },
+  { title: "Servicios", key: "servicesLabel" },
   { title: "Acciones", key: "actions", sortable: false },
 ]);
 
@@ -102,7 +104,15 @@ const dataModalForm = ref<clinicalRecordDataModalForm>({
 
 // Computed
 const clinicalRecordsList = computed(() => {
-  return clinicalRecordsStore.data?.content ?? [];
+  return (clinicalRecordsStore.data?.content ?? []).map((record: ClinicalRecord) => {
+    const { date, time } = splitIsoDateTime(record.sessionDate);
+
+    return {
+      ...record,
+      sessionDateLabel: date ? `${formatDateDisplay(date)} · ${formatTimeDisplay(time)}` : "",
+      servicesLabel: (record.associatedServices ?? []).join(", "),
+    };
+  });
 });
 
 const totalItems = computed(() => {

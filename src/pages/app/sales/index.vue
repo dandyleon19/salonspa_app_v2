@@ -5,6 +5,7 @@
     :headers="tableHeaders"
     :row-options="tableRowOptions"
     :get-row-options="getSaleRowOptions"
+    row-click-action="view"
     :filters="tableFilters"
     :items="salesList"
     :chip-columns="saleChipColumns"
@@ -210,7 +211,7 @@ const tableHeaders = computed<TableHeader[]>(() => {
   const base: TableHeader[] = [
     { title: "ID", key: "id" },
     { title: "Cliente", key: "clientLabel" },
-    { title: "Sucursal", key: "branchLabel" },
+    { title: "Sucursal", key: "branchLabel", card: "subtitle" },
     { title: "Total", key: "totalLabel" },
     { title: "Cobrado", key: "paidLabel" },
     { title: "Pendiente", key: "pendingLabel" },
@@ -309,6 +310,7 @@ const getSaleRowOptions = (item: Sale): TableRowOption[] => {
       color: "success",
       icon: "tabler:cash-banknote",
       title: "Agregar pago",
+      primary: true,
     })
   }
 

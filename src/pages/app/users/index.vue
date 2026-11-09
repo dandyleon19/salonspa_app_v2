@@ -131,7 +131,7 @@ const headers = computed<TableHeader[]>(() => {
   const base: TableHeader[] = [
     { title: "ID", key: "id" },
     { title: "Nombre", key: "fullName" },
-    { title: "Email", key: "email" },
+    { title: "Email", key: "email", card: "subtitle" },
     { title: "Rol", key: "roleLabel" },
     { title: "Estado", key: "statusLabel" },
     { title: "Última sesión", key: "lastLoginLabel" },
@@ -181,6 +181,7 @@ const getUserRowOptions = (item: User & { tableActions?: UserTableAction[] }) =>
       color: "primary",
       icon: "tabler:pencil",
       title: "Editar",
+      primary: true,
     },
     {
       action: "changePassword",

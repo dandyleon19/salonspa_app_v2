@@ -78,7 +78,7 @@ const headers = computed<TableHeader[]>(() => {
   const base: TableHeader[] = [
     { title: "ID", key: "id" },
     { title: "Nombre", key: "name" },
-    { title: "Dirección", key: "address" },
+    { title: "Dirección", key: "address", card: "subtitle" },
     { title: "Ciudad", key: "city" },
   ]
 

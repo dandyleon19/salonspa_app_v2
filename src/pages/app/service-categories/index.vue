@@ -96,8 +96,8 @@ const activeSearch = ref("")
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
   { title: "Nombre", key: "name" },
-  { title: "Descripción", key: "description" },
-  { title: "Descripción Larga", key: "longDescription" },
+  { title: "Descripción", key: "description", card: "subtitle" },
+  { title: "Descripción Larga", key: "longDescription", card: "hidden" },
   { title: "Servicios", key: "servicesCountLabel" },
   { title: "Acciones", key: "actions", sortable: false },
 ]);

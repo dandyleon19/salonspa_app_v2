@@ -138,8 +138,8 @@ const itemsPerPage = ref(10)
 const headers = ref<Array<TableHeader>>([
   { title: "ID", key: "id" },
   { title: "Nombre", key: "name" },
-  { title: "Razón Social", key: "socialReason" },
-  { title: "Dirección", key: "fiscalAddress" },
+  { title: "Razón Social", key: "socialReason", card: "subtitle" },
+  { title: "Dirección", key: "fiscalAddress", card: "hidden" },
   { title: "Ruc", key: "rucNumber" },
   { title: "Teléfono", key: "phone" },
   { title: "Plan", key: "planName" },

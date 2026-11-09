@@ -94,10 +94,10 @@ const activeSearch = ref("")
 
 const headers = ref<Array<TableHeader>>([
   {title: "ID", key: "id"},
-  {title: "Nombres", key: "firstName"},
-  {title: "Apellidos", key: "lastName"},
+  {title: "Nombres", key: "firstName", card: "title"},
+  {title: "Apellidos", key: "lastName", card: "title"},
   {title: "Nro Documento", key: "documentNumber"},
-  {title: "Teléfono", key: "phone"},
+  {title: "Teléfono", key: "phone", card: "subtitle"},
   {title: "Email", key: "email"},
   {title: "Cumpleaños", key: "birthDate"},
   {title: "Acciones", key: "actions", sortable: false},

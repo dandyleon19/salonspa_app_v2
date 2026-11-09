@@ -53,6 +53,13 @@
       </v-btn>
     </template>
 
+    <template #item.scheduleLabel="{ item }">
+      <div class="appointment-schedule">
+        <span class="appointment-schedule__date">{{ item.startAtDate }}</span>
+        <span class="appointment-schedule__time text-caption text-medium-emphasis">{{ item.timeRangeLabel }}</span>
+      </div>
+    </template>
+
     <template #item.clientLabel="{ item }">
       <button
         type="button"
@@ -61,7 +68,15 @@
         :disabled="item.clientLabel === '—'"
         @click="openClientContact(item)"
       >
-        <span class="appointment-client-cell__name">{{ item.clientLabel }}</span>
+        <span class="appointment-client-cell__name">
+          {{ item.clientLabel }}
+          <v-icon
+            v-if="item.notes && item.notes !== '—'"
+            size="14"
+            class="appointment-client-cell__notes"
+            :title="item.notes"
+          >tabler:notes</v-icon>
+        </span>
         <span
           v-if="item.clientPhone"
           class="appointment-client-cell__phone text-caption text-medium-emphasis"
@@ -137,11 +152,10 @@ const baseHeaders: TableHeader[] = [
   { title: "Profesional", key: "userLabel" },
   { title: "Sucursal", key: "branchLabel" },
   { title: "Servicio", key: "serviceLabel" },
-  { title: "Inicio", key: "startAtDate" },
-  { title: "Hora inicio", key: "startAtTime" },
-  { title: "Hora fin", key: "endAtTime" },
+  { title: "Fecha y hora", key: "scheduleLabel" },
   { title: "Estado", key: "statusLabel" },
-  { title: "Notas", key: "notes" },
+  // The notes are a small icon next to the client in the table (its tooltip); in a card they are a field.
+  { title: "Notas", key: "notes", cardOnly: true },
 ]
 
 const manageRowOptions: TableRowOption[] = []
@@ -176,12 +190,15 @@ const isAppointmentUpcoming = (item: Appointment) =>
 const getAppointmentRowOptions = (
   item: Appointment & { statusActions?: AppointmentStatus[] }
 ): TableRowOption[] => {
+  // On phones and tablets the first status action (the one that moves the appointment forward) and "Editar" stay in
+  // the row; the others go to the "more actions" sheet.
   const statusOptions: TableRowOption[] = (item.statusActions ?? []).map(
-    (status) => ({
+    (status, index) => ({
       action: `status:${status}`,
       icon: getStatusActionIcon(status),
       color: getStatusActionColor(status),
       title: getStatusActionLabel(status),
+      primary: index === 0,
     })
   )
 
@@ -205,6 +222,7 @@ const getAppointmentRowOptions = (
       color: "primary",
       icon: "tabler:pencil",
       title: "Editar",
+      primary: true,
     },
     {
       action: "delete",
@@ -279,6 +297,14 @@ const resolveLabel = (
   return `#${id}`
 }
 
+// "9:00 AM" and "9:30 AM" become "9:00 – 9:30 AM"; across noon both periods stay ("11:30 AM – 12:30 PM").
+const formatTimeRange = (start: string, end: string) => {
+  if (!end || end === "—") return start
+  const [startClock, startPeriod] = start.split(" ")
+  const [, endPeriod] = end.split(" ")
+  return startPeriod && startPeriod === endPeriod ? `${startClock} – ${end}` : `${start} – ${end}`
+}
+
 const appointmentsList = computed(() => {
   return (appointmentsStore.data?.content ?? []).map((appointment: Appointment) => {
     const { date: startDate, time: startTime } = splitIsoDateTime(appointment.startAt)
@@ -293,6 +319,8 @@ const appointmentsList = computed(() => {
       startAtDate: formatDateDisplay(startDate),
       startAtTime: formatTimeDisplay(startTime),
       endAtTime: formatTimeDisplay(endTime),
+      timeRangeLabel: formatTimeRange(formatTimeDisplay(startTime), formatTimeDisplay(endTime)),
+      scheduleLabel: `${formatDateDisplay(startDate)} · ${formatTimeRange(formatTimeDisplay(startTime), formatTimeDisplay(endTime))}`,
       statusLabel: getAppointmentStatusLabel(appointment.status),
       statusActions: getAppointmentStatusActions(appointment.status),
       notes: appointment.notes || "—",
@@ -458,6 +486,26 @@ onMounted(async () => {
   white-space: normal;
   overflow: visible;
   text-overflow: clip;
+  min-width: 11.5rem;
+  max-width: 16rem !important;
+}
+
+.appointment-client-cell__notes {
+  margin-left: 0.25rem;
+  vertical-align: -2px;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+}
+
+/* In a card the notes are a field of their own. */
+.app-card .appointment-client-cell__notes {
+  display: none;
+}
+
+.appointment-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
 }
 
 .appointments-quick__label {
